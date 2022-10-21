@@ -7,7 +7,7 @@ int main(int argc, char** argv)
 {
     try 
     {
-        inferno::InfernoHART inferno(argc, argv);
+        core::Inferno inferno(argc, argv);
         return inferno.run();
     }
     catch (std::exception e) 

@@ -2,12 +2,11 @@
 
 #include "window.hpp"
 
-namespace inferno 
-{
-class InfernoHART
+namespace core {
+class Inferno
 {
 public:
-    InfernoHART(int argc, char** argv);
+    Inferno(int argc, char** argv);
     int run();
 
 private:

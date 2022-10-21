@@ -4,8 +4,11 @@ project(inferno)
 file(GLOB_RECURSE SRC "src/*.cpp" "src/*.c")
 
 add_executable(inferno ${SRC})
+target_include_directories(inferno PRIVATE "libhart/")
 target_include_directories(inferno PRIVATE "src/")
 target_include_directories(inferno PRIVATE "src/thirdparty")
+
+add_subdirectory("hart/inferno-hart-cpu")
 
 # Compiler arguments
 if (WIN32)

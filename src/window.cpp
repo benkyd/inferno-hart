@@ -3,7 +3,7 @@
 #include "spdlog/spdlog.h"
 #include "gl.h"
 
-using namespace inferno;
+using namespace core;
 
 Window::Window(std::string title, int width, int height) 
 {

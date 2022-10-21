@@ -8,9 +8,16 @@
 #include <memory>
 #include <chrono>
 
-using namespace inferno;
+#ifdef _WIN32
+// TODO: DLLs
+#else
+#include <dlfcn.h>
+#endif
+#include <inferno_hart.hpp>
 
-InfernoHART::InfernoHART(int argc, char** argv) {
+using namespace core;
+
+Inferno::Inferno(int argc, char** argv) {
     // MOTD
     spdlog::info("- INFERNO HART v" INFERNO_VERSION);
 
@@ -18,7 +25,20 @@ InfernoHART::InfernoHART(int argc, char** argv) {
     win = new Window("Inferno v" INFERNO_VERSION, 1280, 720);
 }
 
-int InfernoHART::run() {
+int Inferno::run() {
+
+    /* on Linux, use "./myclass.so" */
+    void* handle = dlopen("hart/inferno-hart-cpu/hart_cpu_accel.so", RTLD_LAZY);
+
+    HART::Accelerator* (*get)();
+    void (*destroy)(HART::Accelerator*);
+
+    get = (HART::Accelerator* (*)())dlsym(handle, "get");
+    destroy = (void (*)(HART::Accelerator*))dlsym(handle, "destroy");
+
+    HART::Accelerator* myClass = (HART::Accelerator*)get();
+    myClass->Init();
+    destroy( myClass );
 
     while (true) {
         if (win->newFrame()) { break; }
