@@ -30,8 +30,6 @@ int Inferno::run()
         ImGui::Begin("Inferno HART");
         ImGui::End();
 
-            
-
         // check err
         GLenum err;
         while((err = glGetError()) != GL_NO_ERROR) {
