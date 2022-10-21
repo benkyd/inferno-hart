@@ -27,17 +27,10 @@ int Inferno::run()
     while (true) {
         if (!mWin->newFrame()) { break; }
 
-        ImGui::ShowDemoWindow();
-
-        ImGuiIO& io = ImGui::GetIO();
-        io.FontGlobalScale = 2.0f;
-
-        ImGui::Begin("LeftPane");
-        ImGui::SetWindowPos({0, 0});
-        ImGui::SetWindowSize({100, ImGui::GetWindowHeight()});
-
-
+        ImGui::Begin("Inferno HART");
         ImGui::End();
+
+            
 
         // check err
         GLenum err;
