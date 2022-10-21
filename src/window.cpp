@@ -50,11 +50,11 @@ void Window::getPos(int& x, int& y)
 bool Window::newFrame() 
 {
     glfwPollEvents();
-    if (glfwWindowShouldClose(window)) { return true; }
+    if (glfwWindowShouldClose(window)) { return false; }
 
     glfwGetWindowSize(window, &width, &height);
 
-    glClearColor(1.0, 0.0, 0.0, 1.0);
+    glClearColor(0.1, 0.1, 0.1, 1.0);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
     ImGui_ImplOpenGL3_NewFrame();
@@ -62,16 +62,16 @@ bool Window::newFrame()
     ImGui::NewFrame();
 
     // removed this for now, draws semitransparent over opengl
-    // ImGui::Begin("Main", NULL, WINDOW_FLAGS);
-    // ImGui::SetWindowPos(ImVec2(0, 0));
-    // ImGui::SetWindowSize(ImVec2(width, height));
+    ImGui::Begin("Main", NULL, WINDOW_FLAGS);
+    ImGui::SetWindowPos(ImVec2(0, 0));
+    ImGui::SetWindowSize(ImVec2(width, height));
 
-    return false;
+    return true;
 }
 
 void Window::render() 
 {
-    // ImGui::End();
+    ImGui::End();
     ImGui::Render();
     auto io = ImGui::GetIO();
     glViewport(0, 0, (int)io.DisplaySize.x, (int)io.DisplaySize.y);

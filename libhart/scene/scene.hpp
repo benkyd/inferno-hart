@@ -5,6 +5,6 @@ namespace core::scene {
 class RenderWorld 
 {
 
-}
+};
 
 }

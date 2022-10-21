@@ -1,6 +1,8 @@
 #include "inferno.hpp"
 
 #include "version.hpp"
+#include "gui/gui.hpp"
+
 #include "imgui/imgui.h"
 #include "spdlog/spdlog.h"
 
@@ -8,46 +10,34 @@
 #include <memory>
 #include <chrono>
 
-#ifdef _WIN32
-// TODO: DLLs
-#else
-#include <dlfcn.h>
-#endif
-#include <inferno_hart.hpp>
-
 using namespace core;
 
-Inferno::Inferno(int argc, char** argv) {
+Inferno::Inferno(int argc, char** argv) 
+{
     // MOTD
     spdlog::info("- INFERNO HART v" INFERNO_VERSION);
 
     // Create window
-    win = new Window("Inferno v" INFERNO_VERSION, 1280, 720);
+    mWin = new Window("Inferno v" INFERNO_VERSION, 1280, 720);
 }
 
-int Inferno::run() {
-
-    /* on Linux, use "./myclass.so" */
-    void* handle = dlopen("hart/inferno-hart-cpu/hart_cpu_accel.so", RTLD_LAZY);
-
-    HART::Accelerator* (*get)();
-    void (*destroy)(HART::Accelerator*);
-
-    get = (HART::Accelerator* (*)())dlsym(handle, "get");
-    destroy = (void (*)(HART::Accelerator*))dlsym(handle, "destroy");
-
-    HART::Accelerator* myClass = (HART::Accelerator*)get();
-    myClass->Init();
-    destroy( myClass );
+int Inferno::run() 
+{
 
     while (true) {
-        if (win->newFrame()) { break; }
+        if (!mWin->newFrame()) { break; }
 
-        static bool demo = false;
-        ImGui::Checkbox("ImGui Demo", &demo);
-        if (demo) {
-            ImGui::ShowDemoWindow();
-        }
+        ImGui::ShowDemoWindow();
+
+        ImGuiIO& io = ImGui::GetIO();
+        io.FontGlobalScale = 2.0f;
+
+        ImGui::Begin("LeftPane");
+        ImGui::SetWindowPos({0, 0});
+        ImGui::SetWindowSize({100, ImGui::GetWindowHeight()});
+
+
+        ImGui::End();
 
         // check err
         GLenum err;
@@ -65,9 +55,9 @@ int Inferno::run() {
             std::cout << "[GL]: " << error << std::endl;
         }    
         
-        win->render();
+        mWin->render();
     }
 
-    delete win;
+    delete mWin;
     return 0;
 }

@@ -10,6 +10,6 @@ public:
     int run();
 
 private:
-    Window* win = NULL;
+    Window* mWin = NULL;
 };
 }
