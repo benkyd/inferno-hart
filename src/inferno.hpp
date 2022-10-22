@@ -8,6 +8,7 @@ class Inferno
 public:
     Inferno(int argc, char** argv);
     int run();
+    void uiPreset();
 
 private:
     Window* mWin = NULL;

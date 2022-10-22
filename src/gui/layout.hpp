@@ -2,7 +2,7 @@
 
 namespace core::GUI {
 
-class BarUI 
+class Layout 
 {
     
 };

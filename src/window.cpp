@@ -3,6 +3,7 @@
 #include "spdlog/spdlog.h"
 #include "gl.h"
 
+
 using namespace core;
 
 Window::Window(std::string title, int width, int height) 
@@ -61,8 +62,7 @@ bool Window::newFrame()
     ImGui_ImplGlfw_NewFrame();
     ImGui::NewFrame();
 
-    // removed this for now, draws semitransparent over opengl
-    ImGui::Begin("Main", NULL, WINDOW_FLAGS);
+    ImGui::Begin("main", nullptr, WINDOW_FLAGS);
     ImGui::SetWindowPos(ImVec2(0, 0));
     ImGui::SetWindowSize(ImVec2(width, height));
 
