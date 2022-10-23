@@ -1,10 +1,21 @@
 #pragma once
 
-namespace core::scene {
+#include <vector>
 
-class RenderWorld 
+namespace core::rendering {
+
+class SceneObject;
+
+class Scene 
 {
+public:
+    Scene();
+    ~Scene();
 
+    SceneObject* newObject();
+
+private:
+    std::vector<SceneObject*> mObjects;
 };
 
 }
