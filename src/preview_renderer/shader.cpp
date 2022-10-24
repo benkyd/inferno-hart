@@ -9,7 +9,7 @@ static std::unordered_map<GLuint, int> Shader2Index = {
 	{GL_FRAGMENT_SHADER, 2}
 };
 
-using namespace core::rendering;
+using namespace inferno;
 
 std::string textFromFile(const std::filesystem::path& path) {
     std::ifstream input(path);

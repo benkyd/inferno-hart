@@ -2,14 +2,14 @@
 
 #include <iostream>
 
-using namespace core::HART;
+using namespace inferno;
 
-extern "C" core::HART::Accelerator* get()
+extern "C" Accelerator* get()
 {
-    return new core::HART::Accelerator;
+    return new Accelerator;
 }
 
-extern "C" void destroy(core::HART::Accelerator* inst)
+extern "C" void destroy(Accelerator* inst)
 {
     delete inst;
 }

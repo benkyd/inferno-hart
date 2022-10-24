@@ -1,6 +1,6 @@
 #pragma once
 
-namespace core::HART {
+namespace inferno {
 
 enum ACCEL_TYPE
 {

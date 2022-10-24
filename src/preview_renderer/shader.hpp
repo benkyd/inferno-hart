@@ -8,7 +8,7 @@
 #include <filesystem>
 #include <unordered_map>
 
-namespace core::rendering {
+namespace inferno {
 
 class _Shader : public std::enable_shared_from_this<_Shader> {
 public:

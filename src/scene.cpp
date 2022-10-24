@@ -2,7 +2,7 @@
 
 #include <scene/object.hpp>
 
-using namespace core::rendering;
+using namespace inferno;
 
 Scene::Scene()
 {

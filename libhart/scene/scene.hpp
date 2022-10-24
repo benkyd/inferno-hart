@@ -2,7 +2,7 @@
 
 #include <vector>
 
-namespace core::rendering {
+namespace inferno {
 
 class SceneObject;
 

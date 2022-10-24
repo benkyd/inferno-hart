@@ -1,6 +1,6 @@
 #pragma once
 
-namespace core::GUI {
+namespace inferno {
 
 class Layout 
 {
