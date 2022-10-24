@@ -1,4 +1,5 @@
 #include <inferno_hart.hpp>
+#include <scene/mesh.hpp>
 
 #include <iostream>
 
@@ -6,6 +7,7 @@ using namespace inferno;
 
 extern "C" Accelerator* get()
 {
+    Mesh* mesh = new Mesh();
     return new Accelerator;
 }
 
