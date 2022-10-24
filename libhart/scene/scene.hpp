@@ -5,6 +5,7 @@
 namespace inferno {
 
 class SceneObject;
+class Sky;
 
 class Scene 
 {
@@ -16,6 +17,7 @@ public:
 
 private:
     std::vector<SceneObject*> mObjects;
+    Sky* mCurrentSky;
 };
 
 }
