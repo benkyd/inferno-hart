@@ -8,6 +8,32 @@ This combined with it's full functionality through Julia makes Inferno HART a ve
 
 ## Features
 
+## Building
+
+Create a build directory `inferno-hart/build/`
+
+### Windows
+
+Install [VCPKG](https://vcpkg.io/en/getting-started.html)
+- Install OpenGL
+- Install GLFW3
+
+`cd build`
+
+Set up compiler with `cmake .. "-DCMAKE_TOOLCHAIN_FILE=[path to vcpkg]/scripts/buildsystems/vcpkg.cmake" -G "VS Version"`
+
+Compile with `cmake --build . --config Release/Debug/RelDebInfo`
+
+## Linux (x64)
+
+Install GLFW3 via your favorite package manager
+
+`cd build`
+
+Set up compiler with `cmake ..`
+
+compile with `make -j[threads]`
+
 ## Technologies
 
 - OpenGL, utilised with GLAD and GLFW
