@@ -45,11 +45,16 @@ ObjLoader::ObjLoader()
 
 }
 
+ObjLoader::~ObjLoader()
+{
+
+}
+
 void ObjLoader::load(std::filesystem::path file)
 {
     if (!std::filesystem::exists(file))
     {
-        spdlog::error("OBJ File does not exist at ", file);
+        spdlog::error("OBJ File does not exist at ", file.string());
         return;
     }
 
@@ -57,7 +62,7 @@ void ObjLoader::load(std::filesystem::path file)
     inf.open(file.c_str(), std::ios_base::in);
     if (!inf.is_open()) 
     {
-        spdlog::error("Failed to open OBJ file ", file);
+        spdlog::error("Failed to open OBJ file ", file.string());
         return;
     }
 

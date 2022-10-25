@@ -1,10 +1,20 @@
 #pragma once
 
 #include <vector>
+#include <filesystem>
 
 #include <hart_graphics.hpp>
 
 namespace inferno {
+
+class ObjLoader;
+
+struct Vert
+{
+    glm::vec3 Position;
+    glm::vec3 Normal;
+    glm::vec2 UV;
+};
 
 class Mesh 
 {
@@ -12,7 +22,7 @@ public:
     Mesh();
     ~Mesh();
 
-    void loadOBJ();
+    void loadOBJ(std::filesystem::path file);
     void ready();
 
     void getVerticies(std::vector<glm::vec3>* vert,
@@ -23,17 +33,17 @@ public:
 public:
     GLuint getVAO();
     GLuint getVBO();
+    GLuint getEBO();
 
 private:
     GLuint mVAO;
     GLuint mVBO;
+    GLuint mEBO;
     glm::mat4 mModel;
 
 private:
-    std::vector<glm::vec3> mVerticies;
-    std::vector<glm::vec3> mNormals;
-    std::vector<glm::vec2> mUVs;
-
+    ObjLoader* mObjLoader;
+    std::vector<Vert> mVerticies;
 };
 
 }

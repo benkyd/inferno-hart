@@ -2,13 +2,17 @@
 
 #include "spdlog/spdlog.h"
 
-using namespace core;
+using namespace inferno;
 
 Window::Window(std::string title, int width, int height) 
 {
     this->width = width;
     this->height = height;
     setupGLFW(title);
+
+    glfwSetKeyCallback(getGLFWWindow(), glfwKeyCallback);
+    glfwSetCursorPosCallback(getGLFWWindow(), glfwMouseCallback);
+
     setupImGui();
 }
 
@@ -145,6 +149,16 @@ void Window::shutdownGLFW()
 {
     glfwDestroyWindow(window);
     glfwTerminate();
+}
+
+void Window::glfwKeyCallback(GLFWwindow* window, int key, int scancode, int action, int mods)
+{
+
+}
+
+void Window::glfwMouseCallback(GLFWwindow* window, double xpos, double ypos)
+{
+
 }
 
 void Window::glfwErrorCallback(int error, const char* description) {

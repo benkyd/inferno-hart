@@ -2,6 +2,7 @@
 
 #include <version.hpp>
 #include "gui/layout.hpp"
+#include "window.hpp"
 
 #include <graphics.hpp>
 #include <spdlog/spdlog.h>
@@ -10,7 +11,7 @@
 #include <memory>
 #include <chrono>
 
-using namespace core;
+namespace inferno {
 
 Inferno::Inferno(int argc, char** argv) 
 {
@@ -19,6 +20,11 @@ Inferno::Inferno(int argc, char** argv)
 
     // Create window
     mWin = new Window("Inferno v" INFERNO_VERSION, 1280, 720);
+}
+
+Inferno::~Inferno()
+{
+
 }
 
 void Inferno::uiPreset() 
@@ -39,6 +45,7 @@ void Inferno::uiPreset()
 
 int Inferno::run() 
 {
+
     while (true) {
         if (!mWin->newFrame()) { break; }
         ImGuiID dockspace_id = ImGui::GetID("main");
@@ -100,4 +107,6 @@ int Inferno::run()
 
     delete mWin;
     return 0;
+}
+
 }

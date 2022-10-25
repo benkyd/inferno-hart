@@ -6,7 +6,9 @@
 
 #define WINDOW_FLAGS ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoBringToFrontOnFocus | ImGuiWindowFlags_NoNavFocus | ImGuiWindowFlags_MenuBar | ImGuiWindowFlags_NoBackground | ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoCollapse
 
-namespace core {
+namespace inferno {
+
+
 
 class Window
 {
@@ -25,11 +27,16 @@ public:
     void getPos(int& x, int& y);
     GLFWwindow* getGLFWWindow() { return window; }
 
+
+
 private:
     void setupGLFW(std::string title);
     void setupImGui();
     void shutdownImGui();
     void shutdownGLFW();
+
+    static void glfwKeyCallback(GLFWwindow* window, int key, int scancode, int action, int mods);
+    static void glfwMouseCallback(GLFWwindow* window, double xpos, double ypos);
 
     static void glfwErrorCallback(int error, const char* description);
 

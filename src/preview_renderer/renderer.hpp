@@ -1,5 +1,7 @@
 #pragma once
 
+#include <graphics.hpp>
+
 namespace inferno {
 
 class Camera;
@@ -12,9 +14,10 @@ public:
     ~RasterizeRenderer();
 
     void setScene(Scene* scene);
+    void setTarget(GLuint renderTarget);
 
     void prepare();
-    void pass();
+    void draw();
 
 private:
     Camera* mCurrentCamera;

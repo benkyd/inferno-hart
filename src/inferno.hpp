@@ -1,16 +1,32 @@
 #pragma once
 
-#include "window.hpp"
 
-namespace core {
+namespace inferno {
+
+class Window;
+class GLFWwindow;
+
+
+class RasterizeRenderer;
+class Scene;
+
+
 class Inferno
 {
 public:
     Inferno(int argc, char** argv);
-    int run();
+    ~Inferno();
+
     void uiPreset();
+    int run();
 
 private:
-    Window* mWin = NULL;
+    RasterizeRenderer* mRasterRenderer;
+    
+    Scene* mScene;
+
+private:
+    Window* mWin;
 };
+
 }

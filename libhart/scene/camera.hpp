@@ -1,28 +1,47 @@
 #pragma once
 
-#include <thirdparty/glm/glm.hpp>
+#include <glm/glm.hpp>
+#include <glm/gtc/matrix_transform.hpp>
 
 namespace inferno {
 
-class Camera
-{
+class Camera {
 public:
-    Camera();
-    ~Camera();
+	Camera();
+	Camera(int w, int h);
 
+	void UpdateView();
+
+	glm::mat4 GetViewMatrix();
+	glm::mat4 GetProjectionMatrix();
+	glm::mat4 GetFrustrumMatrix();
+
+	void UpdateProjection(int width, int height);
+
+	// Keyboard
+	void MoveCamera(glm::vec3 posDelta);
+	// Mouse Delta
+	void MouseMoved(glm::vec2 mouseDelta);
+
+	// Updatable by 
+	float MouseSensitivity = 0.1f;
+	float CameraSpeed = 2.0f;
+
+	void UpdatePosition(glm::vec3 position);
+	void UpdateEulerLookDirection(float roll, float pitch, float yaw);
+	void UpdateLookDirection(glm::vec3 lookDirection);
+
+	glm::vec3 Position = {};
+	float Roll, Pitch, Yaw;
+	glm::vec3 LookDirection = {};
 
 private:
-    // View
-    glm::vec3 Eye;
-    glm::vec3 Target;
-    glm::vec3 Up;
- 
-    // Projection
-    float FovY;
-    float Aspect;
-    float ZNear;
 
+	glm::mat4 viewMatrix = {};
+	glm::mat4 projMatrix = {};
+	
 };
+
 
 }
 
