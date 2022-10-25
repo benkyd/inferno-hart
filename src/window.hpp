@@ -2,19 +2,23 @@
 
 #include <string>
 
+#include "singleton.hpp"
 #include "graphics.hpp"
 
 #define WINDOW_FLAGS ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoBringToFrontOnFocus | ImGuiWindowFlags_NoNavFocus | ImGuiWindowFlags_MenuBar | ImGuiWindowFlags_NoBackground | ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoCollapse
 
 namespace inferno {
 
+typedef void (*KeyCallback)(int key, int scan, int action, int mod);
+typedef void (*MouseCallback)(double x, double y);
 
-
-class Window
+class Window : public helpers::Singleton<Window>
 {
 public:
-    Window(std::string title, int width, int height);
+    Window();
     ~Window();
+
+    void init(std::string title, int width, int height);
 
     bool newFrame();
     void render();
@@ -27,7 +31,10 @@ public:
     void getPos(int& x, int& y);
     GLFWwindow* getGLFWWindow() { return window; }
 
-
+    void setKeyCallback(KeyCallback callback);
+    void setMouseCallback(MouseCallback callback);
+    KeyCallback getKeyCallback();
+    MouseCallback getMouseCallback();
 
 private:
     void setupGLFW(std::string title);
@@ -37,6 +44,8 @@ private:
 
     static void glfwKeyCallback(GLFWwindow* window, int key, int scancode, int action, int mods);
     static void glfwMouseCallback(GLFWwindow* window, double xpos, double ypos);
+    KeyCallback mKeyCallback = nullptr;
+    MouseCallback mMouseCallback = nullptr;
 
     static void glfwErrorCallback(int error, const char* description);
 

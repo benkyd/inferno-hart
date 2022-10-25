@@ -19,7 +19,8 @@ Inferno::Inferno(int argc, char** argv)
     spdlog::info("INFERNO HART v" INFERNO_VERSION);
 
     // Create window
-    mWin = new Window("Inferno v" INFERNO_VERSION, 1280, 720);
+    mWin = &Window::GetInstance();
+    mWin->init("Inferno v" INFERNO_VERSION, 1280, 720);
 }
 
 Inferno::~Inferno()
