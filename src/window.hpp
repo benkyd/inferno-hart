@@ -12,6 +12,12 @@ namespace inferno {
 typedef void (*KeyCallback)(int key, int scan, int action, int mod);
 typedef void (*MouseCallback)(double x, double y);
 
+enum WINDOW_MODE
+{
+    WIN_MODE_DEFAULT,
+    WIN_MODE_FPS,
+};
+
 class Window : public helpers::Singleton<Window>
 {
 public:
@@ -31,10 +37,15 @@ public:
     void getPos(int& x, int& y);
     GLFWwindow* getGLFWWindow() { return window; }
 
+    void setFPSMode();
+
     void setKeyCallback(KeyCallback callback);
     void setMouseCallback(MouseCallback callback);
     KeyCallback getKeyCallback();
     MouseCallback getMouseCallback();
+
+private:
+    WINDOW_MODE mWinMode = WIN_MODE_DEFAULT;
 
 private:
     void setupGLFW(std::string title);
@@ -47,8 +58,8 @@ private:
     KeyCallback mKeyCallback = nullptr;
     MouseCallback mMouseCallback = nullptr;
 
+private:
     static void glfwErrorCallback(int error, const char* description);
-
 
     int width, height;
     const char* glslVersion;

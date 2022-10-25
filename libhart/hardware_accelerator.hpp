@@ -5,7 +5,7 @@ namespace inferno {
 
 enum ACCEL_TYPE
 {
-    RAY_TRI_ONLY,
+    ACCEL_TYPE_RAY_TRI_ONLY,
 };
 
 class Accelerator 

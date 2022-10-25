@@ -55,6 +55,12 @@ void Window::getPos(int& x, int& y)
     glfwGetWindowPos(window, &x, &y);
 }
 
+void Window::setFPSMode()
+{
+    mWinMode = WIN_MODE_FPS;
+    glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_HIDDEN);
+}
+
 void Window::setKeyCallback(KeyCallback callback)
 {
     mKeyCallback = callback;
@@ -98,6 +104,12 @@ bool Window::newFrame()
 
 void Window::render() 
 {
+    if (mWinMode == WIN_MODE_FPS)
+    {
+        glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_HIDDEN);
+        glfwSetCursorPos(window, (double)width / 2, (double)height / 2);
+    }
+
     ImGui::End();
     ImGui::Render();
     auto io = ImGui::GetIO();

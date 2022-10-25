@@ -4,7 +4,6 @@
 #include "gui/layout.hpp"
 #include "window.hpp"
 
-#include <graphics.hpp>
 #include <spdlog/spdlog.h>
 
 #include <iostream>
@@ -13,7 +12,7 @@
 
 namespace inferno {
 
-Inferno::Inferno(int argc, char** argv) 
+Inferno::Inferno() 
 {
     // MOTD
     spdlog::info("INFERNO HART v" INFERNO_VERSION);
@@ -48,9 +47,12 @@ int Inferno::run()
 {
     mWin->setKeyCallback(&handleKbd);
     mWin->setMouseCallback(&handlePtr);
+    mWin->setFPSMode();
 
     while (true) {
         if (!mWin->newFrame()) { break; }
+        
+        // UI
         ImGuiID dockspace_id = ImGui::GetID("main");
 
         // set the main window to the dockspace and then on the first launch set the preset
@@ -58,28 +60,10 @@ int Inferno::run()
         if (ImGui::DockBuilderGetNode(dockspace_id) == NULL) { this->uiPreset(); }
         ImGui::DockSpace(dockspace_id, ImVec2(0.0f, 0.0f), dockspace_flags);
 
-        // Menu Bar
-        // if (ImGui::BeginMenuBar())
-        // {
-        //     if (ImGui::BeginMenu("Menu"))
-        //     {
-        //         if (ImGui::MenuItem("New")) {}
-        //         if (ImGui::MenuItem("Open", "Ctrl+O")) {}
-        //         if (ImGui::BeginMenu("Open Recent"))
-        //         {
-        //             ImGui::EndMenu();
-        //         }
-        //         if (ImGui::MenuItem("Save", "Ctrl+S")) {}
-        //         if (ImGui::MenuItem("Save As..")) {}
+        // KBD & MOUSE
+        std::cout << mouseDelta.x << "  " << mouseDelta.y << std::endl;
 
-        //         ImGui::Separator();
-        //         if (ImGui::BeginMenu("Options"))
-        //         {
-        //             ImGui::EndMenu();
-        //         }
-        //     }
-        //     ImGui::EndMenuBar();
-        // }
+
 
         ImGui::Begin("Preview");
         ImGui::End();
@@ -119,7 +103,13 @@ void handleKbd(int key, int scan, int action, int mod)
 
 void handlePtr(double x, double y)
 {
-    
+    int iX = floor(x);
+    int iY = floor(x);
+    static int oX, oY;
+    glm::vec2 mouseDelta = { iX - oX, iY - oY };
+    Inferno::GetInstance().mouseDelta = mouseDelta;
+    oX = iX;
+    oY = iY;
 }
 
 }
