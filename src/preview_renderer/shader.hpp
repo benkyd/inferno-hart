@@ -1,6 +1,6 @@
 #pragma once
 
-#include "../gl.h"
+#include "../graphics.hpp"
 
 #include <string>
 #include <memory>

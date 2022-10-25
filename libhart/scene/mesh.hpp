@@ -2,8 +2,7 @@
 
 #include <vector>
 
-#include <glm/glm.hpp>
-#include <glad/glad.h>
+#include <hart_graphics.hpp>
 
 namespace inferno {
 

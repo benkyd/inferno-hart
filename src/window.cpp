@@ -1,8 +1,6 @@
 #include "window.hpp"
 
 #include "spdlog/spdlog.h"
-#include "gl.h"
-
 
 using namespace core;
 

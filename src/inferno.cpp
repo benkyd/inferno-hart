@@ -1,10 +1,10 @@
 #include "inferno.hpp"
 
-#include "version.hpp"
+#include <version.hpp>
 #include "gui/layout.hpp"
 
-#include "gl.h"
-#include "spdlog/spdlog.h"
+#include <graphics.hpp>
+#include <spdlog/spdlog.h>
 
 #include <iostream>
 #include <memory>

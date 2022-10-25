@@ -5,7 +5,7 @@
 // Include OpenGL
 extern "C" 
 {
-#include "glad/glad.h"
+#include <glad/glad.h>
 }
 
 // Include GLFW and ImGUI
@@ -16,4 +16,4 @@ extern "C"
 #include "imgui/imgui_impl_glfw.h"
 
 // glm
-#include "glm/glm.hpp"
+#include <glm/glm.hpp>
