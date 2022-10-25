@@ -46,6 +46,8 @@ void Inferno::uiPreset()
 
 int Inferno::run() 
 {
+    mWin->setKeyCallback(&handleKbd);
+    mWin->setMouseCallback(&handlePtr);
 
     while (true) {
         if (!mWin->newFrame()) { break; }
@@ -108,6 +110,16 @@ int Inferno::run()
 
     delete mWin;
     return 0;
+}
+
+void handleKbd(int key, int scan, int action, int mod)
+{
+
+}
+
+void handlePtr(double x, double y)
+{
+    
 }
 
 }
