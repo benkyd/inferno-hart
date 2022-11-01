@@ -43,6 +43,18 @@ void Inferno::uiPreset()
     spdlog::info("LAYOUT SET TO DEFAULT");
 }
 
+void Inferno::input()
+{
+    // KBD & MOUSE
+    static double dxpos, dypos;
+    double xpos, ypos;
+    glfwGetCursorPos(mWin->getGLFWWindow(), &xpos, &ypos);
+
+    mouseDelta.x = (int)(dxpos - xpos);
+    mouseDelta.y = (int)(dypos - ypos);
+    dxpos = xpos; dypos = ypos;
+}
+
 int Inferno::run() 
 {
     mWin->setFPSMode();
@@ -57,11 +69,6 @@ int Inferno::run()
         static ImGuiDockNodeFlags dockspace_flags = ImGuiDockNodeFlags_PassthruCentralNode;
         if (ImGui::DockBuilderGetNode(dockspace_id) == NULL) { this->uiPreset(); }
         ImGui::DockSpace(dockspace_id, ImVec2(0.0f, 0.0f), dockspace_flags);
-
-        // KBD & MOUSE
-        double xpos, ypos;
-        glfwGetCursorPos(mWin->getGLFWWindow(), &xpos, &ypos);
-
 
         std::cout << mouseDelta.x << "  " << mouseDelta.y << std::endl;
         

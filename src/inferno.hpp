@@ -18,6 +18,8 @@ public:
     ~Inferno();
 
     void uiPreset();
+    
+    void input();
     int run();
 
 public:
