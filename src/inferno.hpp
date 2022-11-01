@@ -7,7 +7,6 @@
 namespace inferno {
 
 class Window;
-class GLFWwindow;
 
 class RasterizeRenderer;
 class Scene;
@@ -24,9 +23,6 @@ public:
 public:
     glm::vec2 mouseDelta;
     glm::vec3 kbdDelta;
-private:
-    friend void handleKbd(int key, int scan, int action, int mod);
-    friend void handlePtr(double x, double y);
 
 private:
     RasterizeRenderer* mRasterRenderer;
@@ -35,8 +31,5 @@ private:
 private:
     Window* mWin;
 };
-
-void handleKbd(int key, int scan, int action, int mod);
-void handlePtr(double x, double y);
 
 }

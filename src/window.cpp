@@ -22,7 +22,6 @@ void Window::init(std::string title, int width, int height)
     setupGLFW(title);
 
     glfwSetKeyCallback(getGLFWWindow(), glfwKeyCallback);
-    glfwSetCursorPosCallback(getGLFWWindow(), glfwMouseCallback);
 
     setupImGui();
 }
@@ -66,19 +65,9 @@ void Window::setKeyCallback(KeyCallback callback)
     mKeyCallback = callback;
 }
 
-void Window::setMouseCallback(MouseCallback callback)
-{
-    mMouseCallback = callback;
-}
-
 KeyCallback Window::getKeyCallback()
 {
     return mKeyCallback;
-}
-
-MouseCallback Window::getMouseCallback()
-{
-    return mMouseCallback;
 }
 
 bool Window::newFrame() 
@@ -193,14 +182,6 @@ void Window::glfwKeyCallback(GLFWwindow* window, int key, int scancode, int acti
     if (Window::GetInstance().getKeyCallback() != nullptr)
     {
         Window::GetInstance().getKeyCallback()(key, scancode, action, mods);
-    }
-}
-
-void Window::glfwMouseCallback(GLFWwindow* window, double xpos, double ypos)
-{
-    if (Window::GetInstance().getMouseCallback() != nullptr)
-    {
-        Window::GetInstance().getMouseCallback()(xpos, ypos);
     }
 }
 

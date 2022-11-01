@@ -10,7 +10,7 @@
 #include <memory>
 #include <chrono>
 
-namespace inferno {
+using namespace inferno;
 
 Inferno::Inferno() 
 {
@@ -45,8 +45,6 @@ void Inferno::uiPreset()
 
 int Inferno::run() 
 {
-    mWin->setKeyCallback(&handleKbd);
-    mWin->setMouseCallback(&handlePtr);
     mWin->setFPSMode();
 
     while (true) {
@@ -61,10 +59,12 @@ int Inferno::run()
         ImGui::DockSpace(dockspace_id, ImVec2(0.0f, 0.0f), dockspace_flags);
 
         // KBD & MOUSE
+        double xpos, ypos;
+        glfwGetCursorPos(mWin->getGLFWWindow(), &xpos, &ypos);
+
+
         std::cout << mouseDelta.x << "  " << mouseDelta.y << std::endl;
-
-
-
+        
         ImGui::Begin("Preview");
         ImGui::End();
 
@@ -94,22 +94,4 @@ int Inferno::run()
 
     delete mWin;
     return 0;
-}
-
-void handleKbd(int key, int scan, int action, int mod)
-{
-
-}
-
-void handlePtr(double x, double y)
-{
-    int iX = floor(x);
-    int iY = floor(x);
-    static int oX, oY;
-    glm::vec2 mouseDelta = { iX - oX, iY - oY };
-    Inferno::GetInstance().mouseDelta = mouseDelta;
-    oX = iX;
-    oY = iY;
-}
-
 }

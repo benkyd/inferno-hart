@@ -40,9 +40,7 @@ public:
     void setFPSMode();
 
     void setKeyCallback(KeyCallback callback);
-    void setMouseCallback(MouseCallback callback);
     KeyCallback getKeyCallback();
-    MouseCallback getMouseCallback();
 
 private:
     WINDOW_MODE mWinMode = WIN_MODE_DEFAULT;
@@ -54,9 +52,7 @@ private:
     void shutdownGLFW();
 
     static void glfwKeyCallback(GLFWwindow* window, int key, int scancode, int action, int mods);
-    static void glfwMouseCallback(GLFWwindow* window, double xpos, double ypos);
     KeyCallback mKeyCallback = nullptr;
-    MouseCallback mMouseCallback = nullptr;
 
 private:
     static void glfwErrorCallback(int error, const char* description);
