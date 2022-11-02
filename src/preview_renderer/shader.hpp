@@ -10,18 +10,20 @@
 
 namespace inferno {
 
-class _Shader : public std::enable_shared_from_this<_Shader> {
+class Shader {
 public:
-	_Shader();
-	~_Shader();
+	Shader();
+	~Shader();
 
-	std::shared_ptr<_Shader> preprocessorDefine(std::string statement);
+	Shader* preprocessorDefine(std::string statement);
 
-	std::shared_ptr<_Shader> load(std::filesystem::path path);
-	std::shared_ptr<_Shader> link();
+	Shader* load(std::filesystem::path path);
+	Shader* link();
 
-	std::shared_ptr<_Shader> use();
-	std::shared_ptr<_Shader> unUse();
+	Shader* use();
+	Shader* unUse();
+
+	GLuint getProgram();
 
 	void addAttribute(const std::string& attribute);
 	void addUniform(const std::string& uniform);
@@ -51,8 +53,7 @@ private:
 		std::string def;
 	};
 	std::vector<mPreprocessorDefinition> mDefinitions;
-	std::vector<const _Shader::mPreprocessorDefinition*> mGetKeys(std::string key);
+	std::vector<const Shader::mPreprocessorDefinition*> mGetKeys(std::string key);
 };
-typedef std::shared_ptr<_Shader> Shader;
 
 }

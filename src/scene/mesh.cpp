@@ -23,7 +23,6 @@ void Mesh::loadOBJ(std::filesystem::path file)
 
     int vertCount = mObjLoader->getVertCount();
 
-
     for (int i = 0; i < vertCount; i += 3)
     {
         Vert vert;
@@ -65,11 +64,10 @@ void Mesh::ready()
     // vertex normals
     glEnableVertexAttribArray(1);	
     glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(Vert), (void*)offsetof(Vert, Normal));
-    // vertex texture coords
-    glEnableVertexAttribArray(2);	
-    glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, sizeof(Vert), (void*)offsetof(Vert, UV));
 
     glBindVertexArray(0);
+
+    spdlog::debug("MESH READY");
 }
 
 GLuint Mesh::getVAO()
@@ -85,4 +83,19 @@ GLuint Mesh::getVBO()
 GLuint Mesh::getEBO()
 {
     return mEBO;
+}
+
+int Mesh::getIndexCount()
+{
+    return mObjLoader->getIndexCount();
+}
+
+void Mesh::setMaterial(Material* mat)
+{
+    mMaterial = mat;
+}
+
+Material* Mesh::getMaterial()
+{
+    return mMaterial;
 }

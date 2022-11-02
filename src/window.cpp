@@ -73,6 +73,11 @@ KeyCallback Window::getKeyCallback()
 bool Window::newFrame() 
 {
     glfwPollEvents();
+    if (mWinMode == WIN_MODE_FPS)
+    {
+        glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_HIDDEN);
+        glfwSetCursorPos(window, (double)width / 2, (double)height / 2);
+    }
     if (glfwWindowShouldClose(window)) { return false; }
 
     glfwGetWindowSize(window, &width, &height);
@@ -84,22 +89,16 @@ bool Window::newFrame()
     ImGui_ImplGlfw_NewFrame();
     ImGui::NewFrame();
 
-    ImGui::Begin("main", nullptr, WINDOW_FLAGS);
-    ImGui::SetWindowPos(ImVec2(0, 0));
-    ImGui::SetWindowSize(ImVec2(width, height));
+    // ImGui::Begin("main", nullptr, WINDOW_FLAGS);
+    // ImGui::SetWindowPos(ImVec2(0, 0));
+    // ImGui::SetWindowSize(ImVec2(width, height));
 
     return true;
 }
 
 void Window::render() 
 {
-    if (mWinMode == WIN_MODE_FPS)
-    {
-        glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_HIDDEN);
-        glfwSetCursorPos(window, (double)width / 2, (double)height / 2);
-    }
-
-    ImGui::End();
+    // ImGui::End();
     ImGui::Render();
     auto io = ImGui::GetIO();
     glViewport(0, 0, (int)io.DisplaySize.x, (int)io.DisplaySize.y);

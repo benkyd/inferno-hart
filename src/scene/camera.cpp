@@ -78,7 +78,10 @@ void Camera::UpdateProjection(int width, int height)
 
 void Camera::MoveCamera(glm::vec3 posDelta)
 {
+	if (glm::length(posDelta) == 0) return;
+
 	// Rotate by camera direction
+	glm::vec3 delta(0.0f);
 	glm::mat2 rotate {
 		cos(Yaw), -sin(Yaw),
 		sin(Yaw), cos(Yaw)
@@ -87,6 +90,8 @@ void Camera::MoveCamera(glm::vec3 posDelta)
 	glm::vec2 f(0.0, 1.0);
 	f = f * rotate;
 
+	delta = posDelta * glm::vec3(f.x, 0.0f, f.y);
+
 	// get current view matrix
 	glm::mat4 mat = GetViewMatrix();
 	glm::vec3 forward(mat[0][2], mat[1][2], mat[2][2]);
@@ -94,9 +99,9 @@ void Camera::MoveCamera(glm::vec3 posDelta)
 
 	// forward vector must be negative to look forward. 
 	// read :http://in2gpu.com/2015/05/17/view-matrix/
-	Position.x += posDelta.x * CameraSpeed;
-	Position.z += posDelta.z * CameraSpeed;
-	Position.y += posDelta.y * CameraSpeed;
+	Position.x += delta.x * CameraSpeed;
+	Position.z += delta.z * CameraSpeed;
+	Position.y += delta.y * CameraSpeed;
 
 	// update the view matrix
 	UpdateView();
@@ -104,6 +109,7 @@ void Camera::MoveCamera(glm::vec3 posDelta)
 
 void Camera::MouseMoved(glm::vec2 mouseDelta)
 {
+	if (glm::length(mouseDelta) == 0) return;
 	// note that yaw and pitch must be converted to radians.
 	// this is done in UpdateView() by glm::rotate
 	Yaw += MouseSensitivity * (mouseDelta.x / 100);

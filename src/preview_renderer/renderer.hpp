@@ -4,7 +4,6 @@
 
 namespace inferno {
 
-class Camera;
 class Scene;
 
 class RasterizeRenderer 
@@ -20,7 +19,6 @@ public:
     void draw();
 
 private:
-    Camera* mCurrentCamera;
     Scene* mCurrentScene;
 };
 

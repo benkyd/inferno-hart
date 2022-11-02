@@ -4,6 +4,13 @@
 #include "gui/layout.hpp"
 #include "window.hpp"
 
+#include "preview_renderer/renderer.hpp"
+#include "preview_renderer/shader.hpp"
+#include "scene/camera.hpp"
+#include "scene/scene.hpp"
+#include "scene/material.hpp"
+#include "scene/mesh.hpp"
+
 #include <spdlog/spdlog.h>
 
 #include <iostream>
@@ -12,9 +19,12 @@
 
 using namespace inferno;
 
-Inferno::Inferno() 
+Inferno::Inferno()
+    : mScene(),
+      mRasterRenderer()
 {
     // MOTD
+    spdlog::set_level(spdlog::level::trace);
     spdlog::info("INFERNO HART v" INFERNO_VERSION);
 
     // Create window
@@ -46,40 +56,70 @@ void Inferno::uiPreset()
 void Inferno::input()
 {
     // KBD & MOUSE
-    static double dxpos, dypos;
-    double xpos, ypos;
-    glfwGetCursorPos(mWin->getGLFWWindow(), &xpos, &ypos);
+    static glm::dvec2 dMouseDelta;
+    glm::dvec2 tempMousePos;
+    glfwGetCursorPos(mWin->getGLFWWindow(), &tempMousePos.x, &tempMousePos.y);
 
-    mouseDelta.x = (int)(dxpos - xpos);
-    mouseDelta.y = (int)(dypos - ypos);
-    dxpos = xpos; dypos = ypos;
+    mouseDelta = dMouseDelta - tempMousePos;
+    dMouseDelta = tempMousePos;
+
+    kbdDelta = glm::vec3(0.0f);
+
+    if (glfwGetKey(mWin->getGLFWWindow(), GLFW_KEY_W) == GLFW_PRESS) kbdDelta.z += 1.0f;
+    if (glfwGetKey(mWin->getGLFWWindow(), GLFW_KEY_A) == GLFW_PRESS) kbdDelta.x -= 1.0f;
+    if (glfwGetKey(mWin->getGLFWWindow(), GLFW_KEY_S) == GLFW_PRESS) kbdDelta.z -= 1.0f;
+    if (glfwGetKey(mWin->getGLFWWindow(), GLFW_KEY_D) == GLFW_PRESS) kbdDelta.x += 1.0f;
+    if (glfwGetKey(mWin->getGLFWWindow(), GLFW_KEY_SPACE) == GLFW_PRESS) kbdDelta.y += 1.0f;
+    if (glfwGetKey(mWin->getGLFWWindow(), GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS) kbdDelta.y -= 1.0f;
 }
 
 int Inferno::run() 
 {
-    mWin->setFPSMode();
+    // mWin->setFPSMode();
 
-    while (true) {
+    Camera camera;
+    Mesh cornell;
+    cornell.loadOBJ("res/cornell-box.obj");
+    cornell.ready();
+
+    Material basicMaterial("basic");
+    Shader basicShader;
+    basicShader.load("res/shaders/basic.glsl")->link();
+    basicMaterial.setGlShader(&basicShader);
+    cornell.setMaterial(&basicMaterial);
+
+    mScene.addMesh(&cornell);
+    mScene.setCamera(&camera);
+
+    mRasterRenderer.setScene(&mScene);
+
+    while (true) 
+    {
         if (!mWin->newFrame()) { break; }
         
         // UI
-        ImGuiID dockspace_id = ImGui::GetID("main");
+        // ImGuiID dockspace_id = ImGui::GetID("main");
 
-        // set the main window to the dockspace and then on the first launch set the preset
-        static ImGuiDockNodeFlags dockspace_flags = ImGuiDockNodeFlags_PassthruCentralNode;
-        if (ImGui::DockBuilderGetNode(dockspace_id) == NULL) { this->uiPreset(); }
-        ImGui::DockSpace(dockspace_id, ImVec2(0.0f, 0.0f), dockspace_flags);
+        // // set the main window to the dockspace and then on the first launch set the preset
+        // static ImGuiDockNodeFlags dockspace_flags = ImGuiDockNodeFlags_PassthruCentralNode;
+        // if (ImGui::DockBuilderGetNode(dockspace_id) == NULL) { this->uiPreset(); }
+        // ImGui::DockSpace(dockspace_id, ImVec2(0.0f, 0.0f), dockspace_flags);
 
-        std::cout << mouseDelta.x << "  " << mouseDelta.y << std::endl;
-        
-        ImGui::Begin("Preview");
-        ImGui::End();
+        this->input();
+        camera.MouseMoved(mouseDelta);
+        camera.MoveCamera(kbdDelta);
 
-        ImGui::Begin("Render");
-        ImGui::End();
+        mRasterRenderer.draw();
 
-        ImGui::Begin("Inferno HART");
-        ImGui::End();
+
+        // ImGui::Begin("Preview");
+        // ImGui::End();
+
+        // ImGui::Begin("Render");
+        // ImGui::End();
+
+        // ImGui::Begin("Inferno HART");
+        // ImGui::End();
 
         GLenum err;
         while((err = glGetError()) != GL_NO_ERROR) {

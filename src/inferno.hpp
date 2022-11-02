@@ -1,6 +1,8 @@
 #pragma once
 
 #include "graphics.hpp"
+#include "preview_renderer/renderer.hpp"
+#include "scene/scene.hpp"
 
 #include <singleton.hpp>
 
@@ -8,8 +10,6 @@ namespace inferno {
 
 class Window;
 
-class RasterizeRenderer;
-class Scene;
 
 class Inferno : public helpers::Singleton<Inferno>
 {
@@ -27,8 +27,8 @@ public:
     glm::vec3 kbdDelta;
 
 private:
-    RasterizeRenderer* mRasterRenderer;
-    Scene* mScene;
+    RasterizeRenderer mRasterRenderer;
+    Scene mScene;
 
 private:
     Window* mWin;

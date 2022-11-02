@@ -8,12 +8,13 @@
 namespace inferno {
 
 class ObjLoader;
+class Material;
 
 struct Vert
 {
     glm::vec3 Position;
     glm::vec3 Normal;
-    glm::vec2 UV;
+    // glm::vec2 UV;
 };
 
 class Mesh 
@@ -29,6 +30,11 @@ public:
                       std::vector<glm::vec3>* norm,
                       std::vector<glm::vec2>* uv);
 
+    int getIndexCount();
+
+    void setMaterial(Material* mat);
+    Material* getMaterial();
+
 // Raster
 public:
     GLuint getVAO();
@@ -43,6 +49,8 @@ private:
 
 private:
     ObjLoader* mObjLoader;
+    Material* mMaterial;
+    
     std::vector<Vert> mVerticies;
 };
 

@@ -4,12 +4,20 @@
 
 namespace inferno {
 
+class Shader;
+
 class Material {
 public:
-    Material();
+    Material(std::string name);
     ~Material();
 
-    std::string name;
+    std::string getName();
+    void setGlShader(Shader* shader);
+    Shader* getGlShader();
+
+private:
+    std::string mName;
+    Shader* mGlShader;
 };
 
 }

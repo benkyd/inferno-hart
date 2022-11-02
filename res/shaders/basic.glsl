@@ -1,7 +1,8 @@
-#type vertex 
+#type vertex
 #version 330 
 
-in vec3 position;
+layout (location = 0) in vec3 position;
+layout (location = 1) in vec3 normal;
 
 uniform mat4 model;
 uniform mat4 view;
@@ -17,5 +18,5 @@ void main() {
 out vec4 outColour;
 
 void main() {
-    outColour = vec4(0.58, 0.61, 0.627, 1.0);
+    outColour = vec4(1, 0, 0, 1);
 }
