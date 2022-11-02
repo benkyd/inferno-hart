@@ -63,14 +63,19 @@ void Inferno::input()
     mouseDelta = dMouseDelta - tempMousePos;
     dMouseDelta = tempMousePos;
 
-    kbdDelta = glm::vec3(0.0f);
-
-    if (glfwGetKey(mWin->getGLFWWindow(), GLFW_KEY_W) == GLFW_PRESS) kbdDelta.z += 1.0f;
-    if (glfwGetKey(mWin->getGLFWWindow(), GLFW_KEY_A) == GLFW_PRESS) kbdDelta.x -= 1.0f;
-    if (glfwGetKey(mWin->getGLFWWindow(), GLFW_KEY_S) == GLFW_PRESS) kbdDelta.z -= 1.0f;
-    if (glfwGetKey(mWin->getGLFWWindow(), GLFW_KEY_D) == GLFW_PRESS) kbdDelta.x += 1.0f;
-    if (glfwGetKey(mWin->getGLFWWindow(), GLFW_KEY_SPACE) == GLFW_PRESS) kbdDelta.y += 1.0f;
-    if (glfwGetKey(mWin->getGLFWWindow(), GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS) kbdDelta.y -= 1.0f;
+    movementDelta = 0b00000000;
+    if (glfwGetKey(mWin->getGLFWWindow(), GLFW_KEY_W) == GLFW_PRESS)
+        movementDelta |= 0b10000000;
+    if (glfwGetKey(mWin->getGLFWWindow(), GLFW_KEY_A) == GLFW_PRESS)
+        movementDelta |= 0b01000000;
+    if (glfwGetKey(mWin->getGLFWWindow(), GLFW_KEY_S) == GLFW_PRESS)
+        movementDelta |= 0b00100000;
+    if (glfwGetKey(mWin->getGLFWWindow(), GLFW_KEY_D) == GLFW_PRESS)
+        movementDelta |= 0b00010000;
+    if (glfwGetKey(mWin->getGLFWWindow(), GLFW_KEY_SPACE) == GLFW_PRESS)
+        movementDelta |= 0b00001000;
+    if (glfwGetKey(mWin->getGLFWWindow(), GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS) 
+        movementDelta |= 0b00000100;
 }
 
 int Inferno::run() 
@@ -79,7 +84,7 @@ int Inferno::run()
 
     Camera camera;
     Mesh cornell;
-    cornell.loadOBJ("res/cornell-box.obj");
+    cornell.loadOBJ("res/dragon.obj");
     cornell.ready();
 
     Material basicMaterial("basic");
@@ -107,7 +112,7 @@ int Inferno::run()
 
         this->input();
         camera.MouseMoved(mouseDelta);
-        camera.MoveCamera(kbdDelta);
+        camera.MoveCamera(movementDelta);
 
         mRasterRenderer.draw();
 

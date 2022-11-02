@@ -19,13 +19,13 @@ public:
 	void UpdateProjection(int width, int height);
 
 	// Keyboard
-	void MoveCamera(glm::vec3 posDelta);
+	void MoveCamera(uint8_t posDelta);
 	// Mouse Delta
 	void MouseMoved(glm::vec2 mouseDelta);
 
 	// Updatable by 
 	float MouseSensitivity = 0.4f;
-	float CameraSpeed = 0.2f;
+	float CameraSpeed = 0.1f;
 
 	void UpdatePosition(glm::vec3 position);
 	void UpdateEulerLookDirection(float roll, float pitch, float yaw);

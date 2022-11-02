@@ -37,7 +37,7 @@ Camera::Camera(int w, int h)
 void Camera::UpdateView()
 {
 	// roll can be removed
-	glm::mat4 matRoll = glm::mat4(1.0f); //identity matrix; 
+	glm::mat4 matRoll = glm::mat4(1.0f); //identity matrix 
 	glm::mat4 matPitch = glm::mat4(1.0f);//identity matrix
 	glm::mat4 matYaw = glm::mat4(1.0f);  //identity matrix
 
@@ -76,12 +76,13 @@ void Camera::UpdateProjection(int width, int height)
 	projMatrix = glm::perspective(glm::radians(45.0f), (float)width / (float)height, 0.1f, 1000.0f);
 }
 
-void Camera::MoveCamera(glm::vec3 posDelta)
+void Camera::MoveCamera(uint8_t posDelta)
 {
-	if (glm::length(posDelta) == 0) return;
+	if (posDelta == 0) return;
 
 	// Rotate by camera direction
 	glm::vec3 delta(0.0f);
+	
 	glm::mat2 rotate {
 		cos(Yaw), -sin(Yaw),
 		sin(Yaw), cos(Yaw)
@@ -90,7 +91,28 @@ void Camera::MoveCamera(glm::vec3 posDelta)
 	glm::vec2 f(0.0, 1.0);
 	f = f * rotate;
 
-	delta = posDelta * glm::vec3(f.x, 0.0f, f.y);
+	if (posDelta & 0x80) {
+		delta.z -= f.y;
+		delta.x -= f.x;
+	}
+	if (posDelta & 0x20) {
+		delta.z += f.y;
+		delta.x += f.x;
+	}
+	if (posDelta & 0x40) {
+		delta.z += f.x;
+		delta.x += -f.y;
+	}
+	if (posDelta & 0x10) {
+		delta.z -= f.x;
+		delta.x -= -f.y;
+	}
+	if (posDelta & 0x8) {
+		delta.y += 1;
+	}
+	if (posDelta & 0x4) {
+		delta.y -= 1;
+	}
 
 	// get current view matrix
 	glm::mat4 mat = GetViewMatrix();
@@ -99,9 +121,7 @@ void Camera::MoveCamera(glm::vec3 posDelta)
 
 	// forward vector must be negative to look forward. 
 	// read :http://in2gpu.com/2015/05/17/view-matrix/
-	Position.x += delta.x * CameraSpeed;
-	Position.z += delta.z * CameraSpeed;
-	Position.y += delta.y * CameraSpeed;
+	Position += delta * CameraSpeed;
 
 	// update the view matrix
 	UpdateView();

@@ -24,7 +24,9 @@ public:
 
 public:
     glm::vec2 mouseDelta;
-    glm::vec3 kbdDelta;
+    // 0x00000000
+    // 0xFLBRUDxx
+    uint8_t movementDelta;
 
 private:
     RasterizeRenderer mRasterRenderer;

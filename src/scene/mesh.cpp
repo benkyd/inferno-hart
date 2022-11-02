@@ -22,7 +22,6 @@ void Mesh::loadOBJ(std::filesystem::path file)
     mObjLoader->load(file);
 
     int vertCount = mObjLoader->getVertCount();
-
     for (int i = 0; i < vertCount; i += 3)
     {
         Vert vert;
@@ -43,7 +42,6 @@ void Mesh::loadOBJ(std::filesystem::path file)
 void Mesh::ready()
 {
     // TODO: ready check
-
     glGenVertexArrays(1, &mVAO);
     glGenBuffers(1, &mVBO);
     glGenBuffers(1, &mEBO);
@@ -55,7 +53,7 @@ void Mesh::ready()
     glBufferData(GL_ARRAY_BUFFER, mVerticies.size() * sizeof(Vert), &mVerticies[0], GL_STATIC_DRAW);  
 
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, mEBO);
-    glBufferData(GL_ELEMENT_ARRAY_BUFFER, mObjLoader->getIndexCount() * sizeof(unsigned int), &mObjLoader->getFaces()[0], GL_STATIC_DRAW);
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, mObjLoader->getIndexCount() * sizeof(float), &mObjLoader->getFaces()[0], GL_STATIC_DRAW);
 
     // set the vertex attribute pointers
     // vertex Positions

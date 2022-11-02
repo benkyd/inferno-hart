@@ -51,6 +51,6 @@ void RasterizeRenderer::draw()
         glBindVertexArray(m->getVAO());
         glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m->getEBO());
 
-        glDrawElements(GL_TRIANGLES, m->getIndexCount(), GL_UNSIGNED_INT, 0);
+        glDrawElements(GL_TRIANGLES, m->getIndexCount() * sizeof(uint32_t), GL_UNSIGNED_INT, 0);
     }
 }
