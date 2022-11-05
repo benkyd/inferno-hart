@@ -33,7 +33,7 @@ public:
     void setSize(int w, int h);
     void setPos(int x, int y);
 
-    void getSize(int& w, int& h);
+    glm::vec2 getSize();
     void getPos(int& x, int& y);
     GLFWwindow* getGLFWWindow() { return window; }
 

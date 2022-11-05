@@ -43,10 +43,9 @@ void Window::setPos(int x, int y)
     glfwSetWindowPos(window, x, y);
 }
 
-void Window::getSize(int& w, int& h) 
+glm::vec2 Window::getSize() 
 {
-    w = width;
-    h = height;
+    return {width, height};
 }
 
 void Window::getPos(int& x, int& y) 
@@ -89,16 +88,16 @@ bool Window::newFrame()
     ImGui_ImplGlfw_NewFrame();
     ImGui::NewFrame();
 
-    // ImGui::Begin("main", nullptr, WINDOW_FLAGS);
-    // ImGui::SetWindowPos(ImVec2(0, 0));
-    // ImGui::SetWindowSize(ImVec2(width, height));
+    ImGui::Begin("main", nullptr, WINDOW_FLAGS);
+    ImGui::SetWindowPos(ImVec2(0, 0));
+    ImGui::SetWindowSize(ImVec2(width, height));
 
     return true;
 }
 
 void Window::render() 
 {
-    // ImGui::End();
+    ImGui::End();
     ImGui::Render();
     auto io = ImGui::GetIO();
     glViewport(0, 0, (int)io.DisplaySize.x, (int)io.DisplaySize.y);
@@ -127,12 +126,12 @@ void Window::setupGLFW(std::string title)
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);  // 3.2+ only
     glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);            // Required on Mac
 #else
-    // GL 3.0 + GLSL 130
-    glslVersion = "#version 130";
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 0);
-    //glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);  // 3.2+ only
-    //glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);            // 3.0+ only
+    // GL 4.5 + GLSL 450
+    glslVersion = "#version 450";
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 5);
+    glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);  // 3.2+ only
+    glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);            // 3.0+ only
 #endif
 
     // Create window with graphics context

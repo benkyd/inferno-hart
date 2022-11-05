@@ -13,12 +13,19 @@ public:
     ~RasterizeRenderer();
 
     void setScene(Scene* scene);
-    void setTarget(GLuint renderTarget);
+
+    void setTargetSize(glm::vec2 size);
+    glm::vec2 getTargetSize();
+    GLuint getRenderedTexture();
 
     void prepare();
     void draw();
 
 private:
+    GLuint mRenderTarget = 0;
+    GLuint mRenderTargetTexture = 0;
+    glm::vec2 mRenderTargetSize = {1920, 1080};
+
     Scene* mCurrentScene;
 };
 

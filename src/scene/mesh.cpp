@@ -4,6 +4,8 @@
 
 #include <scene/objloader.hpp>
 
+#include <iostream>
+
 using namespace inferno;
 
 Mesh::Mesh()
@@ -22,7 +24,7 @@ void Mesh::loadOBJ(std::filesystem::path file)
     mObjLoader->load(file);
 
     int vertCount = mObjLoader->getVertCount();
-    for (int i = 0; i < vertCount; i += 3)
+    for (int i = 0; i < vertCount * 3; i += 3)
     {
         Vert vert;
         vert.Position = { 
@@ -53,7 +55,7 @@ void Mesh::ready()
     glBufferData(GL_ARRAY_BUFFER, mVerticies.size() * sizeof(Vert), &mVerticies[0], GL_STATIC_DRAW);  
 
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, mEBO);
-    glBufferData(GL_ELEMENT_ARRAY_BUFFER, mObjLoader->getIndexCount() * sizeof(float), &mObjLoader->getFaces()[0], GL_STATIC_DRAW);
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, mObjLoader->getIndexCount() * sizeof(uint32_t), &mObjLoader->getFaces()[0], GL_STATIC_DRAW);
 
     // set the vertex attribute pointers
     // vertex Positions

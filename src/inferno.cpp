@@ -16,12 +16,11 @@
 #include <iostream>
 #include <memory>
 #include <chrono>
+#include <numeric>
 
 using namespace inferno;
 
 Inferno::Inferno()
-    : mScene(),
-      mRasterRenderer()
 {
     // MOTD
     spdlog::set_level(spdlog::level::trace);
@@ -30,6 +29,9 @@ Inferno::Inferno()
     // Create window
     mWin = &Window::GetInstance();
     mWin->init("Inferno v" INFERNO_VERSION, 1280, 720);
+
+    mRasterRenderer = new RasterizeRenderer();
+    mScene = new Scene();
 }
 
 Inferno::~Inferno()
@@ -84,7 +86,7 @@ int Inferno::run()
 
     Camera camera;
     Mesh cornell;
-    cornell.loadOBJ("res/dragon.obj");
+    cornell.loadOBJ("res/cornell.obj");
     cornell.ready();
 
     Material basicMaterial("basic");
@@ -93,38 +95,43 @@ int Inferno::run()
     basicMaterial.setGlShader(&basicShader);
     cornell.setMaterial(&basicMaterial);
 
-    mScene.addMesh(&cornell);
-    mScene.setCamera(&camera);
+    mScene->addMesh(&cornell);
+    mScene->setCamera(&camera);
 
-    mRasterRenderer.setScene(&mScene);
+    mRasterRenderer->setScene(mScene);
 
     while (true) 
     {
         if (!mWin->newFrame()) { break; }
         
         // UI
-        // ImGuiID dockspace_id = ImGui::GetID("main");
+        ImGuiID dockspace_id = ImGui::GetID("main");
 
-        // // set the main window to the dockspace and then on the first launch set the preset
-        // static ImGuiDockNodeFlags dockspace_flags = ImGuiDockNodeFlags_PassthruCentralNode;
-        // if (ImGui::DockBuilderGetNode(dockspace_id) == NULL) { this->uiPreset(); }
-        // ImGui::DockSpace(dockspace_id, ImVec2(0.0f, 0.0f), dockspace_flags);
+        // set the main window to the dockspace and then on the first launch set the preset
+        static ImGuiDockNodeFlags dockspace_flags = ImGuiDockNodeFlags_PassthruCentralNode;
+        if (ImGui::DockBuilderGetNode(dockspace_id) == NULL) { this->uiPreset(); }
+        ImGui::DockSpace(dockspace_id, ImVec2(0.0f, 0.0f), dockspace_flags);
 
         this->input();
         camera.MouseMoved(mouseDelta);
         camera.MoveCamera(movementDelta);
 
-        mRasterRenderer.draw();
+        mRasterRenderer->setTargetSize({mWin->getSize()});
+        mRasterRenderer->prepare();
+        mRasterRenderer->draw();
 
 
-        // ImGui::Begin("Preview");
-        // ImGui::End();
+        ImGui::Begin("Preview");
+        ImGui::Image((ImTextureID)mRasterRenderer->getRenderedTexture(),
+             { mRasterRenderer->getTargetSize().x, mRasterRenderer->getTargetSize().y },
+             ImVec2(0,1), ImVec2(1,0));
+        ImGui::End();
 
-        // ImGui::Begin("Render");
-        // ImGui::End();
+        ImGui::Begin("Render");
+        ImGui::End();
 
-        // ImGui::Begin("Inferno HART");
-        // ImGui::End();
+        ImGui::Begin("Inferno HART");
+        ImGui::End();
 
         GLenum err;
         while((err = glGetError()) != GL_NO_ERROR) {
@@ -137,8 +144,9 @@ int Inferno::run()
                 case GL_STACK_UNDERFLOW:               error = "STACK_UNDERFLOW"; break;
                 case GL_OUT_OF_MEMORY:                 error = "OUT_OF_MEMORY"; break;
                 case GL_INVALID_FRAMEBUFFER_OPERATION: error = "INVALID_FRAMEBUFFER_OPERATION"; break;
+                default:                               error = std::to_string((uint32_t)err); break;
             }
-            spdlog::error("[GL]: ", error);
+            spdlog::error("[GL]: ", err, " ", error);
         }    
         
         mWin->render();
