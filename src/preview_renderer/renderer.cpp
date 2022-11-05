@@ -18,7 +18,10 @@ RasterizeRenderer::RasterizeRenderer()
 
     glGenTextures(1, &mRenderTargetTexture);
     glBindTexture(GL_TEXTURE_2D, mRenderTargetTexture);
-    
+
+	glEnable(GL_DEPTH_TEST);
+    glDisable(GL_CULL_FACE);
+
     glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, 800, 600, 0, GL_RGB, GL_UNSIGNED_BYTE, NULL);
 
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
@@ -42,6 +45,10 @@ void RasterizeRenderer::setScene(Scene* scene)
 
 void RasterizeRenderer::setTargetSize(glm::vec2 size)
 {
+    glBindFramebuffer(GL_FRAMEBUFFER, mRenderTarget);
+    glBindTexture(GL_TEXTURE_2D, mRenderTargetTexture);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, size.x, size.y, 0, GL_RGB, GL_UNSIGNED_BYTE, NULL);
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
     mRenderTargetSize = size;
 }
 

@@ -140,6 +140,9 @@ void Window::setupGLFW(std::string title)
     glfwMakeContextCurrent(window);
     gladLoadGLLoader((GLADloadproc)glfwGetProcAddress);
     glfwSwapInterval(1); // Enable vsync
+
+	glEnable(GL_DEPTH_TEST);
+    glDisable(GL_CULL_FACE);
 }
 
 void Window::setupImGui() 
