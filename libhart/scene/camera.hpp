@@ -36,8 +36,9 @@ public:
 	glm::vec3 LookDirection = {};
 
 private:
-	glm::mat4 viewMatrix = {};
-	glm::mat4 projMatrix = {};
+	glm::vec2 mViewport = {};
+	glm::mat4 mViewMatrix = {};
+	glm::mat4 mProjMatrix = {};
 	
 };
 

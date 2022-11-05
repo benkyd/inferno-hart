@@ -116,15 +116,17 @@ int Inferno::run()
         camera.MouseMoved(mouseDelta);
         camera.MoveCamera(movementDelta);
 
-        mRasterRenderer->setTargetSize({mWin->getSize()});
-        mRasterRenderer->prepare();
-        mRasterRenderer->draw();
-
 
         ImGui::Begin("Preview");
+
+        camera.UpdateProjection(ImGui::GetWindowSize().x, ImGui::GetWindowSize().y);
+        mRasterRenderer->setTargetSize({ImGui::GetWindowSize().x, ImGui::GetWindowSize().y});
+        mRasterRenderer->prepare();
+        mRasterRenderer->draw();
         ImGui::Image((ImTextureID)mRasterRenderer->getRenderedTexture(),
              { mRasterRenderer->getTargetSize().x, mRasterRenderer->getTargetSize().y },
              ImVec2(0,1), ImVec2(1,0));
+
         ImGui::End();
 
         ImGui::Begin("Render");

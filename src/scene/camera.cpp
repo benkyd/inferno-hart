@@ -4,7 +4,7 @@ using namespace inferno;
 
 Camera::Camera()
 {
-	projMatrix = glm::perspective( glm::radians( 45.0f ), 1.0f, 0.1f, 1000.0f );
+	mProjMatrix = glm::perspective( glm::radians( 45.0f ), 1.0f, 0.1f, 1000.0f );
 
 	Roll = 0.0f;
 	Pitch = 0.0f;
@@ -13,14 +13,14 @@ Camera::Camera()
 	Position = {};
 	LookDirection = {};
 
-	viewMatrix = {};
+	mViewMatrix = {};
 
 	UpdateView();
 }
 
 Camera::Camera(int w, int h)
 {
-	projMatrix = glm::perspective(glm::radians(45.0f), (float)w / (float)h, 0.1f, 1000.0f);
+	mProjMatrix = glm::perspective(glm::radians(45.0f), (float)w / (float)h, 0.1f, 1000.0f);
 
 	Roll = 0.0f;
 	Pitch = 0.0f;
@@ -29,7 +29,7 @@ Camera::Camera(int w, int h)
 	Position = {};
 	LookDirection = {};
 
-	viewMatrix = {};
+	mViewMatrix = {};
 
 	UpdateView();
 }
@@ -51,10 +51,10 @@ void Camera::UpdateView()
 	glm::mat4 translate = glm::mat4(1.0f);
 	translate = glm::translate(translate, -Position);
 
-	viewMatrix = rotate * translate;
+	mViewMatrix = rotate * translate;
 
 	// Work out Look Vector
-	glm::mat4 inverseView = glm::inverse(viewMatrix);
+	glm::mat4 inverseView = glm::inverse(mViewMatrix);
 
 	LookDirection.x = inverseView[2][0];
 	LookDirection.y = inverseView[2][1];
@@ -63,17 +63,18 @@ void Camera::UpdateView()
 
 glm::mat4 Camera::GetViewMatrix()
 {
-	return viewMatrix;
+	return mViewMatrix;
 }
 
 glm::mat4 Camera::GetProjectionMatrix()
 {
-	return projMatrix;
+	return mProjMatrix;
 }
 
 void Camera::UpdateProjection(int width, int height)
 {
-	projMatrix = glm::perspective(glm::radians(45.0f), (float)width / (float)height, 0.1f, 1000.0f);
+	mViewport = {width, height};
+	mProjMatrix = glm::perspective(glm::radians(45.0f), (float)width / (float)height, 0.1f, 1000.0f);
 }
 
 void Camera::MoveCamera(uint8_t posDelta)
