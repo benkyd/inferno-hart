@@ -37,6 +37,7 @@ void Mesh::loadOBJ(std::filesystem::path file)
             mObjLoader->getNormals()[i+1],
             mObjLoader->getNormals()[i+2],
         };
+
         mVerticies.push_back(vert);
     }
 }
@@ -64,6 +65,9 @@ void Mesh::ready()
     // vertex normals
     glEnableVertexAttribArray(1);	
     glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(Vert), (void*)offsetof(Vert, Normal));
+    // vertex UV
+    glEnableVertexAttribArray(2);
+    glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, sizeof(Vert), (void*)offsetof(Vert, UV));
 
     glBindVertexArray(0);
 

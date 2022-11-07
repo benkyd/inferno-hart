@@ -132,6 +132,7 @@ int Inferno::run()
         ImGui::Image((ImTextureID)mRasterRenderer->getRenderedTexture(),
              { mRasterRenderer->getTargetSize().x, mRasterRenderer->getTargetSize().y },
              ImVec2(0,1), ImVec2(1,0));
+        glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
         ImGui::End();
 

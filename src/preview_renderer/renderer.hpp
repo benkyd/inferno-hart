@@ -24,6 +24,7 @@ public:
 private:
     GLuint mRenderTarget = 0;
     GLuint mRenderTargetTexture = 0;
+    GLuint mRenderTargetDepthTexture = 0;
     glm::vec2 mRenderTargetSize = {1920, 1080};
 
     Scene* mCurrentScene;
