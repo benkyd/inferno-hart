@@ -28,7 +28,7 @@ in vec3 vFragPos;
 
 vec3 lightColour = {1.0, 1.0, 1.0};
 vec3 lightPos = {12.0, 2.0, 4.0}; 
-vec3 objectColour = {1.0, 0.5, 0.4};
+vec3 objectColour = {1.0, 0.74, 0.21};
 
 void main() {
     // ambient
@@ -43,5 +43,5 @@ void main() {
 
     vec3 result = (ambient + diffuse) * objectColour;
 
-    outColour = vec4((vNormal + 1.0) /2.0, 1.0);
+    outColour = vec4(vNormal + 1.0 / 2.0, 1.0);
 }
