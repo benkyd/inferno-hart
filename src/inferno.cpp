@@ -39,6 +39,19 @@ Inferno::~Inferno()
 
 }
 
+static void HelpMarker(const char* desc)
+{
+    ImGui::TextDisabled("(?)");
+    if (ImGui::IsItemHovered(ImGuiHoveredFlags_DelayShort))
+    {
+        ImGui::BeginTooltip();
+        ImGui::PushTextWrapPos(ImGui::GetFontSize() * 35.0f);
+        ImGui::TextUnformatted(desc);
+        ImGui::PopTextWrapPos();
+        ImGui::EndTooltip();
+    }
+}
+
 void Inferno::uiPreset() 
 {
     ImGuiID dockspace_id = ImGui::GetID("main");
@@ -60,11 +73,10 @@ void Inferno::moveInput()
     static GLFWcursor* cursor = glfwCreateStandardCursor(GLFW_HAND_CURSOR);
     glfwSetCursor(mWin->getGLFWWindow(), cursor);
 
-    static glm::dvec2 lastMousePos;
-    static int firstClick = 0;
-
     // KBD & MOUSE
     // pan only get on hold
+    static glm::dvec2 lastMousePos;
+    static int firstClick = 0;
     if (glfwGetMouseButton(mWin->getGLFWWindow(), GLFW_MOUSE_BUTTON_1) == GLFW_PRESS)
     {
         firstClick++;
@@ -142,37 +154,61 @@ int Inferno::run()
         if (ImGui::DockBuilderGetNode(dockspace_id) == NULL) { this->uiPreset(); }
         ImGui::DockSpace(dockspace_id, ImVec2(0.0f, 0.0f), dockspace_flags);
 
-
-        ImGui::Begin("Preview", nullptr, ImGuiWindowFlags_NoScrollbar);
-
-        const bool allowMove = ImGui::IsWindowHovered();
-
-        if (allowMove)
+        // Menu Bar
+        static bool showPreview = true;
+        static bool showRenderSettings = true;
+        if (ImGui::BeginMenuBar())
         {
-            this->moveInput();
-        } else
-        {
-            this->stopMoveInput();
+            if (ImGui::BeginMenu("Menu"))
+            {
+                ImGui::EndMenu();
+            }
+            if (ImGui::BeginMenu("View"))
+            {
+                ImGui::Checkbox("Show Preview", &showPreview);
+                ImGui::Checkbox("Show Settings", &showRenderSettings);
+
+                ImGui::EndMenu();
+            }
+            ImGui::EndMenuBar();
         }
-        camera.MouseMoved(mouseDelta);
-        camera.MoveCamera(movementDelta);
 
-        camera.UpdateProjection(ImGui::GetWindowSize().x, ImGui::GetWindowSize().y);
-        mRasterRenderer->setTargetSize({ImGui::GetWindowSize().x, ImGui::GetWindowSize().y});
-        mRasterRenderer->prepare();
-        mRasterRenderer->draw();
-        ImGui::Image((ImTextureID)mRasterRenderer->getRenderedTexture(),
-             { mRasterRenderer->getTargetSize().x, mRasterRenderer->getTargetSize().y },
-             ImVec2(0,1), ImVec2(1,0));
-        glBindFramebuffer(GL_FRAMEBUFFER, 0);
+        if (ImGui::Begin("Preview", nullptr, ImGuiWindowFlags_NoScrollbar) && showPreview)
+        {
+            const bool allowMove = ImGui::IsWindowHovered();
 
-        ImGui::End(); // Preview
+            if (allowMove)
+            {
+                this->moveInput();
+            } else
+            {
+                this->stopMoveInput();
+            }
+            camera.MouseMoved(mouseDelta);
+            camera.MoveCamera(movementDelta);
 
-        ImGui::Begin("Render");
-        ImGui::End();
+            camera.UpdateProjection(ImGui::GetWindowSize().x, ImGui::GetWindowSize().y);
+            mRasterRenderer->setTargetSize({ImGui::GetWindowSize().x, ImGui::GetWindowSize().y});
+            mRasterRenderer->prepare();
+            mRasterRenderer->draw();
+            ImGui::Image((ImTextureID)mRasterRenderer->getRenderedTexture(),
+                { mRasterRenderer->getTargetSize().x, mRasterRenderer->getTargetSize().y },
+                ImVec2(0,1), ImVec2(1,0));
+            glBindFramebuffer(GL_FRAMEBUFFER, 0);
+            ImGui::End();
+        }
 
-        ImGui::Begin("Inferno HART");
-        ImGui::End();
+        if (ImGui::Begin("Render"))
+        {
+
+            ImGui::End();
+        }
+
+        if (ImGui::Begin("Inferno HART") && showRenderSettings)
+        {
+
+            ImGui::End();
+        }
 
         GLenum err;
         while((err = glGetError()) != GL_NO_ERROR) {
