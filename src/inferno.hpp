@@ -19,7 +19,8 @@ public:
 
     void uiPreset();
     
-    void input();
+    void moveInput();
+    void stopMoveInput();
     int run();
 
 public:

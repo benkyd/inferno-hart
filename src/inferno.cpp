@@ -55,15 +55,33 @@ void Inferno::uiPreset()
     spdlog::info("LAYOUT SET TO DEFAULT");
 }
 
-void Inferno::input()
+void Inferno::moveInput()
 {
-    // KBD & MOUSE
-    static glm::dvec2 dMouseDelta;
-    glm::dvec2 tempMousePos;
-    glfwGetCursorPos(mWin->getGLFWWindow(), &tempMousePos.x, &tempMousePos.y);
+    static GLFWcursor* cursor = glfwCreateStandardCursor(GLFW_HAND_CURSOR);
+    glfwSetCursor(mWin->getGLFWWindow(), cursor);
 
-    mouseDelta = dMouseDelta - tempMousePos;
-    dMouseDelta = tempMousePos;
+    static glm::dvec2 lastMousePos;
+    static int firstClick = 0;
+
+    // KBD & MOUSE
+    // pan only get on hold
+    if (glfwGetMouseButton(mWin->getGLFWWindow(), GLFW_MOUSE_BUTTON_1) == GLFW_PRESS)
+    {
+        firstClick++;
+        if (firstClick == 1)
+        {
+            glfwGetCursorPos(mWin->getGLFWWindow(), &lastMousePos.x, &lastMousePos.y);
+        }
+        glm::dvec2 tempMousePos = { 0.0f, 0.0f };
+        glfwGetCursorPos(mWin->getGLFWWindow(), &tempMousePos.x, &tempMousePos.y);
+        mouseDelta = lastMousePos - tempMousePos;
+        lastMousePos = tempMousePos;
+    } else 
+    {
+        firstClick = 0;
+        mouseDelta = { 0.0f, 0.0f };
+        lastMousePos = { 0.0f, 0.0f };
+    }
 
     movementDelta = 0b00000000;
     if (glfwGetKey(mWin->getGLFWWindow(), GLFW_KEY_W) == GLFW_PRESS)
@@ -80,6 +98,12 @@ void Inferno::input()
         movementDelta |= 0b00000100;
 }
 
+void Inferno::stopMoveInput()
+{
+    movementDelta = 0x0;
+    mouseDelta = { 0.0f, 0.0f };
+}
+
 int Inferno::run() 
 {
     // mWin->setFPSMode();
@@ -90,18 +114,18 @@ int Inferno::run()
     cornell.ready();
 
     Mesh dragon;
-    dragon.loadOBJ("res/dragon-cornell-size.obj");
-    dragon.ready();
+    // dragon.loadOBJ("res/dragon-cornell-size.obj");
+    // dragon.ready();
 
     Material basicMaterial("basic");
     Shader basicShader;
     basicShader.load("res/shaders/basic.glsl")->link();
     basicMaterial.setGlShader(&basicShader);
     cornell.setMaterial(&basicMaterial);
-    dragon.setMaterial(&basicMaterial);
+    // dragon.setMaterial(&basicMaterial);
 
     mScene->addMesh(&cornell);
-    mScene->addMesh(&dragon);
+    // mScene->addMesh(&dragon);
     mScene->setCamera(&camera);
 
     mRasterRenderer->setScene(mScene);
@@ -118,12 +142,20 @@ int Inferno::run()
         if (ImGui::DockBuilderGetNode(dockspace_id) == NULL) { this->uiPreset(); }
         ImGui::DockSpace(dockspace_id, ImVec2(0.0f, 0.0f), dockspace_flags);
 
-        this->input();
+
+        ImGui::Begin("Preview", nullptr, ImGuiWindowFlags_NoScrollbar);
+
+        const bool allowMove = ImGui::IsWindowHovered();
+
+        if (allowMove)
+        {
+            this->moveInput();
+        } else
+        {
+            this->stopMoveInput();
+        }
         camera.MouseMoved(mouseDelta);
         camera.MoveCamera(movementDelta);
-
-
-        ImGui::Begin("Preview");
 
         camera.UpdateProjection(ImGui::GetWindowSize().x, ImGui::GetWindowSize().y);
         mRasterRenderer->setTargetSize({ImGui::GetWindowSize().x, ImGui::GetWindowSize().y});
@@ -134,7 +166,7 @@ int Inferno::run()
              ImVec2(0,1), ImVec2(1,0));
         glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
-        ImGui::End();
+        ImGui::End(); // Preview
 
         ImGui::Begin("Render");
         ImGui::End();
