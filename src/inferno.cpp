@@ -88,7 +88,7 @@ void Inferno::moveInput()
         glfwGetCursorPos(mWin->getGLFWWindow(), &tempMousePos.x, &tempMousePos.y);
         mouseDelta = lastMousePos - tempMousePos;
         lastMousePos = tempMousePos;
-    } else 
+    } else
     {
         firstClick = 0;
         mouseDelta = { 0.0f, 0.0f };
@@ -144,19 +144,12 @@ int Inferno::run()
 
     while (true) 
     {
-        if (!mWin->newFrame()) { break; }
-        
-        // UI
-        ImGuiID dockspace_id = ImGui::GetID("main");
-
-        // set the main window to the dockspace and then on the first launch set the preset
-        static ImGuiDockNodeFlags dockspace_flags = ImGuiDockNodeFlags_PassthruCentralNode;
-        if (ImGui::DockBuilderGetNode(dockspace_id) == NULL) { this->uiPreset(); }
-        ImGui::DockSpace(dockspace_id, ImVec2(0.0f, 0.0f), dockspace_flags);
-
-        // Menu Bar
         static bool showPreview = true;
         static bool showRenderSettings = true;
+
+        if (!mWin->newFrame()) { break; }
+        
+        // Menu Bar
         if (ImGui::BeginMenuBar())
         {
             if (ImGui::BeginMenu("Menu"))
@@ -166,14 +159,24 @@ int Inferno::run()
             if (ImGui::BeginMenu("View"))
             {
                 ImGui::Checkbox("Show Preview", &showPreview);
+                ImGui::SameLine(); HelpMarker("Show the preview window");
                 ImGui::Checkbox("Show Settings", &showRenderSettings);
+                ImGui::SameLine(); HelpMarker("Show the Inferno HART settings window");
 
                 ImGui::EndMenu();
             }
             ImGui::EndMenuBar();
         }
 
-        if (ImGui::Begin("Preview", nullptr, ImGuiWindowFlags_NoScrollbar) && showPreview)
+        // UI
+        ImGuiID dockspace_id = ImGui::GetID("main");
+
+        // set the main window to the dockspace and then on the first launch set the preset
+        static ImGuiDockNodeFlags dockspace_flags = ImGuiDockNodeFlags_PassthruCentralNode;
+        if (ImGui::DockBuilderGetNode(dockspace_id) == NULL) { this->uiPreset(); }
+        ImGui::DockSpace(dockspace_id, ImVec2(0.0f, 0.0f), dockspace_flags);
+
+        if (showPreview && ImGui::Begin("Preview", nullptr, ImGuiWindowFlags_NoScrollbar))
         {
             const bool allowMove = ImGui::IsWindowHovered();
 
@@ -204,8 +207,20 @@ int Inferno::run()
             ImGui::End();
         }
 
-        if (ImGui::Begin("Inferno HART") && showRenderSettings)
+        if (showRenderSettings && ImGui::Begin("Inferno HART"))
         {
+            if (ImGui::TreeNode("Camera"))
+            {
+                ImGui::Text("Camera X,Y,Z");
+                ImGui::DragFloat("X", &camera.Position.x, 0.005f, -FLT_MAX, FLT_MAX, "%.1f", ImGuiSliderFlags_None);
+                ImGui::SameLine();
+                ImGui::DragFloat("Y", &camera.Position.y, 0.005f, -FLT_MAX, FLT_MAX, "%.1f", ImGuiSliderFlags_None);
+                ImGui::SameLine();
+                ImGui::DragFloat("Z", &camera.Position.z, 0.005f, -FLT_MAX, FLT_MAX, "%.1f", ImGuiSliderFlags_None);
+                camera.UpdatePosition(camera.Position);
+
+                ImGui::TreePop();
+            }
 
             ImGui::End();
         }
