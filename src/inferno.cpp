@@ -118,8 +118,6 @@ void Inferno::stopMoveInput()
 
 int Inferno::run() 
 {
-    // mWin->setFPSMode();
-
     Camera camera;
     Mesh cornell;
     cornell.loadOBJ("res/cornell-box.obj");
@@ -127,17 +125,17 @@ int Inferno::run()
 
     Mesh dragon;
     // dragon.loadOBJ("res/dragon-cornell-size.obj");
-    // dragon.ready();
+    dragon.ready();
 
     Material basicMaterial("basic");
     Shader basicShader;
     basicShader.load("res/shaders/basic.glsl")->link();
     basicMaterial.setGlShader(&basicShader);
     cornell.setMaterial(&basicMaterial);
-    // dragon.setMaterial(&basicMaterial);
+    dragon.setMaterial(&basicMaterial);
 
     mScene->addMesh(&cornell);
-    // mScene->addMesh(&dragon);
+    mScene->addMesh(&dragon);
     mScene->setCamera(&camera);
 
     mRasterRenderer->setScene(mScene);
@@ -211,17 +209,24 @@ int Inferno::run()
         {
             if (ImGui::TreeNode("Camera"))
             {
-                ImGui::Text("Camera X,Y,Z");
-                ImGui::DragFloat("X", &camera.Position.x, 0.005f, -FLT_MAX, FLT_MAX, "%.1f", ImGuiSliderFlags_None);
-                ImGui::SameLine();
-                ImGui::DragFloat("Y", &camera.Position.y, 0.005f, -FLT_MAX, FLT_MAX, "%.1f", ImGuiSliderFlags_None);
-                ImGui::SameLine();
-                ImGui::DragFloat("Z", &camera.Position.z, 0.005f, -FLT_MAX, FLT_MAX, "%.1f", ImGuiSliderFlags_None);
+                ImGui::PushItemWidth(100);
+                ImGui::Text("Camera Position X,Y,Z");
+                ImGui::DragFloat("X", &camera.Position.x, 0.01f, -FLT_MAX, FLT_MAX, "%.2f", ImGuiSliderFlags_None); ImGui::SameLine();
+                ImGui::DragFloat("Y", &camera.Position.y, 0.01f, -FLT_MAX, FLT_MAX, "%.2f", ImGuiSliderFlags_None); ImGui::SameLine();
+                ImGui::DragFloat("Z", &camera.Position.z, 0.01f, -FLT_MAX, FLT_MAX, "%.2f", ImGuiSliderFlags_None);
                 camera.UpdatePosition(camera.Position);
 
+                ImGui::Text("Camera Look Yaw, Pitch, Roll");
+                ImGui::DragFloat("Yaw", &camera.Yaw, 0.01f, -FLT_MAX, FLT_MAX, "%.2f", ImGuiSliderFlags_None); ImGui::SameLine();
+                ImGui::DragFloat("Pitch", &camera.Pitch, 0.01f, -FLT_MAX, FLT_MAX, "%.2f", ImGuiSliderFlags_None); ImGui::SameLine();
+                ImGui::DragFloat("Roll", &camera.Roll, 0.01f, -FLT_MAX, FLT_MAX, "%.2f", ImGuiSliderFlags_None);
+                camera.UpdateView();
+
+                ImGui::PopItemWidth();
                 ImGui::TreePop();
             }
 
+            ImGui::ShowDemoWindow();
             ImGui::End();
         }
 
