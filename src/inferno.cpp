@@ -176,9 +176,7 @@ int Inferno::run()
 
         if (showPreview && ImGui::Begin("Preview", nullptr, ImGuiWindowFlags_NoScrollbar))
         {
-            const bool allowMove = ImGui::IsWindowHovered();
-
-            if (allowMove)
+            if (ImGui::IsWindowHovered())
             {
                 this->moveInput();
             } else
@@ -201,12 +199,18 @@ int Inferno::run()
 
         if (ImGui::Begin("Render"))
         {
+            
 
             ImGui::End();
         }
 
         if (showRenderSettings && ImGui::Begin("Inferno HART"))
         {
+            if (ImGui::TreeNode("Render"))
+            {
+                ImGui::TreePop();
+            }
+
             if (ImGui::TreeNode("Camera"))
             {
                 ImGui::PushItemWidth(100);
@@ -223,9 +227,13 @@ int Inferno::run()
                 camera.UpdateView();
 
                 ImGui::PopItemWidth();
+
+                ImGui::Text("Camera Zoom");
+                ImGui::DragFloat("Zoom", &camera.FOV, -0.1f, 0.0f, 180.0f, "%.2f", ImGuiSliderFlags_None); ImGui::SameLine();
+                camera.UpdateProjection();
+
                 ImGui::TreePop();
             }
-
             ImGui::ShowDemoWindow();
             ImGui::End();
         }

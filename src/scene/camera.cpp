@@ -4,7 +4,7 @@ using namespace inferno;
 
 Camera::Camera()
 {
-	mProjMatrix = glm::perspective( glm::radians( 45.0f ), 1.0f, 0.1f, 1000.0f );
+	mProjMatrix = glm::perspective( glm::radians(FOV), 1.0f, 0.1f, 1000.0f );
 
 	Roll = 0.0f;
 	Pitch = 0.0f;
@@ -20,7 +20,7 @@ Camera::Camera()
 
 Camera::Camera(int w, int h)
 {
-	mProjMatrix = glm::perspective(glm::radians(45.0f), (float)w / (float)h, 0.1f, 1000.0f);
+	mProjMatrix = glm::perspective(glm::radians(FOV), (float)w / (float)h, 0.1f, 1000.0f);
 
 	Roll = 0.0f;
 	Pitch = 0.0f;
@@ -42,9 +42,9 @@ void Camera::UpdateView()
 	glm::mat4 matYaw = glm::mat4(1.0f);  //identity matrix
 
 	// roll, pitch and yaw
-	matRoll = glm::rotate( matRoll, Roll, glm::vec3(0.0f, 0.0f, 1.0f));
-	matPitch = glm::rotate( matPitch, Pitch, glm::vec3(1.0f, 0.0f, 0.0f));
-	matYaw = glm::rotate( matYaw, Yaw, glm::vec3( 0.0f, 1.0f, 0.0f));
+	matRoll = glm::rotate(matRoll, Roll, glm::vec3(0.0f, 0.0f, 1.0f));
+	matPitch = glm::rotate(matPitch, Pitch, glm::vec3(1.0f, 0.0f, 0.0f));
+	matYaw = glm::rotate(matYaw, Yaw, glm::vec3( 0.0f, 1.0f, 0.0f));
 
 	glm::mat4 rotate = matRoll * matPitch * matYaw;
 
@@ -74,7 +74,12 @@ glm::mat4 Camera::GetProjectionMatrix()
 void Camera::UpdateProjection(int width, int height)
 {
 	mViewport = {width, height};
-	mProjMatrix = glm::perspective(glm::radians(45.0f), (float)width / (float)height, 0.1f, 1000.0f);
+	mProjMatrix = glm::perspective(glm::radians(FOV), (float)width / (float)height, 0.1f, 1000.0f);
+}
+
+void Camera::UpdateProjection()
+{
+	mProjMatrix = glm::perspective(glm::radians(FOV), mViewport.x / mViewport.y, 0.1f, 1000.0f);
 }
 
 void Camera::MoveCamera(uint8_t posDelta)

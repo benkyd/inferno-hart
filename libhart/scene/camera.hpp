@@ -17,6 +17,7 @@ public:
 	glm::mat4 GetFrustrumMatrix();
 
 	void UpdateProjection(int width, int height);
+	void UpdateProjection();
 
 	// Keyboard
 	void MoveCamera(uint8_t posDelta);
@@ -33,6 +34,7 @@ public:
 
 	glm::vec3 Position = {};
 	float Roll, Pitch, Yaw;
+	float FOV = 45.0f;
 	glm::vec3 LookDirection = {};
 
 private:
