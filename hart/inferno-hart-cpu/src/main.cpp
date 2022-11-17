@@ -5,23 +5,40 @@
 
 using namespace inferno;
 
-extern "C" Accelerator* get()
+class HARTCPU : public ::HARTModule
 {
-    Mesh* mesh = new Mesh();
-    return new Accelerator;
+public:
+    HARTCPU()
+    {
+        std::cout << "Module HART CPU" << std::endl;
+    }
+
+    ~HARTCPU()
+    {
+        std::cout << "Goodbye Module HART CPU" << std::endl;
+    }
+
+};
+
+HART_INTERFACE void* _GET()
+{
+    return new HARTCPU;
 }
 
-extern "C" void destroy(Accelerator* inst)
+HART_INTERFACE void _DESTROY(void* inst)
 {
-    delete inst;
+    HARTCPU* instance = (HARTCPU*)inst;
+    delete instance;
 }
 
-Accelerator::Accelerator()
+HART_INTERFACE void* _CREDIT()
 {
-
-} 
-
-void Accelerator::Init()
-{
-        std::cout << "Shared Library!" << std::endl;
+    return new ModuleCredit {
+        .ModuleName = "HART_CPU",
+        .AuthorName = "Ben Kyd",
+        .ModuleDesc = "Accelerating inferno raytracing with CPU",
+        .VersionMajor = 0,
+        .VersionMinor = 0,
+        .VersionBuild = 1,
+    };
 }

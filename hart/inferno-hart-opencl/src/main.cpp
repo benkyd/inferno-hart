@@ -1,25 +1,44 @@
 #include <inferno_hart.hpp>
+#include <scene/mesh.hpp>
 
 #include <iostream>
 
 using namespace inferno;
 
-extern "C" ::Accelerator* get()
+class HARTGPU : public ::HARTModule
 {
-    return new ::Accelerator;
+public:
+    HARTGPU()
+    {
+        std::cout << "Module HART GPU" << std::endl;
+    }
+
+    ~HARTGPU()
+    {
+        std::cout << "Goodbye Module HART GPU" << std::endl;
+    }
+
+};
+
+HART_INTERFACE void* _GET()
+{
+    return new HARTGPU;
 }
 
-extern "C" void destroy(::Accelerator* inst)
+HART_INTERFACE void _DESTROY(void* inst)
 {
-    delete inst;
+    HARTGPU* instance = (HARTGPU*)inst;
+    delete instance;
 }
 
-Accelerator::Accelerator()
+HART_INTERFACE void* _CREDIT()
 {
-
-} 
-
-void Accelerator::Init()
-{
-        std::cout << "Shared Library!" << std::endl;
+    return new ModuleCredit {
+        .ModuleName = "HART_GPU",
+        .AuthorName = "Ben Kyd",
+        .ModuleDesc = "Accelerating inferno raytracing with OpenCL",
+        .VersionMajor = 0,
+        .VersionMinor = 0,
+        .VersionBuild = 1,
+    };
 }

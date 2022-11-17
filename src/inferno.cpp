@@ -4,6 +4,8 @@
 #include "gui/layout.hpp"
 #include "window.hpp"
 
+#include "hart_directory.hpp"
+
 #include "preview_renderer/renderer.hpp"
 #include "preview_renderer/shader.hpp"
 #include "scene/camera.hpp"
@@ -116,8 +118,11 @@ void Inferno::stopMoveInput()
     mouseDelta = { 0.0f, 0.0f };
 }
 
-int Inferno::run() 
+int Inferno::run()
 {
+    HARTModuleDirectory moduleDirectory;
+    moduleDirectory.discoverModules("./hart/", true);
+
     Camera camera;
     Mesh cornell;
     cornell.loadOBJ("res/cornell-box.obj");
@@ -208,6 +213,37 @@ int Inferno::run()
         {
             if (ImGui::TreeNode("Render"))
             {
+                if (ImGui::TreeNode("Accelerator"))
+                {
+                    ImGui::Button("Find Accelerator...");
+                    ImGui::Text("Select Accelerator:");
+                    if (ImGui::BeginListBox("", ImVec2(-FLT_MIN, 3 * ImGui::GetTextLineHeightWithSpacing())))
+                    {
+                        std::vector<std::string> moduleNames = moduleDirectory.getModules();
+                        int active = moduleDirectory.getActiveIndex();
+                        for (int n = 0; n < moduleNames.size(); n++)
+                        {
+                            const bool is_selected = (active == n);
+                            if (ImGui::Selectable(moduleNames[n].c_str(), is_selected))
+                                moduleDirectory.setActiveIndex(n);
+
+                            // Set the initial focus when opening the combo (scrolling + keyboard navigation focus)
+                            if (is_selected)
+                                ImGui::SetItemDefaultFocus();
+                        }
+                        ImGui::EndListBox();
+                    }
+                    auto* activeCredit = moduleDirectory.getActiveCredit();
+                    ImGui::Text(moduleDirectory.getActive().c_str());
+                    ImGui::BulletText(activeCredit->ModuleDesc.c_str());
+                    ImGui::BulletText("v%i.%i.%i", activeCredit->VersionMajor,
+                                                   activeCredit->VersionMinor,
+                                                   activeCredit->VersionBuild);
+                    ImGui::BulletText("Authored by %s", activeCredit->AuthorName.c_str());
+
+                    ImGui::TreePop();
+                }
+
                 ImGui::TreePop();
             }
 
@@ -257,6 +293,5 @@ int Inferno::run()
         mWin->render();
     }
 
-    delete mWin;
     return 0;
 }
