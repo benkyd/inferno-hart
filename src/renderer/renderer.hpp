@@ -26,7 +26,7 @@ private:
     GLuint mRenderTargetTexture = 0;
     
     Colour* mTarget;
-    glm::ivec2 mRenderTargetSize = {1920, 1080};
+    glm::ivec2 mRenderTargetSize = {300, 300};
 
     Scene* mCurrentScene;
 };
