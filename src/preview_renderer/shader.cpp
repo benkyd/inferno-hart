@@ -72,7 +72,6 @@ Shader* Shader::load(std::filesystem::path path) {
 		if (type->def == "vertex") glType = GL_VERTEX_SHADER;
 		if (type->def == "geometry") glType = GL_GEOMETRY_SHADER;
 		if (type->def == "fragment") glType = GL_FRAGMENT_SHADER;
-		std::cout << "TYPE: " << type->def << " i " << glType << std::endl;
 
 		assert(glType != GL_NONE);
 

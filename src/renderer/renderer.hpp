@@ -5,12 +5,13 @@
 namespace inferno {
 
 class Scene;
+class Colour;
 
-class RasterizeRenderer 
+class RayRenderer 
 {
 public:
-    RasterizeRenderer();
-    ~RasterizeRenderer();
+    RayRenderer();
+    ~RayRenderer();
 
     void setScene(Scene* scene);
 
@@ -22,9 +23,9 @@ public:
     void draw();
 
 private:
-    GLuint mRenderTarget = 0;
     GLuint mRenderTargetTexture = 0;
-    GLuint mRenderTargetDepthTexture = 0;
+    
+    Colour* mTarget;
     glm::ivec2 mRenderTargetSize = {1920, 1080};
 
     Scene* mCurrentScene;

@@ -52,7 +52,7 @@ void RasterizeRenderer::setScene(Scene* scene)
     mCurrentScene = scene;
 }
 
-void RasterizeRenderer::setTargetSize(glm::vec2 size)
+void RasterizeRenderer::setTargetSize(glm::ivec2 size)
 {
     glBindFramebuffer(GL_FRAMEBUFFER, mRenderTarget);
 
@@ -72,7 +72,7 @@ GLuint RasterizeRenderer::getRenderedTexture()
     return mRenderTargetTexture;
 }
 
-glm::vec2 RasterizeRenderer::getTargetSize()
+glm::ivec2 RasterizeRenderer::getTargetSize()
 {
     return mRenderTargetSize;
 }
@@ -91,10 +91,7 @@ void RasterizeRenderer::draw()
     glViewport(0, 0, mRenderTargetSize.x, mRenderTargetSize.y);
 
 	glEnable(GL_DEPTH_TEST);
-    // glDepthFunc(GL_GREATER);
-
-    // glDisable(GL_CULL_FACE);
-
+    
     for (Mesh* m : mCurrentScene->getRenderables())
     {
 	    m->getMaterial()->getGlShader()->use();

@@ -8,6 +8,7 @@
 
 #include "preview_renderer/renderer.hpp"
 #include "preview_renderer/shader.hpp"
+#include "renderer/renderer.hpp"
 #include "scene/camera.hpp"
 #include "scene/scene.hpp"
 #include "scene/material.hpp"
@@ -33,6 +34,7 @@ Inferno::Inferno()
     mWin->init("Inferno v" INFERNO_VERSION, 1280, 720);
 
     mRasterRenderer = new RasterizeRenderer();
+    mRayRenderer = new RayRenderer();
     mScene = new Scene();
 }
 
@@ -57,6 +59,7 @@ static void HelpMarker(const char* desc)
 void Inferno::uiPreset() 
 {
     ImGuiID dockspace_id = ImGui::GetID("main");
+
     ImGui::DockBuilderRemoveNode(dockspace_id); // Clear out existing layout
     ImGui::DockBuilderAddNode(dockspace_id, ImGuiDockNodeFlags_DockSpace); // Add empty node
     ImGui::DockBuilderSetNodeSize(dockspace_id, {1000, 1000});
@@ -128,31 +131,38 @@ int Inferno::run()
     cornell.loadOBJ("res/cornell-box.obj");
     cornell.ready();
 
-    Mesh dragon;
+    // Mesh dragon;
     // dragon.loadOBJ("res/dragon-cornell-size.obj");
-    dragon.ready();
+    // dragon.ready();
 
     Material basicMaterial("basic");
     Shader basicShader;
     basicShader.load("res/shaders/basic.glsl")->link();
     basicMaterial.setGlShader(&basicShader);
     cornell.setMaterial(&basicMaterial);
-    dragon.setMaterial(&basicMaterial);
+    // dragon.setMaterial(&basicMaterial);
 
     mScene->addMesh(&cornell);
-    mScene->addMesh(&dragon);
+    // mScene->addMesh(&dragon);
     mScene->setCamera(&camera);
 
     mRasterRenderer->setScene(mScene);
+    mRayRenderer->setScene(mScene);
 
     while (true) 
     {
-        static bool showPreview = true;
-        static bool showRenderSettings = true;
-
         if (!mWin->newFrame()) { break; }
         
+        // set the main window to the dockspace and then on the first launch set the preset
+        ImGuiID dockspace_id = ImGui::GetID("main");
+        static ImGuiDockNodeFlags dockspace_flags = ImGuiDockNodeFlags_PassthruCentralNode;
+        if (ImGui::DockBuilderGetNode(dockspace_id) == NULL) { this->uiPreset(); }
+        ImGui::DockSpace(dockspace_id, ImVec2(0.0f, 0.0f), dockspace_flags);
+
         // Menu Bar
+        static bool showPreview = true;
+        static bool showRenderSettings = true;
+        static bool showDemoWindow = false;
         if (ImGui::BeginMenuBar())
         {
             if (ImGui::BeginMenu("Menu"))
@@ -165,19 +175,12 @@ int Inferno::run()
                 ImGui::SameLine(); HelpMarker("Show the preview window");
                 ImGui::Checkbox("Show Settings", &showRenderSettings);
                 ImGui::SameLine(); HelpMarker("Show the Inferno HART settings window");
+                ImGui::Checkbox("Show Demo", &showDemoWindow);
 
                 ImGui::EndMenu();
             }
             ImGui::EndMenuBar();
         }
-
-        // UI
-        ImGuiID dockspace_id = ImGui::GetID("main");
-
-        // set the main window to the dockspace and then on the first launch set the preset
-        static ImGuiDockNodeFlags dockspace_flags = ImGuiDockNodeFlags_PassthruCentralNode;
-        if (ImGui::DockBuilderGetNode(dockspace_id) == NULL) { this->uiPreset(); }
-        ImGui::DockSpace(dockspace_id, ImVec2(0.0f, 0.0f), dockspace_flags);
 
         if (showPreview && ImGui::Begin("Preview", nullptr, ImGuiWindowFlags_NoScrollbar))
         {
@@ -202,10 +205,14 @@ int Inferno::run()
             ImGui::End();
         }
 
-        if (ImGui::Begin("Render"))
+        if (ImGui::Begin("Render", nullptr, ImGuiWindowFlags_NoScrollbar))
         {
-            
-
+            mRayRenderer->prepare();
+            mRayRenderer->draw();
+            ImGui::Image((ImTextureID)mRayRenderer->getRenderedTexture(),
+                { mRayRenderer->getTargetSize().x, mRayRenderer->getTargetSize().y },
+                ImVec2(0,1), ImVec2(1,0));
+            glBindTexture(GL_TEXTURE_2D, 0);
             ImGui::End();
         }
 
@@ -242,7 +249,6 @@ int Inferno::run()
 
                     ImGui::TreePop();
                 }
-
                 ImGui::TreePop();
             }
 
@@ -269,8 +275,12 @@ int Inferno::run()
 
                 ImGui::TreePop();
             }
-            ImGui::ShowDemoWindow();
             ImGui::End();
+        }
+
+        if (showDemoWindow)
+        {
+            ImGui::ShowDemoWindow();
         }
 
         GLenum err;
@@ -286,7 +296,7 @@ int Inferno::run()
                 case GL_INVALID_FRAMEBUFFER_OPERATION: error = "INVALID_FRAMEBUFFER_OPERATION"; break;
                 default:                               error = std::to_string((uint32_t)err); break;
             }
-            spdlog::error("[GL]: ", err, " ", error);
+            spdlog::error("[GL]: {0} {1}", err, error);
         }    
         
         mWin->render();

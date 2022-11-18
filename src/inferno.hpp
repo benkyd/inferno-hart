@@ -9,6 +9,7 @@ namespace inferno {
 class Window;
 
 class RasterizeRenderer;
+class RayRenderer;
 class Scene;
 
 class Inferno : public helpers::Singleton<Inferno>
@@ -31,6 +32,7 @@ public:
 
 private:
     RasterizeRenderer* mRasterRenderer;
+    RayRenderer* mRayRenderer;
     Scene* mScene;
 
 private:
