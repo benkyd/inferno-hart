@@ -223,22 +223,21 @@ int Inferno::run()
                         int active = moduleDirectory.getActiveIndex();
                         for (int n = 0; n < moduleNames.size(); n++)
                         {
-                            const bool is_selected = (active == n);
-                            if (ImGui::Selectable(moduleNames[n].c_str(), is_selected))
+                            const bool isSelected = (active == n);
+                            if (ImGui::Selectable(moduleNames[n].c_str(), isSelected))
                                 moduleDirectory.setActiveIndex(n);
-
-                            // Set the initial focus when opening the combo (scrolling + keyboard navigation focus)
-                            if (is_selected)
+                            if (isSelected)
                                 ImGui::SetItemDefaultFocus();
                         }
                         ImGui::EndListBox();
                     }
                     auto* activeCredit = moduleDirectory.getActiveCredit();
                     ImGui::Text(moduleDirectory.getActive().c_str());
-                    ImGui::BulletText(activeCredit->ModuleDesc.c_str());
-                    ImGui::BulletText("v%i.%i.%i", activeCredit->VersionMajor,
+                    ImGui::SameLine();
+                    ImGui::Text("v%i.%i.%i", activeCredit->VersionMajor,
                                                    activeCredit->VersionMinor,
                                                    activeCredit->VersionBuild);
+                    ImGui::BulletText(activeCredit->ModuleDesc.c_str());
                     ImGui::BulletText("Authored by %s", activeCredit->AuthorName.c_str());
 
                     ImGui::TreePop();

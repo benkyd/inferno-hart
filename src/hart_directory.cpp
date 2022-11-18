@@ -161,7 +161,7 @@ int HARTModuleDirectory::getActiveIndex()
 
 ModuleCredit* HARTModuleDirectory::getActiveCredit()
 {
-    mEntries[mActiveModule].Discovery.Credit;
+    return mEntries[mActiveModule].Discovery.Credit;
 }
 
 void HARTModuleDirectory::load(std::string moduleName)
