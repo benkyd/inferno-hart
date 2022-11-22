@@ -126,19 +126,24 @@ int Inferno::run()
     HARTModuleDirectory moduleDirectory;
     moduleDirectory.discoverModules("./hart/", true);
 
-    Camera camera;
-    mScene->setCamera(&camera);
-
     Material basicMaterial("basic");
     Shader basicShader;
     basicMaterial.setGlShader(&basicShader);
-    basicShader.load("res/shaders/basic.glsl")->link();
 
     Mesh cornell;
     cornell.loadOBJ("res/cornell-box.obj");
     cornell.ready();
     cornell.setMaterial(&basicMaterial);
     mScene->addMesh(&cornell);
+
+    // Mesh dragon;
+    // dragon.loadOBJ("res/dragon-cornell-size.obj");
+    // dragon.ready();
+    // dragon.setMaterial(&basicMaterial);
+    // mScene->addMesh(&dragon);
+
+    Camera camera;
+    mScene->setCamera(&camera);
 
     Mesh dragon;
     dragon.loadOBJ("res/dragon-cornell-size.obj");
@@ -268,11 +273,13 @@ int Inferno::run()
                 camera.UpdateView();
 
                 ImGui::PopItemWidth();
+                ImGui::PushItemWidth(300);
 
                 ImGui::Text("Camera Zoom");
-                ImGui::DragFloat("Zoom", &camera.FOV, -0.1f, 0.0f, 180.0f, "%.2f", ImGuiSliderFlags_None); ImGui::SameLine();
+                ImGui::DragFloat("Zoom", &camera.FOV, -0.1f, 0.01f, 180.0f, "%.2f", ImGuiSliderFlags_None); ImGui::SameLine();
                 camera.UpdateProjection();
 
+                ImGui::PopItemWidth();
                 ImGui::TreePop();
             }
             ImGui::End();

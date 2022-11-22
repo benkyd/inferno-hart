@@ -1,7 +1,5 @@
 #include "renderer.hpp"
 
-#include "colour.hpp"
-
 #include <scene/camera.hpp>
 #include <scene/scene.hpp>
 
@@ -9,7 +7,7 @@ using namespace inferno;
 
 RayRenderer::RayRenderer()
 {
-    mTarget = new Colour[mRenderTargetSize.x * mRenderTargetSize.y];
+    mTarget = new glm::fvec4[mRenderTargetSize.x * mRenderTargetSize.y];
 
     glGenTextures(1, &mRenderTargetTexture);
     glBindTexture(GL_TEXTURE_2D, mRenderTargetTexture);
@@ -20,7 +18,7 @@ RayRenderer::RayRenderer()
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 
     glPixelStorei(GL_UNPACK_ROW_LENGTH, 0);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, mRenderTargetSize.x, mRenderTargetSize.y, 0, GL_RGBA, GL_UNSIGNED_BYTE, mTarget);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, mRenderTargetSize.x, mRenderTargetSize.y, 0, GL_RGBA, GL_FLOAT, mTarget);
 
     glBindTexture(GL_TEXTURE_2D, 0);
 }
@@ -62,10 +60,10 @@ void RayRenderer::draw()
     for (int x = 0; x < mRenderTargetSize.x; x++)
     for (int y = 0; y < mRenderTargetSize.y; y++)
     {
-        mTarget[y * mRenderTargetSize.x + x] = { 0xFF * (uint8_t)x, 0x00, 0xFF * (uint8_t)y, 0xFF };
+        mTarget[y * mRenderTargetSize.x + x] = { 0.0f + ((float)x / (float)mRenderTargetSize.x),  0.0f + ((float)y / (float)mRenderTargetSize.y), 1.0f, 1.0f };
     }
 
     glBindTexture(GL_TEXTURE_2D, mRenderTargetTexture);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, mRenderTargetSize.x, mRenderTargetSize.y, 0, GL_RGBA, GL_UNSIGNED_BYTE, mTarget);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, mRenderTargetSize.x, mRenderTargetSize.y, 0, GL_RGBA, GL_FLOAT, mTarget);
     glBindTexture(GL_TEXTURE_2D, 0);
 }
