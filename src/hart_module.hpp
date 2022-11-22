@@ -9,7 +9,7 @@ namespace inferno {
 
 class Scene;
 class Ray;
-class RaySouce;
+class RaySource;
 class HitInfo;
 
 class HARTModule;
@@ -22,23 +22,16 @@ public:
 
     HARTModuleDirectory* getModuleDirectory();
 
-    // needs to syncronusly stop the module's execution and
-    // prepare for setting up a new HART layer
-    void notifyModuleChange(HARTModule* newModule);
-
     void newScene(Scene* scene);
     void notifySceneUpdate();    
 
-    void startTrace(RaySouce* sourceScatter);
+    void startTrace(RaySource* sourceScatter);
 
     void rayReturn(HitInfo* hit);
     void bounce(Ray* newRay);
 
 private:
     HARTModuleDirectory mDirectory;
-
-private:
-    HARTModule* activeModule;
 
 };
 

@@ -18,3 +18,28 @@ HARTModuleDirectory* HHM::getModuleDirectory()
     return &mDirectory;
 }
 
+void HHM::newScene(Scene* scene)
+{
+    // extract mesh's
+}
+
+void HHM::notifySceneUpdate()
+{
+    // same again
+}
+
+void HHM::startTrace(RaySource* sourceScatter)
+{
+
+}
+
+void HHM::rayReturn(HitInfo* hit)
+{
+
+}
+
+void HHM::bounce(Ray* newRay)
+{
+
+}
+

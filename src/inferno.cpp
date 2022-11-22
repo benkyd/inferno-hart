@@ -34,10 +34,10 @@ Inferno::Inferno()
     mWin = &Window::GetInstance();
     mWin->init("Inferno v" INFERNO_VERSION, 1280, 720);
 
-    mRasterRenderer = new RasterizeRenderer();
-    mRayRenderer = new RayRenderer();
-    mScene = new Scene();
     mHeadHartModule = new HHM();
+    mRasterRenderer = new RasterizeRenderer();
+    mRayRenderer = new RayRenderer(mHeadHartModule);
+    mScene = new Scene();
 }
 
 Inferno::~Inferno()

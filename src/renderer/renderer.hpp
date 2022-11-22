@@ -4,13 +4,15 @@
 
 namespace inferno {
 
+class HHM;
+
 class Scene;
 class Colour;
 
 class RayRenderer 
 {
 public:
-    RayRenderer();
+    RayRenderer(HHM* accelIface);
     ~RayRenderer();
 
     void setScene(Scene* scene);
@@ -28,7 +30,10 @@ private:
     glm::fvec4* mTarget;
     glm::ivec2 mRenderTargetSize = {300, 300};
 
-    Scene* mCurrentScene;
+    Scene* mCurrentScene = nullptr;
+
+private:
+    HHM* mIface;
 };
 
 }

@@ -3,9 +3,12 @@
 #include <scene/camera.hpp>
 #include <scene/scene.hpp>
 
+#include "hart_module.hpp"
+
 using namespace inferno;
 
-RayRenderer::RayRenderer()
+RayRenderer::RayRenderer(HHM* accelIface)
+    : mIface(accelIface)
 {
     mTarget = new glm::fvec4[mRenderTargetSize.x * mRenderTargetSize.y];
 
@@ -52,7 +55,8 @@ GLuint RayRenderer::getRenderedTexture()
 
 void RayRenderer::prepare()
 {
-
+    assert(mCurrentScene == NULL);
+    mIface->newScene(mCurrentScene);
 }
 
 void RayRenderer::draw()
