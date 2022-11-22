@@ -3,6 +3,8 @@
 // the HHM (Hamlin Hamlin McGill) aka the Head HART Module keeps track of the module
 // and gives the renderer a cleaner interface to talk to a HART Module
 
+#include "hart_directory.hpp"
+
 namespace inferno {
 
 class Scene;
@@ -18,6 +20,8 @@ public:
     HHM();
     ~HHM();
 
+    HARTModuleDirectory* getModuleDirectory();
+
     // needs to syncronusly stop the module's execution and
     // prepare for setting up a new HART layer
     void notifyModuleChange(HARTModule* newModule);
@@ -29,6 +33,9 @@ public:
 
     void rayReturn(HitInfo* hit);
     void bounce(Ray* newRay);
+
+private:
+    HARTModuleDirectory mDirectory;
 
 private:
     HARTModule* activeModule;

@@ -4,6 +4,7 @@
 #include "gui/layout.hpp"
 #include "window.hpp"
 
+#include "hart_module.hpp"
 #include "hart_directory.hpp"
 
 #include "preview_renderer/renderer.hpp"
@@ -36,6 +37,7 @@ Inferno::Inferno()
     mRasterRenderer = new RasterizeRenderer();
     mRayRenderer = new RayRenderer();
     mScene = new Scene();
+    mHeadHartModule = new HHM();
 }
 
 Inferno::~Inferno()
@@ -123,16 +125,13 @@ void Inferno::stopMoveInput()
 
 int Inferno::run()
 {
-    HARTModuleDirectory moduleDirectory;
-    moduleDirectory.discoverModules("./hart/", true);
-
     Material basicMaterial("basic");
     Shader basicShader;
     basicShader.load("res/shaders/basic.glsl")->link();
     basicMaterial.setGlShader(&basicShader);
 
     Mesh cornell;
-    cornell.loadOBJ("res/cornell-box.obj");
+    cornell.loadOBJ("res/sponza.obj");
     cornell.ready();
     cornell.setMaterial(&basicMaterial);
     mScene->addMesh(&cornell);
@@ -226,20 +225,20 @@ int Inferno::run()
                     ImGui::Text("Select Accelerator:");
                     if (ImGui::BeginListBox("", ImVec2(-FLT_MIN, 3 * ImGui::GetTextLineHeightWithSpacing())))
                     {
-                        std::vector<std::string> moduleNames = moduleDirectory.getModules();
-                        int active = moduleDirectory.getActiveIndex();
+                        std::vector<std::string> moduleNames = mHeadHartModule->getModuleDirectory()->getModules();
+                        int active = mHeadHartModule->getModuleDirectory()->getActiveIndex();
                         for (int n = 0; n < moduleNames.size(); n++)
                         {
                             const bool isSelected = (active == n);
                             if (ImGui::Selectable(moduleNames[n].c_str(), isSelected))
-                                moduleDirectory.setActiveIndex(n);
+                                 mHeadHartModule->getModuleDirectory()->setActiveIndex(n);
                             if (isSelected)
                                 ImGui::SetItemDefaultFocus();
                         }
                         ImGui::EndListBox();
                     }
-                    auto* activeCredit = moduleDirectory.getActiveCredit();
-                    ImGui::Text(moduleDirectory.getActive().c_str());
+                    auto* activeCredit = mHeadHartModule->getModuleDirectory()->getActiveCredit();
+                    ImGui::Text(activeCredit->ModuleName.c_str());
                     ImGui::SameLine();
                     ImGui::Text("v%i.%i.%i", activeCredit->VersionMajor,
                                                    activeCredit->VersionMinor,
