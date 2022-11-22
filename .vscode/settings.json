@@ -69,7 +69,8 @@
         "typeinfo": "cpp",
         "valarray": "cpp",
         "variant": "cpp",
-        "complex": "cpp"
+        "complex": "cpp",
+        "hash_map": "cpp"
     },
     "cmake.configureOnOpen": false
 }

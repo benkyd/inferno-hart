@@ -128,6 +128,7 @@ int Inferno::run()
 
     Material basicMaterial("basic");
     Shader basicShader;
+    basicShader.load("res/shaders/basic.glsl")->link();
     basicMaterial.setGlShader(&basicShader);
 
     Mesh cornell;
@@ -145,12 +146,6 @@ int Inferno::run()
     Camera camera;
     mScene->setCamera(&camera);
 
-    Mesh dragon;
-    dragon.loadOBJ("res/dragon-cornell-size.obj");
-    dragon.ready();
-    dragon.setMaterial(&basicMaterial);
-    mScene->addMesh(&dragon);
-    
     mRasterRenderer->setScene(mScene);
     mRayRenderer->setScene(mScene);
 

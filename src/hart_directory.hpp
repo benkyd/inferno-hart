@@ -40,7 +40,8 @@ public:
         bool Active;
     };
 
-    std::vector<discoveryEntry> discoverModules(std::filesystem::path folder, bool recurse = false);
+    // This can take a file or a directory, and inside the directory discover recursively or not
+    std::vector<discoveryEntry> discoverModules(std::filesystem::path path, bool recurse = false);
     discoveryEntry registerModule(std::filesystem::path file);
 
     std::vector<std::string> getModules();
@@ -48,6 +49,7 @@ public:
     void setActive(std::string moduleName);
     void setActiveIndex(int index);
     
+    HARTModule* getActiveModule();
     std::string getActive();
     int getActiveIndex();
     ModuleCredit* getActiveCredit();

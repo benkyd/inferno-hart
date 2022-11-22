@@ -1,8 +1,9 @@
 #pragma once
 
 #include <string>
+#include <queue>
 
-#include "hardware_accelerator.hpp"
+#include "hart_graphics.hpp"
 
 namespace inferno {
 
@@ -16,10 +17,6 @@ namespace inferno {
 #define HART_INTERFACE extern "C"
 #endif
 
-HART_INTERFACE typedef void* (*HART_INIT_F)(void);
-HART_INTERFACE typedef void (*HART_DESTROY_F)(void*);
-HART_INTERFACE typedef void* (*HART_CREDIT_F)(void);
-
 struct ModuleCredit
 {
     const std::string ModuleName;
@@ -30,11 +27,42 @@ struct ModuleCredit
     const int VersionBuild;
 };
 
+class Ray;
+class HitInfo;
+class Material;
+
+HART_INTERFACE typedef void* (*HART_INIT_F)(void);
+HART_INTERFACE typedef void (*HART_DESTROY_F)(void*);
+HART_INTERFACE typedef void* (*HART_CREDIT_F)(void);
+
+typedef void (*HART_HIT_CALLBACK)(HitInfo* hit);
+
 class HARTModule
 {
 public:
     // Constructor & destructor is done in the module
-    // virtual void takeScene() = 0;
+    virtual void submitTris(std::vector<glm::vec3>* vert,
+                            std::vector<glm::vec3>* norm,
+                            std::vector<Material*>* mats,
+                            std::vector<int>* indicies) = 0;
+    virtual void updateTris(std::vector<glm::vec3>* vert,
+                            std::vector<glm::vec3>* norm,
+                            std::vector<Material*>* mats,
+                            std::vector<int>* indicies) = 0;
+
+    virtual void submitQueue(std::queue<Ray*> queue) = 0;
+    virtual void pushtoQueue(Ray* ray) = 0;
+
+    inline void passHitCallback(HART_HIT_CALLBACK callback)
+    {
+        Hit = callback;
+    }
+
+private:
+    HART_HIT_CALLBACK Hit = nullptr;
+
+private:
+    std::queue<Ray*> mToTrace;
 };
     
 }

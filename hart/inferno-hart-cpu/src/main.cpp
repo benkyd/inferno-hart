@@ -18,6 +18,17 @@ public:
         std::cout << "Goodbye Module HART CPU" << std::endl;
     }
 
+    void submitTris(std::vector<glm::vec3>* vert,
+                            std::vector<glm::vec3>* norm,
+                            std::vector<Material*>* mats,
+                            std::vector<int>* indicies) override {}
+    void updateTris(std::vector<glm::vec3>* vert,
+                            std::vector<glm::vec3>* norm,
+                            std::vector<Material*>* mats,
+                            std::vector<int>* indicies)  override {}
+
+    void submitQueue(std::queue<Ray*> queue) override {}
+    void pushtoQueue(Ray* ray) override {}
 };
 
 HART_INTERFACE void* _GET()

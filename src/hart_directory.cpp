@@ -68,10 +68,10 @@ HARTModuleDirectory::discoveryEntry HARTModuleDirectory::registerModule(std::fil
     entry.InitCallback = (HART_INIT_F)GetProcAddress(entry.Handle, "_GET");
     entry.DestroyCallback = (HART_DESTROY_F)GetProcAddress(entry.Handle, "_DESTROY");
 #else // UNIX-Like
-    entry.Handle = dlopen(file.c_str(), RTLD_LAZY | RTLD_LOCAL);
+    entry.Handle = dlopen(file.c_str(), RTLD_NOW | RTLD_LOCAL);
     if (entry.Handle == NULL) 
     {
-        spdlog::error("Cannot load module at {}.", file.c_str());
+        spdlog::error("Cannot load module at ", dlerror());
         entry.Handle = NULL; entry.DidLink = false;
         return entry;
     }
@@ -101,11 +101,11 @@ HARTModuleDirectory::discoveryEntry HARTModuleDirectory::registerModule(std::fil
 
     entry.Credit = (ModuleCredit*)credit();
 
-    spdlog::info("Module {} v{}.{}.{} by {}", entry.Credit->ModuleName, 
-                                              entry.Credit->VersionMajor, 
-                                              entry.Credit->VersionMinor, 
-                                              entry.Credit->VersionBuild, 
-                                              entry.Credit->AuthorName);
+    spdlog::info("Module {0} v{2}.{3}.{4} by {5}", entry.Credit->ModuleName,
+                                                   entry.Credit->VersionMajor,
+                                                   entry.Credit->VersionMinor,
+                                                   entry.Credit->VersionBuild,
+                                                   entry.Credit->AuthorName);
 
     entry.DidLink = true;
     mEntries[entry.Credit->ModuleName] = { entry, nullptr };
@@ -142,6 +142,11 @@ void HARTModuleDirectory::setActiveIndex(int index)
 {
     std::vector<std::string> keys = this->getModules();
     this->setActive(keys[index]);
+}
+
+HARTModule* HARTModuleDirectory::getActiveModule()
+{
+    return mEntries[mActiveModule].Module;
 }
 
 std::string HARTModuleDirectory::getActive()
