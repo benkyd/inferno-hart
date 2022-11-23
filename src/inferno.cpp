@@ -151,7 +151,8 @@ int Inferno::run()
     while (true) 
     {
         if (!mWin->newFrame()) { break; }
-        
+        camera.newFrame();
+
         // set the main window to the dockspace and then on the first launch set the preset
         ImGuiID dockspace_id = ImGui::GetID("main");
         static ImGuiDockNodeFlags dockspace_flags = ImGuiDockNodeFlags_PassthruCentralNode;
@@ -190,10 +191,10 @@ int Inferno::run()
             {
                 this->stopMoveInput();
             }
-            camera.MouseMoved(mouseDelta);
-            camera.MoveCamera(movementDelta);
+            if (glm::length(mouseDelta) > 0.0f) camera.mouseMoved(mouseDelta);
+            if (movementDelta != 0b00000000) camera.moveCamera(movementDelta);
 
-            camera.UpdateProjection(ImGui::GetWindowSize().x, ImGui::GetWindowSize().y);
+            camera.setRasterViewport({ImGui::GetWindowSize().x, ImGui::GetWindowSize().y});
             mRasterRenderer->setTargetSize({ImGui::GetWindowSize().x, ImGui::GetWindowSize().y});
             mRasterRenderer->prepare();
             mRasterRenderer->draw();
@@ -255,23 +256,25 @@ int Inferno::run()
             {
                 ImGui::PushItemWidth(100);
                 ImGui::Text("Camera Position X,Y,Z");
-                ImGui::DragFloat("X", &camera.Position.x, 0.01f, -FLT_MAX, FLT_MAX, "%.2f", ImGuiSliderFlags_None); ImGui::SameLine();
-                ImGui::DragFloat("Y", &camera.Position.y, 0.01f, -FLT_MAX, FLT_MAX, "%.2f", ImGuiSliderFlags_None); ImGui::SameLine();
-                ImGui::DragFloat("Z", &camera.Position.z, 0.01f, -FLT_MAX, FLT_MAX, "%.2f", ImGuiSliderFlags_None);
-                camera.UpdatePosition(camera.Position);
 
+                bool positionUpdated = false;
+                ImGui::DragFloat("X", &camera.Position.x, 0.01f, -FLT_MAX, FLT_MAX, "%.2f", ImGuiSliderFlags_None); ImGui::SameLine(); if (ImGui::IsItemEdited()) positionUpdated = true;
+                ImGui::DragFloat("Y", &camera.Position.y, 0.01f, -FLT_MAX, FLT_MAX, "%.2f", ImGuiSliderFlags_None); ImGui::SameLine(); if (ImGui::IsItemEdited()) positionUpdated = true;
+                ImGui::DragFloat("Z", &camera.Position.z, 0.01f, -FLT_MAX, FLT_MAX, "%.2f", ImGuiSliderFlags_None); if (ImGui::IsItemEdited()) positionUpdated = true;
+                if (positionUpdated) camera.setPosition(camera.Position);
+
+                bool viewUpdated = false;
                 ImGui::Text("Camera Look Yaw, Pitch, Roll");
-                ImGui::DragFloat("Yaw", &camera.Yaw, 0.01f, -FLT_MAX, FLT_MAX, "%.2f", ImGuiSliderFlags_None); ImGui::SameLine();
-                ImGui::DragFloat("Pitch", &camera.Pitch, 0.01f, -FLT_MAX, FLT_MAX, "%.2f", ImGuiSliderFlags_None); ImGui::SameLine();
-                ImGui::DragFloat("Roll", &camera.Roll, 0.01f, -FLT_MAX, FLT_MAX, "%.2f", ImGuiSliderFlags_None);
-                camera.UpdateView();
+                ImGui::DragFloat("Yaw", &camera.Yaw, 0.01f, -FLT_MAX, FLT_MAX, "%.2f", ImGuiSliderFlags_None); ImGui::SameLine(); if (ImGui::IsItemEdited()) viewUpdated = true;
+                ImGui::DragFloat("Pitch", &camera.Pitch, 0.01f, -FLT_MAX, FLT_MAX, "%.2f", ImGuiSliderFlags_None); ImGui::SameLine(); if (ImGui::IsItemEdited()) viewUpdated = true;
+                ImGui::DragFloat("Roll", &camera.Roll, 0.01f, -FLT_MAX, FLT_MAX, "%.2f", ImGuiSliderFlags_None); if (ImGui::IsItemEdited()) viewUpdated = true;
 
                 ImGui::PopItemWidth();
                 ImGui::PushItemWidth(300);
 
                 ImGui::Text("Camera Zoom");
-                ImGui::DragFloat("Zoom", &camera.FOV, -0.1f, 0.01f, 180.0f, "%.2f", ImGuiSliderFlags_None); ImGui::SameLine();
-                camera.UpdateProjection();
+                ImGui::DragFloat("Zoom", &camera.FOV, -0.1f, 0.01f, 180.0f, "%.2f", ImGuiSliderFlags_None); ImGui::SameLine(); if (ImGui::IsItemEdited()) viewUpdated = true;
+                if (viewUpdated) camera.update();
 
                 ImGui::PopItemWidth();
                 ImGui::TreePop();

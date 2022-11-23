@@ -99,10 +99,10 @@ void RasterizeRenderer::draw()
         glUniformMatrix4fv(uniTrans, 1, GL_FALSE, glm::value_ptr(glm::mat4(1.0f)));
 
         GLint uniView = glGetUniformLocation(m->getMaterial()->getGlShader()->getProgram(), "view");
-        glUniformMatrix4fv(uniView, 1, GL_FALSE, glm::value_ptr(mCurrentScene->getCamera()->GetViewMatrix()));
+        glUniformMatrix4fv(uniView, 1, GL_FALSE, glm::value_ptr(mCurrentScene->getCamera()->getViewMatrix()));
 
         GLint uniProj = glGetUniformLocation(m->getMaterial()->getGlShader()->getProgram(), "proj");
-        glUniformMatrix4fv(uniProj, 1, GL_FALSE, glm::value_ptr(mCurrentScene->getCamera()->GetProjectionMatrix()));
+        glUniformMatrix4fv(uniProj, 1, GL_FALSE, glm::value_ptr(mCurrentScene->getCamera()->getProjectionMatrix()));
         
         glBindVertexArray(m->getVAO());
         glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m->getEBO());

@@ -15,6 +15,7 @@ RaySource::~RaySource()
 void RaySource::cameraUpdate(Camera* camera)
 {
     mReferenceCamera = camera;
+    
 }
 
 void RaySource::generate()

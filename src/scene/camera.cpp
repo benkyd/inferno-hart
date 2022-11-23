@@ -15,7 +15,7 @@ Camera::Camera()
 
 	mViewMatrix = {};
 
-	UpdateView();
+	update();
 }
 
 Camera::Camera(int w, int h)
@@ -31,10 +31,10 @@ Camera::Camera(int w, int h)
 
 	mViewMatrix = {};
 
-	UpdateView();
+	update();
 }
 
-void Camera::UpdateView()
+void Camera::update()
 {
 	// roll can be removed
 	glm::mat4 matRoll = glm::mat4(1.0f); //identity matrix 
@@ -52,6 +52,7 @@ void Camera::UpdateView()
 	translate = glm::translate(translate, -Position);
 
 	mViewMatrix = rotate * translate;
+	mProjMatrix = glm::perspective(glm::radians(FOV), mViewport.x / mViewport.y, 0.1f, 1000.0f);
 
 	// Work out Look Vector
 	glm::mat4 inverseView = glm::inverse(mViewMatrix);
@@ -59,30 +60,37 @@ void Camera::UpdateView()
 	LookDirection.x = inverseView[2][0];
 	LookDirection.y = inverseView[2][1];
 	LookDirection.z = inverseView[2][2];
+
+	mDidUpdate = true;
 }
 
-glm::mat4 Camera::GetViewMatrix()
+bool Camera::didUpdate()
+{
+	return mDidUpdate;
+}
+
+void Camera::newFrame()
+{
+	mDidUpdate = false;
+}
+
+glm::mat4 Camera::getViewMatrix()
 {
 	return mViewMatrix;
 }
 
-glm::mat4 Camera::GetProjectionMatrix()
+glm::mat4 Camera::getProjectionMatrix()
 {
 	return mProjMatrix;
 }
 
-void Camera::UpdateProjection(int width, int height)
+void Camera::setRasterViewport(glm::vec2 viewport)
 {
-	mViewport = {width, height};
-	mProjMatrix = glm::perspective(glm::radians(FOV), (float)width / (float)height, 0.1f, 1000.0f);
+	mViewport =  viewport;
+	mProjMatrix = glm::perspective(glm::radians(FOV), (float)viewport.x / (float)viewport.y, 0.1f, 1000.0f);
 }
 
-void Camera::UpdateProjection()
-{
-	mProjMatrix = glm::perspective(glm::radians(FOV), mViewport.x / mViewport.y, 0.1f, 1000.0f);
-}
-
-void Camera::MoveCamera(uint8_t posDelta)
+void Camera::moveCamera(uint8_t posDelta)
 {
 	if (posDelta == 0) return;
 
@@ -121,7 +129,7 @@ void Camera::MoveCamera(uint8_t posDelta)
 	}
 
 	// get current view matrix
-	glm::mat4 mat = GetViewMatrix();
+	glm::mat4 mat = getViewMatrix();
 	glm::vec3 forward(mat[0][2], mat[1][2], mat[2][2]);
 	glm::vec3 strafe(mat[0][0], mat[1][0], mat[2][0]);
 
@@ -130,43 +138,54 @@ void Camera::MoveCamera(uint8_t posDelta)
 	Position += delta * CameraSpeed;
 
 	// update the view matrix
-	UpdateView();
+	update();
 }
 
-void Camera::MouseMoved(glm::vec2 mouseDelta)
+void Camera::mouseMoved(glm::vec2 mouseDelta)
 {
 	if (glm::length(mouseDelta) == 0) return;
 	// note that yaw and pitch must be converted to radians.
-	// this is done in UpdateView() by glm::rotate
+	// this is done in update() by glm::rotate
 	Yaw += MouseSensitivity * (mouseDelta.x / 100);
 	Pitch += MouseSensitivity * (mouseDelta.y / 100);
 	Pitch = glm::clamp<float>(Pitch, -M_PI / 2, M_PI / 2);
 
-	UpdateView();
+	update();
 }
 
-void Camera::UpdatePosition(glm::vec3 position)
+void Camera::setPosition(glm::vec3 position)
 {
 	Position = position;
 
-	UpdateView();
+	update();
 }
 
-void Camera::UpdateEulerLookDirection(float roll, float pitch, float yaw)
+void Camera::setEulerLook(float roll, float pitch, float yaw)
 {
 	Roll = roll; Pitch = pitch; Yaw = yaw;
 	LookDirection.x = cos(Yaw) * cos(Pitch);
 	LookDirection.y = sin(Yaw) * cos(Pitch);
 	LookDirection.z = sin(Pitch);
 
-	UpdateView();
+	update();
 }
 
-void Camera::UpdateLookDirection(glm::vec3 lookDirection)
+void Camera::setLook(glm::vec3 lookDirection)
 {
 	LookDirection = lookDirection;
 	Pitch = asin(-lookDirection.y);
 	Yaw = atan2(lookDirection.x, lookDirection.z);
 
-	UpdateView();
+	update();
 }
+
+void Camera::setRayViewport(glm::vec2 viewport)
+{
+	mRayViewport = viewport;
+}
+
+glm::vec2 Camera::getRayViewport()
+{
+	return mRayViewport;
+}
+

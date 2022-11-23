@@ -10,40 +10,44 @@ public:
 	Camera();
 	Camera(int w, int h);
 
-	void UpdateView();
+	void update();
+	bool didUpdate();
+	void newFrame();
 
-	glm::mat4 GetViewMatrix();
-	glm::mat4 GetProjectionMatrix();
-	glm::mat4 GetFrustrumMatrix();
+	glm::mat4 getViewMatrix();
+	glm::mat4 getProjectionMatrix();
+	glm::mat4 getFrustrumMatrix();
 
-	void UpdateProjection(int width, int height);
-	void UpdateProjection();
+	void setRasterViewport(glm::vec2 viewport);
 
 	// Keyboard
-	void MoveCamera(uint8_t posDelta);
+	void moveCamera(uint8_t posDelta);
 	// Mouse Delta
-	void MouseMoved(glm::vec2 mouseDelta);
+	void mouseMoved(glm::vec2 mouseDelta);
 
-	// Updatable by 
+	void setPosition(glm::vec3 position);
+	void setEulerLook(float roll, float pitch, float yaw);
+	void setLook(glm::vec3 lookDirection);
+
+public:
+	void setRayViewport(glm::vec2 viewport);
+	glm::vec2 getRayViewport();
+
+public:
+	// necessary evil
 	float MouseSensitivity = 0.4f;
 	float CameraSpeed = 0.1f;
-
-	void UpdatePosition(glm::vec3 position);
-	void UpdateEulerLookDirection(float roll, float pitch, float yaw);
-	void UpdateLookDirection(glm::vec3 lookDirection);
-
-public:
-
-public:
-	glm::vec3 Position = {};
 	float Roll, Pitch, Yaw;
 	float FOV = 45.0f;
+	glm::vec3 Position = {};
 	glm::vec3 LookDirection = {};
 
 private:
-	glm::vec2 mViewport = {};
+	glm::vec2 mViewport = { 100.0f, 100.0f };
+	glm::vec2 mRayViewport = { 100.0f, 100.0f };
 	glm::mat4 mViewMatrix = {};
 	glm::mat4 mProjMatrix = {};
+	bool mDidUpdate;
 	
 };
 
