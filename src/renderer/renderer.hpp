@@ -7,7 +7,7 @@ namespace inferno {
 class HHM;
 
 class Scene;
-class Colour;
+class RaySource;
 
 class RayRenderer 
 {
@@ -31,6 +31,7 @@ private:
     glm::ivec2 mRenderTargetSize = {300, 300};
 
     Scene* mCurrentScene = nullptr;
+    RaySource* mRaySource;
 
 private:
     HHM* mIface;

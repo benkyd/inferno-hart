@@ -32,6 +32,9 @@ public:
 	void UpdateEulerLookDirection(float roll, float pitch, float yaw);
 	void UpdateLookDirection(glm::vec3 lookDirection);
 
+public:
+
+public:
 	glm::vec3 Position = {};
 	float Roll, Pitch, Yaw;
 	float FOV = 45.0f;
