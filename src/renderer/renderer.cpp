@@ -10,7 +10,6 @@ using namespace inferno;
 
 RayRenderer::RayRenderer(HHM* accelIface)
     : mIface(accelIface)
-    , mRaySource(new RaySource)
 {
     mTarget = new glm::fvec4[mRenderTargetSize.x * mRenderTargetSize.y];
 
@@ -36,6 +35,11 @@ RayRenderer::~RayRenderer()
 void RayRenderer::setScene(Scene* scene)
 {
     mCurrentScene = scene;
+    if (mRaySource != nullptr)
+    {
+        delete mRaySource;
+    }
+    mRaySource = new RaySource(scene->getCamera());
 }
 
 void RayRenderer::setTargetSize(glm::ivec2 size)
@@ -59,8 +63,6 @@ void RayRenderer::prepare()
 {
     assert(mCurrentScene != NULL);
     mIface->newScene(mCurrentScene);
-    
-    mRaySource->cameraUpdate(mCurrentScene->getCamera());
 }
 
 void RayRenderer::draw()

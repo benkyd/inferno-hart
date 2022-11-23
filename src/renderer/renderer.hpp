@@ -31,7 +31,7 @@ private:
     glm::ivec2 mRenderTargetSize = {300, 300};
 
     Scene* mCurrentScene = nullptr;
-    RaySource* mRaySource;
+    RaySource* mRaySource = nullptr;
 
 private:
     HHM* mIface;

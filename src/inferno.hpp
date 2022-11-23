@@ -27,8 +27,8 @@ public:
 
 public:
     glm::vec2 mouseDelta;
-    // 0x00000000
-    // 0xFLBRUDxx
+    // 0b00000000
+    // 0bFLBRUDxx
     uint8_t movementDelta;
 
 private:

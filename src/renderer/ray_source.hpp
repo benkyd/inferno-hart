@@ -15,12 +15,10 @@ class Camera;
 class RaySource
 {
 public:
-    RaySource();
+    RaySource(Camera* camera);
     ~RaySource();
 
-    void cameraUpdate(Camera* camera);
     void generate();
-
     RayField getInitialRays(bool MSAA);
 
 private:
