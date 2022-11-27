@@ -36,17 +36,16 @@ Camera::Camera(int w, int h)
 
 void Camera::update()
 {
-	// roll can be removed
-	glm::mat4 matRoll = glm::mat4(1.0f); //identity matrix 
-	glm::mat4 matPitch = glm::mat4(1.0f);//identity matrix
-	glm::mat4 matYaw = glm::mat4(1.0f);  //identity matrix
+	glm::mat4 matRoll = glm::mat4(1.0f); 
+	glm::mat4 matPitch = glm::mat4(1.0f);
+	glm::mat4 matYaw = glm::mat4(1.0f); 
 
-	// roll, pitch and yaw
 	matRoll = glm::rotate(matRoll, Roll, glm::vec3(0.0f, 0.0f, 1.0f));
 	matPitch = glm::rotate(matPitch, Pitch, glm::vec3(1.0f, 0.0f, 0.0f));
 	matYaw = glm::rotate(matYaw, Yaw, glm::vec3( 0.0f, 1.0f, 0.0f));
 
 	glm::mat4 rotate = matRoll * matPitch * matYaw;
+	mCameraLook = rotate;
 
 	glm::mat4 translate = glm::mat4(1.0f);
 	translate = glm::translate(translate, -Position);
@@ -82,6 +81,11 @@ glm::mat4 Camera::getViewMatrix()
 glm::mat4 Camera::getProjectionMatrix()
 {
 	return mProjMatrix;
+}
+
+glm::mat4 Camera::getCameraLook()
+{
+	return mCameraLook;
 }
 
 void Camera::setRasterViewport(glm::vec2 viewport)

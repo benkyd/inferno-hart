@@ -16,7 +16,7 @@ public:
 
 	glm::mat4 getViewMatrix();
 	glm::mat4 getProjectionMatrix();
-	glm::mat4 getFrustrumMatrix();
+	glm::mat4 getCameraLook();
 
 	void setRasterViewport(glm::vec2 viewport);
 
@@ -47,6 +47,7 @@ private:
 	glm::vec2 mRayViewport = { 300.0f, 300.0f };
 	glm::mat4 mViewMatrix = {};
 	glm::mat4 mProjMatrix = {};
+	glm::mat4 mCameraLook = {};
 	bool mDidUpdate;
 	
 };

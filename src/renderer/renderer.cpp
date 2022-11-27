@@ -80,4 +80,9 @@ void RayRenderer::draw()
     glBindTexture(GL_TEXTURE_2D, mRenderTargetTexture);
     glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, mRenderTargetSize.x, mRenderTargetSize.y, 0, GL_RGBA, GL_FLOAT, mTarget);
     glBindTexture(GL_TEXTURE_2D, 0);
+
+    for (auto* ray : startRays)
+    {
+        delete ray;
+    }
 }
