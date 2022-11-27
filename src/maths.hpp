@@ -1,0 +1,11 @@
+#pragma once
+
+namespace inferno::helpers {
+
+const float DEG2RAD = 0.01745329251994329576923690768f;
+const float RAD2DEG = 57.2957795130823208767981548141f;
+const float      PI = 3.14159265358979323846264338327f;
+const float EPSILON = 0.00000100000000000000000000000f;
+
+
+}

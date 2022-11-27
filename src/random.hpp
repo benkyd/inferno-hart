@@ -8,9 +8,9 @@
 
 // TODO: compile time precomputed random numbers
 
-namespace inferno {
+namespace inferno::helpers {
 
-class Random : public helpers::Singleton<Random>
+class Random : public Singleton<Random>
 {
 public:
     inline Random()

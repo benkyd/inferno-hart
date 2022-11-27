@@ -1,5 +1,9 @@
 #include "ray_source.hpp"
 
+#include <iostream>
+
+#include <maths.hpp>
+
 #include <scene/camera.hpp>
 
 #include <tracing/ray.hpp>
@@ -19,7 +23,8 @@ RaySource::~RaySource()
 
 void RaySource::generate()
 {
-
+    // const float aspect =  mReferenceCamera->getRayViewport().x / mReferenceCamera->getRayViewport().y;
+    // float scale = tan(mReferenceCamera->FOV / 2.0f * helpers::PI / 180.0f);
 }
 
 RayField RaySource::getInitialRays(bool MSAA)
@@ -29,8 +34,27 @@ RayField RaySource::getInitialRays(bool MSAA)
         this->generate();
     }
 
+    RayField field;
+    field.reserve(mReferenceCamera->getRayViewport().x * mReferenceCamera->getRayViewport().y);
+
+    const float aspect =  mReferenceCamera->getRayViewport().x / mReferenceCamera->getRayViewport().y;
+    float scale = tan(mReferenceCamera->FOV / 2.0f * helpers::PI / 180.0f);
+    
+    glm::mat4 cameraToWorld = mReferenceCamera->getViewMatrix();
+    glm::vec3 origin = mReferenceCamera->Position;
+
     for (int x = 0; x < mReferenceCamera->getRayViewport().x; x++)
     for (int y = 0; y < mReferenceCamera->getRayViewport().y; y++)
+    {
+        float Px = (2.0f * ((x + 0.5f) /  mReferenceCamera->getRayViewport().x) - 1.0f) * scale * aspect; 
+        float Py = (1.0f - 2.0f * ((y + 0.5f) /  mReferenceCamera->getRayViewport().y) * scale); 
 
-    return RayField{};
-}
+        Ray* ray = new Ray;
+        ray->Origin = origin;
+        ray->Direction = glm::normalize(glm::vec4(Px, Py, -1.0f, 1.0f) * cameraToWorld);
+    
+        field.push_back(ray);
+    }
+
+    return field;
+ }

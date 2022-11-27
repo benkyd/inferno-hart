@@ -44,7 +44,7 @@ public:
 
 private:
 	glm::vec2 mViewport = { 100.0f, 100.0f };
-	glm::vec2 mRayViewport = { 100.0f, 100.0f };
+	glm::vec2 mRayViewport = { 300.0f, 300.0f };
 	glm::mat4 mViewMatrix = {};
 	glm::mat4 mProjMatrix = {};
 	bool mDidUpdate;

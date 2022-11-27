@@ -1,5 +1,7 @@
 #include "renderer.hpp"
 
+#include <iostream>
+
 #include <scene/camera.hpp>
 #include <scene/scene.hpp>
 
@@ -72,7 +74,7 @@ void RayRenderer::draw()
     for (int x = 0; x < mRenderTargetSize.x; x++)
     for (int y = 0; y < mRenderTargetSize.y; y++)
     {
-        mTarget[y * mRenderTargetSize.x + x] = { 0.0f + ((float)x / (float)mRenderTargetSize.x),  0.0f + ((float)y / (float)mRenderTargetSize.y), 1.0f, 1.0f };
+        mTarget[y * mRenderTargetSize.x + x] = { startRays[y * mRenderTargetSize.x + x]->Direction, 1.0f };
     }
 
     glBindTexture(GL_TEXTURE_2D, mRenderTargetTexture);
