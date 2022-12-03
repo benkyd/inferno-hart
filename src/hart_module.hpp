@@ -9,7 +9,7 @@ namespace inferno {
 
 class Scene;
 class Ray;
-class RaySource;
+class RayField;
 class HitInfo;
 
 class HARTModule;
@@ -25,7 +25,7 @@ public:
     void newScene(Scene* scene);
     void notifySceneUpdate();    
 
-    void startTrace(RaySource* sourceScatter);
+    void startTrace(RayField* sourceScatter);
 
     void rayReturn(HitInfo* hit);
     void bounce(Ray* newRay);

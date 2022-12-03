@@ -50,7 +50,8 @@ public:
                             std::vector<Material*>* mats,
                             std::vector<int>* indicies) = 0;
 
-    virtual void submitQueue(std::queue<Ray*> queue) = 0;
+    // module keeps queue reference
+    virtual void submitQueue(std::vector<Ray*> queue) = 0;
     virtual void pushtoQueue(Ray* ray) = 0;
 
     inline void passHitCallback(HART_HIT_CALLBACK callback)
