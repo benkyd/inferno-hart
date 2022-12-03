@@ -10,7 +10,7 @@ class Window;
 class HHM;
 
 class RasterizeRenderer;
-class RayRenderer;
+class RenderDispatcher;
 class Scene;
 
 class Inferno : public helpers::Singleton<Inferno>
@@ -35,10 +35,8 @@ private:
     // need deffered init as they need an OpenGL context
     // could and should be fixed with a static window
     RasterizeRenderer* mRasterRenderer;
-    RayRenderer* mRayRenderer;
+    RenderDispatcher* mRayRenderer;
     Scene* mScene;
-
-    HHM* mHeadHartModule;
     
 private:
     Window* mWin;

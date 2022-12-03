@@ -27,7 +27,11 @@ public:
                             std::vector<Material*>* mats,
                             std::vector<int>* indicies)  override {}
 
-    void submitQueue(std::queue<Ray*> queue) override {}
+    void submitQueue(std::vector<Ray*> queue) override 
+    {
+        
+    }
+
     void pushtoQueue(Ray* ray) override {}
 };
 

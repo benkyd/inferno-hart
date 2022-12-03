@@ -71,7 +71,7 @@ void RayRenderer::prepare()
 void RayRenderer::draw()
 {
     RayField startRays = mRaySource->getInitialRays(true);
-    mIface->startTrace(&startRays);
+    mIface->startTrace(startRays);
 
     for (int x = 0; x < mRenderTargetSize.x; x++)
     for (int y = 0; y < mRenderTargetSize.y; y++)

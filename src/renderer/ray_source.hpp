@@ -8,7 +8,7 @@
 
 namespace inferno {
 
-typedef std::vector<Ray*> RayField;
+using RayField = std::vector<Ray*>;
 
 class Camera;
 

@@ -1,5 +1,7 @@
 #include "hart_module.hpp"
 
+#include <vector>
+
 #include <renderer/ray_source.hpp>
 #include <scene/scene.hpp>
 #include <scene/mesh.hpp>
@@ -38,10 +40,10 @@ void HHM::notifySceneUpdate()
     // same again
 }
 
-void HHM::startTrace(RayField* sourceScatter)
+void HHM::startTrace(RayField sourceScatter)
 {
     HARTModule* mod = mDirectory.getActiveModule();
-    mod->submitQueue(reinterpret_cast<std::vector<Ray*>>(sourceScatter));
+    mod->submitQueue(sourceScatter);
 }
 
 void HHM::rayReturn(HitInfo* hit)

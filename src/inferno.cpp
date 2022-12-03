@@ -9,6 +9,7 @@
 
 #include "preview_renderer/renderer.hpp"
 #include "preview_renderer/shader.hpp"
+#include "renderer/dispatcher.hpp"
 #include "renderer/renderer.hpp"
 #include "scene/camera.hpp"
 #include "scene/scene.hpp"
@@ -34,9 +35,7 @@ Inferno::Inferno()
     mWin = &Window::GetInstance();
     mWin->init("Inferno v" INFERNO_VERSION, 1280, 720);
 
-    mHeadHartModule = new HHM();
     mRasterRenderer = new RasterizeRenderer();
-    mRayRenderer = new RayRenderer(mHeadHartModule);
     mScene = new Scene();
 }
 
@@ -146,7 +145,7 @@ int Inferno::run()
     mScene->setCamera(&camera);
 
     mRasterRenderer->setScene(mScene);
-    mRayRenderer->setScene(mScene);
+    mRayRenderer->getRenderer()->setScene(mScene);
 
     while (true) 
     {
@@ -207,10 +206,9 @@ int Inferno::run()
 
         if (ImGui::Begin("Render", nullptr, ImGuiWindowFlags_NoScrollbar))
         {
-            mRayRenderer->prepare();
-            mRayRenderer->draw();
-            ImGui::Image((ImTextureID)mRayRenderer->getRenderedTexture(),
-                { mRayRenderer->getTargetSize().x, mRayRenderer->getTargetSize().y },
+            ImGui::Image((ImTextureID)mRayRenderer->getLatestTexture(),
+                { mRayRenderer->getRenderer()->getTargetSize().x,
+                  mRayRenderer->getRenderer()->getTargetSize().y },
                 ImVec2(0,1), ImVec2(1,0));
             glBindTexture(GL_TEXTURE_2D, 0);
             ImGui::End();
@@ -220,25 +218,26 @@ int Inferno::run()
         {
             if (ImGui::TreeNode("Render"))
             {
+                HHM* hhm = mRayRenderer->getTopModule();
                 if (ImGui::TreeNode("Accelerator"))
                 {
                     ImGui::Button("Find Accelerator...");
                     ImGui::Text("Select Accelerator:");
                     if (ImGui::BeginListBox("", ImVec2(-FLT_MIN, 3 * ImGui::GetTextLineHeightWithSpacing())))
                     {
-                        std::vector<std::string> moduleNames = mHeadHartModule->getModuleDirectory()->getModules();
-                        int active = mHeadHartModule->getModuleDirectory()->getActiveIndex();
+                        std::vector<std::string> moduleNames = hhm->getModuleDirectory()->getModules();
+                        int active = hhm->getModuleDirectory()->getActiveIndex();
                         for (int n = 0; n < moduleNames.size(); n++)
                         {
                             const bool isSelected = (active == n);
                             if (ImGui::Selectable(moduleNames[n].c_str(), isSelected))
-                                 mHeadHartModule->getModuleDirectory()->setActiveIndex(n);
+                                 hhm->getModuleDirectory()->setActiveIndex(n);
                             if (isSelected)
                                 ImGui::SetItemDefaultFocus();
                         }
                         ImGui::EndListBox();
                     }
-                    auto* activeCredit = mHeadHartModule->getModuleDirectory()->getActiveCredit();
+                    auto* activeCredit = hhm->getModuleDirectory()->getActiveCredit();
                     ImGui::Text(activeCredit->ModuleName.c_str());
                     ImGui::SameLine();
                     ImGui::Text("v%i.%i.%i", activeCredit->VersionMajor,
