@@ -36,6 +36,7 @@ Inferno::Inferno()
     mWin->init("Inferno v" INFERNO_VERSION, 1280, 720);
 
     mRasterRenderer = new RasterizeRenderer();
+    mRayRenderer = new RenderDispatcher();
     mScene = new Scene();
 }
 
@@ -216,8 +217,27 @@ int Inferno::run()
 
         if (showRenderSettings && ImGui::Begin("Inferno HART"))
         {
+            // start/stop
+            bool isRenderRunning = mRayRenderer->progressionStatus();
+            if (isRenderRunning)
+            {
+                ImGui::PushItemFlag(ImGuiItemFlags_Disabled, true); ImGui::PushStyleVar(ImGuiStyleVar_Alpha, ImGui::GetStyle().Alpha * 0.5f);
+                ImGui::Button("Start Render"); ImGui::SameLine();
+                ImGui::PopItemFlag(); ImGui::PopStyleVar();
+                if (ImGui::Button("Stop Render"))
+                    mRayRenderer->stopProgression();
+            } else {
+                if (ImGui::Button("Start Render"))
+                    mRayRenderer->startProgression();
+                ImGui::SameLine();
+                ImGui::PushItemFlag(ImGuiItemFlags_Disabled, true); ImGui::PushStyleVar(ImGuiStyleVar_Alpha, ImGui::GetStyle().Alpha * 0.5f);
+                ImGui::Button("Stop Render");
+                ImGui::PopItemFlag(); ImGui::PopStyleVar();
+            }
+
             if (ImGui::TreeNode("Render"))
             {
+                // modules
                 HHM* hhm = mRayRenderer->getTopModule();
                 if (ImGui::TreeNode("Accelerator"))
                 {

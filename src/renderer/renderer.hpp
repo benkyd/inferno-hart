@@ -25,6 +25,7 @@ public:
     void draw();
 
 private:
+    // TODO: a mutex for the renderTargetTexture as it gets accessed by the render thread and the main thread
     GLuint mRenderTargetTexture = 0;
     
     glm::fvec4* mTarget;
