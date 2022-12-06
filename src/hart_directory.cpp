@@ -1,5 +1,7 @@
 #include "hart_directory.hpp"
 
+#include "inferno_hart.hpp"
+
 #include <spdlog/spdlog.h>
 
 #include <iostream>

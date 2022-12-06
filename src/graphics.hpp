@@ -18,3 +18,9 @@ extern "C"
 // glm
 #include <glm/glm.hpp>
 #include <glm/gtc/type_ptr.hpp>
+
+#include <vector>
+namespace inferno {
+class Ray;
+using RayField = std::vector<Ray*>;
+}

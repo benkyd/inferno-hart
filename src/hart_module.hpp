@@ -5,6 +5,7 @@
 
 #include <vector>
 
+#include <graphics.hpp>
 #include "hart_directory.hpp"
 
 namespace inferno {
@@ -13,8 +14,6 @@ class Scene;
 class Ray;
 class HitInfo;
 class HARTModule;
-
-using RayField = std::vector<Ray*>;
 
 class HHM 
 {

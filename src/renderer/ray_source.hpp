@@ -8,8 +8,6 @@
 
 namespace inferno {
 
-using RayField = std::vector<Ray*>;
-
 class Camera;
 
 class RaySource

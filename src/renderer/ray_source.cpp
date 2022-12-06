@@ -46,7 +46,7 @@ RayField RaySource::getInitialRays(bool MSAA)
     for (int x = 0; x < mReferenceCamera->getRayViewport().x; x++)
     for (int y = 0; y < mReferenceCamera->getRayViewport().y; y++)
     {
-        float Px = (2.0f * ((x + 0.5f) /  mReferenceCamera->getRayViewport().x) - 1.0f) * scale * aspect; 
+        float Px = (2.0f * ((x + 0.5f) /  mReferenceCamera->getRayViewport().x) - 1.0f) * scale * aspect;
         float Py = (1.0f - 2.0f * ((y + 0.5f) /  mReferenceCamera->getRayViewport().y) * scale); 
 
         Ray* ray = new Ray;
@@ -57,4 +57,4 @@ RayField RaySource::getInitialRays(bool MSAA)
     }
 
     return field;
- }
+}
