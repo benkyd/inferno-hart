@@ -3,8 +3,6 @@
 #include <string>
 #include <queue>
 
-#include "hart_graphics.hpp"
-
 namespace inferno {
 
 #ifdef _WIN32
@@ -41,12 +39,12 @@ class HARTModule
 {
 public:
     // Constructor & destructor is done in the module
-    virtual void submitTris(std::vector<glm::vec3>* vert,
-                            std::vector<glm::vec3>* norm,
+    virtual void submitTris(void* vert,
+                            void* norm,
                             std::vector<Material*>* mats,
                             std::vector<int>* indicies) = 0;
-    virtual void updateTris(std::vector<glm::vec3>* vert,
-                            std::vector<glm::vec3>* norm,
+    virtual void updateTris(void* vert,
+                            void* norm,
                             std::vector<Material*>* mats,
                             std::vector<int>* indicies) = 0;
 

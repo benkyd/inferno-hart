@@ -1,11 +1,11 @@
 #pragma once
 
+#include <graphics.hpp>
+
 namespace inferno {
 
 // Thread dispatcher keeps track of the thread that calls the
 // copy function because OpenGL is a nightmare
-
-#include <graphics.hpp>
 
 class HHM;
 class Scene;

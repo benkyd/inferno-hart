@@ -18,12 +18,12 @@ public:
         std::cout << "Goodbye Module HART CPU" << std::endl;
     }
 
-    void submitTris(std::vector<glm::vec3>* vert,
-                            std::vector<glm::vec3>* norm,
+    void submitTris(void* vert,
+                            void* norm,
                             std::vector<Material*>* mats,
                             std::vector<int>* indicies) override {}
-    void updateTris(std::vector<glm::vec3>* vert,
-                            std::vector<glm::vec3>* norm,
+    void updateTris(void* vert,
+                            void* norm,
                             std::vector<Material*>* mats,
                             std::vector<int>* indicies)  override {}
 

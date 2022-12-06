@@ -1,43 +1,43 @@
-// #include "dispatcher.hpp"
+#include "dispatcher.hpp"
 
-// #include "hart_module.hpp"
-// #include "renderer.hpp"
+#include "hart_module.hpp"
+#include "renderer.hpp"
 
 
-// using namespace inferno;
+using namespace inferno;
 
-// RenderDispatcher::RenderDispatcher()
-// {
-//     // mHHM = new HHM();
-//     // mRenderer = new RayRenderer(mHHM);
-// }
+RenderDispatcher::RenderDispatcher()
+{
+    mHHM = new HHM();
+    mRenderer = new RayRenderer(mHHM);
+}
 
-// RenderDispatcher::~RenderDispatcher()
-// {
+RenderDispatcher::~RenderDispatcher()
+{
 
-// }
+}
 
-// RayRenderer* RenderDispatcher::getRenderer()
-// {
-//     return mRenderer;
-// }
+RayRenderer* RenderDispatcher::getRenderer()
+{
+    return mRenderer;
+}
 
-// HHM* RenderDispatcher::getTopModule()
-// {
-//     return mHHM;
-// }
+HHM* RenderDispatcher::getTopModule()
+{
+    return mHHM;
+}
 
-// void RenderDispatcher::startProgression()
-// {
+void RenderDispatcher::startProgression()
+{
 
-// }
+}
 
-// void RenderDispatcher::stopProgression()
-// {
+void RenderDispatcher::stopProgression()
+{
 
-// }
+}
 
-// GLuint RenderDispatcher::getLatestTexture()
-// {
+GLuint RenderDispatcher::getLatestTexture()
+{
 
-// }
+}

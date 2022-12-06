@@ -5,6 +5,9 @@
 // _DESTROY returns void but takes derived HARTModule
 // _CREDIT returns ModuleCredit
 
+// THIS IS SHARED DO __NOT__ REINCLUDE libhart/thirdparty
+#include <inferno_hart.hpp>
+
 #include <filesystem>
 #include <string>
 #include <vector>
@@ -14,22 +17,6 @@ namespace inferno {
 
 class HARTModule;
 struct ModuleCredit;
-
-#ifdef _WIN32
-#include <Windows.h>
-#define HART_EXTENSION ".dll"
-#define HART_INTERFACE extern "C" __declspec(dllexport)
-#else // UNIX-Like
-#include <dlfcn.h>
-#define HART_EXTENSION ".so"
-#define HART_INTERFACE extern "C"
-#endif
-
-HART_INTERFACE typedef void* (*HART_INIT_F)(void);
-HART_INTERFACE typedef void (*HART_DESTROY_F)(void*);
-HART_INTERFACE typedef void* (*HART_CREDIT_F)(void);
-
-typedef void (*HART_HIT_CALLBACK)(HitInfo* hit);
 
 class HARTModuleDirectory
 {
