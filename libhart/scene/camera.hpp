@@ -3,6 +3,8 @@
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 
+#include <mutex>
+
 namespace inferno {
 
 class Camera {
@@ -49,7 +51,8 @@ private:
 	glm::mat4 mProjMatrix = {};
 	glm::mat4 mCameraLook = {};
 	bool mDidUpdate;
-	
+
+	std::mutex _mCam;
 };
 
 }

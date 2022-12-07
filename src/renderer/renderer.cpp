@@ -1,12 +1,12 @@
 #include "renderer.hpp"
 
-#include <iostream>
-
 #include <scene/camera.hpp>
 #include <scene/scene.hpp>
 
 #include "hart_module.hpp"
 #include "ray_source.hpp"
+
+#include <iostream>
 
 using namespace inferno;
 
@@ -57,9 +57,15 @@ glm::ivec2 RayRenderer::getTargetSize()
 
 GLuint RayRenderer::getRenderedTexture()
 {
+    std::lock_guard<std::mutex> lock(this->_mTarget);
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
     glBindTexture(GL_TEXTURE_2D, mRenderTargetTexture);
     return mRenderTargetTexture;
+}
+
+glm::fvec4* RayRenderer::getRenderData()
+{
+    return mTarget;
 }
 
 void RayRenderer::prepare()
@@ -73,15 +79,15 @@ void RayRenderer::draw()
     RayField startRays = mRaySource->getInitialRays(true);
     mIface->startTrace(startRays);
 
-    for (int x = 0; x < mRenderTargetSize.x; x++)
-    for (int y = 0; y < mRenderTargetSize.y; y++)
     {
-        mTarget[y * mRenderTargetSize.x + x] = { startRays[y * mRenderTargetSize.x + x]->Direction, 1.0f };
-    }
+        std::lock_guard<std::mutex> lock(this->_mTarget);
 
-    glBindTexture(GL_TEXTURE_2D, mRenderTargetTexture);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, mRenderTargetSize.x, mRenderTargetSize.y, 0, GL_RGBA, GL_FLOAT, mTarget);
-    glBindTexture(GL_TEXTURE_2D, 0);
+        for (int x = 0; x < mRenderTargetSize.x; x++)
+        for (int y = 0; y < mRenderTargetSize.y; y++)
+        {
+            mTarget[y * mRenderTargetSize.x + x] = { startRays[y * mRenderTargetSize.x + x]->Direction, 1.0f };
+        }
+    }
 
     for (auto* ray : startRays)
     {

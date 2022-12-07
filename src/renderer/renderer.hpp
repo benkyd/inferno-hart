@@ -2,12 +2,15 @@
 
 #include <graphics.hpp>
 
+#include <mutex>
+
 namespace inferno {
 
 class HHM;
 
 class Scene;
 class RaySource;
+class RenderDispatcher;
 
 class RayRenderer 
 {
@@ -20,20 +23,22 @@ public:
     void setTargetSize(glm::ivec2 size);
     glm::ivec2 getTargetSize();
     GLuint getRenderedTexture();
+    glm::fvec4* getRenderData();
 
     void prepare();
     void draw();
 
 private:
-    // TODO: a mutex for the renderTargetTexture as it gets accessed by the render thread and the main thread
     GLuint mRenderTargetTexture = 0;
-    
     glm::fvec4* mTarget;
+    std::mutex _mTarget;
+
     glm::ivec2 mRenderTargetSize = {300, 300};
 
     Scene* mCurrentScene = nullptr;
     RaySource* mRaySource = nullptr;
 
+    friend class RenderDispatcher;
 private:
     HHM* mIface;
 };

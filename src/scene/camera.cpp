@@ -50,6 +50,8 @@ void Camera::update()
 	glm::mat4 translate = glm::mat4(1.0f);
 	translate = glm::translate(translate, -Position);
 
+	std::lock_guard<std::mutex> lock(this->_mCam);
+
 	mViewMatrix = rotate * translate;
 	mProjMatrix = glm::perspective(glm::radians(FOV), mViewport.x / mViewport.y, 0.1f, 1000.0f);
 
@@ -65,31 +67,37 @@ void Camera::update()
 
 bool Camera::didUpdate()
 {
+	std::lock_guard<std::mutex> lock(this->_mCam);
 	return mDidUpdate;
 }
 
 void Camera::newFrame()
 {
+	std::lock_guard<std::mutex> lock(this->_mCam);
 	mDidUpdate = false;
 }
 
 glm::mat4 Camera::getViewMatrix()
 {
+	std::lock_guard<std::mutex> lock(this->_mCam);
 	return mViewMatrix;
 }
 
 glm::mat4 Camera::getProjectionMatrix()
 {
+	std::lock_guard<std::mutex> lock(this->_mCam);
 	return mProjMatrix;
 }
 
 glm::mat4 Camera::getCameraLook()
 {
+	std::lock_guard<std::mutex> lock(this->_mCam);
 	return mCameraLook;
 }
 
 void Camera::setRasterViewport(glm::vec2 viewport)
 {
+	std::lock_guard<std::mutex> lock(this->_mCam);
 	mViewport =  viewport;
 	mProjMatrix = glm::perspective(glm::radians(FOV), (float)viewport.x / (float)viewport.y, 0.1f, 1000.0f);
 }

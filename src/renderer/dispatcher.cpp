@@ -5,6 +5,7 @@
 
 #include <spdlog/spdlog.h>
 
+#include <mutex>
 #include <chrono>
 
 using namespace inferno;
@@ -41,7 +42,8 @@ void renderWorker(RayRenderer* renderer, std::atomic<bool>* doWork, std::atomic<
             std::this_thread::sleep_for(std::chrono::milliseconds(100));
             continue; // stall
         }
-        spdlog::debug("Sample complete");
+        renderer->prepare();
+        renderer->draw();
     }
 }
 
@@ -66,5 +68,9 @@ bool RenderDispatcher::progressionStatus()
 
 GLuint RenderDispatcher::getLatestTexture()
 {
-    return mRenderer->getRenderedTexture();
+    std::lock_guard<std::mutex> lock(mRenderer->_mTarget);
+    glBindTexture(GL_TEXTURE_2D, mRenderer->mRenderTargetTexture);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, mRenderer->mRenderTargetSize.x, mRenderer->mRenderTargetSize.y, 0, GL_RGBA, GL_FLOAT, mRenderer->mTarget);
+    glBindTexture(GL_TEXTURE_2D, 0);
+    return mRenderer->mRenderTargetTexture;
 }
