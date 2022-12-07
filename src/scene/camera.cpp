@@ -193,11 +193,13 @@ void Camera::setLook(glm::vec3 lookDirection)
 
 void Camera::setRayViewport(glm::vec2 viewport)
 {
+	std::lock_guard<std::mutex> lock(this->_mCam);
 	mRayViewport = viewport;
 }
 
 glm::vec2 Camera::getRayViewport()
 {
+	std::lock_guard<std::mutex> lock(this->_mCam);
 	return mRayViewport;
 }
 
