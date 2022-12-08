@@ -26,10 +26,10 @@ public:
     void newScene(Scene* scene);
     void notifySceneUpdate();    
 
-    void startTrace(RayField sourceScatter);
-
     void rayReturn(HitInfo* hit);
     void bounce(Ray* newRay);
+
+    void startTrace(RayField sourceScatter);
 
 private:
     HARTModuleDirectory mDirectory;

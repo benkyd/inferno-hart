@@ -39,6 +39,7 @@ typedef void (*HART_HIT_CALLBACK)(void* context, HitInfo* hit);
 // worker(s) pop items from mToTrace, intersect with
 // programmer-defined structure from submitTris and calls
 // Hit() with the context and the result of the trace
+// FOR NOW: Rays and tri's are owned by Inferno, _NOT_ HART
 class HARTModule
 {
 public:
@@ -47,7 +48,7 @@ public:
     virtual void updateTris() = 0;
 
     // module keeps queue reference
-    inline void submitQueue(std::vector<Ray*> queue) 
+    inline void submitQueue(std::vector<Ray*> queue)
     {
         std::lock_guard<std::mutex> lock(_mData);
         for (const auto& e: queue)
@@ -62,15 +63,16 @@ public:
 
     inline void passContext(void* context, HART_HIT_CALLBACK callback)
     {
+        std::lock_guard<std::mutex> lock(_mData);
         mCtx = context;
         Hit = callback;
     }
 
-private:
+protected:
     void* mCtx;
     HART_HIT_CALLBACK Hit = nullptr;
 
-private:
+protected:
     std::queue<Ray*> mToTrace;
 
     std::mutex _mData;

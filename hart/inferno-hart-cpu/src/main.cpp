@@ -4,20 +4,21 @@
 #include <tracing/ray.hpp>
 
 #include <iostream>
+#include <thread>
 
 using namespace inferno;
 
-class HARTCPU : public ::HARTModule
+class HARTCPU : public HARTModule
 {
 public:
     HARTCPU()
     {
-        std::cout << "Module HART CPU" << std::endl;
+        mMasterWorker = std::thread(&HARTCPU::intersectMasterWorker, this);
     }
 
     ~HARTCPU()
     {
-        std::cout << "Goodbye Module HART CPU" << std::endl;
+
     }
 
     void submitTris(void* vert,
@@ -31,8 +32,18 @@ public:
     
     void updateTris() override {}
 
+    void intersectMasterWorker()
+    {
+        for (;;)
+        {
+            if (mToTrace.empty()) continue;
+            std::cout << "WORK " << mToTrace.size() << std::endl;
+            mToTrace.pop();
+        }
+    }
 
-
+private:
+    std::thread mMasterWorker;
 };
 
 HART_INTERFACE void* _GET()

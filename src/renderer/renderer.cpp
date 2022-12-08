@@ -84,7 +84,9 @@ void RayRenderer::draw()
     RayField startRays = mRaySource->getInitialRays(true);
     mIface->startTrace(startRays);
 
+    
 
+    // hault wait for the module to finish
 
     // {
     //     std::lock_guard<std::mutex> lock(this->_mTarget);
