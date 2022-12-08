@@ -22,14 +22,7 @@ public:
                     int vc,
                     void* indicies,
                     int ic) override {}
-    void updateTris(void* vert,
-                    void* norm,
-                    int vc,
-                    void* indicies,
-                    int ic) override {}
-
-    void submitQueue(std::vector<Ray*> queue) override {}
-    void pushtoQueue(Ray* ray) override {}
+    void updateTris() override {}
 };
 
 HART_INTERFACE void* _GET()

@@ -84,15 +84,17 @@ void RayRenderer::draw()
     RayField startRays = mRaySource->getInitialRays(true);
     mIface->startTrace(startRays);
 
-    {
-        std::lock_guard<std::mutex> lock(this->_mTarget);
 
-        for (int x = 0; x < mRenderTargetSize.x; x++)
-        for (int y = 0; y < mRenderTargetSize.y; y++)
-        {
-            mTarget[y * mRenderTargetSize.x + x] = { startRays[y * mRenderTargetSize.x + x]->Direction, 1.0f };
-        }
-    }
+
+    // {
+    //     std::lock_guard<std::mutex> lock(this->_mTarget);
+
+    //     for (int x = 0; x < mRenderTargetSize.x; x++)
+    //     for (int y = 0; y < mRenderTargetSize.y; y++)
+    //     {
+    //         mTarget[y * mRenderTargetSize.x + x] = { startRays[y * mRenderTargetSize.x + x]->Direction, 1.0f };
+    //     }
+    // }
 
     for (auto* ray : startRays)
     {

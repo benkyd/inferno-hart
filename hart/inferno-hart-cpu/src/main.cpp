@@ -1,4 +1,7 @@
 #include <inferno_hart.hpp>
+#include <hart_graphics.hpp>
+
+#include <tracing/ray.hpp>
 
 #include <iostream>
 
@@ -21,19 +24,15 @@ public:
                     void* norm,
                     int vc,
                     void* indicies,
-                    int ic) override {}
-    void updateTris(void* vert,
-                    void* norm,
-                    int vc,
-                    void* indicies,
-                    int ic) override {}
- 
-    void submitQueue(std::vector<Ray*> queue) override 
+                    int ic) override 
     {
-        
+        std::cout << "INFERNO HART CPU RECIEVED " << vc / 3 << " VERTICIES AND " << ic / 3 << " INDICIES" << std::endl;
     }
+    
+    void updateTris() override {}
 
-    void pushtoQueue(Ray* ray) override {}
+
+
 };
 
 HART_INTERFACE void* _GET()

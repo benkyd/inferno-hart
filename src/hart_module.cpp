@@ -43,13 +43,19 @@ void HHM::newScene(Scene* scene)
 void HHM::notifySceneUpdate()
 {
     HARTModule* mod = mDirectory.getActiveModule();
-    // same again
+    mod->updateTris();
 }
 
 void HHM::startTrace(RayField sourceScatter)
 {
     HARTModule* mod = mDirectory.getActiveModule();
+    mod->passContext((void*)this, &rayHitCallback);
     mod->submitQueue(sourceScatter);
+}
+
+void rayHitCallback(void* hhm, HitInfo* hit)
+{
+    ((HHM*)hhm)->rayReturn(hit);
 }
 
 void HHM::rayReturn(HitInfo* hit)
@@ -63,4 +69,3 @@ void HHM::bounce(Ray* newRay)
     HARTModule* mod = mDirectory.getActiveModule();
 
 }
-

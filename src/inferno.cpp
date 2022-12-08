@@ -131,7 +131,7 @@ int Inferno::run()
     basicMaterial.setGlShader(&basicShader);
 
     Mesh cornell;
-    cornell.loadOBJ("res/sponza.obj");
+    cornell.loadOBJ("res/cornell-box.obj");
     cornell.ready();
     cornell.setMaterial(&basicMaterial);
     mScene->addMesh(&cornell);

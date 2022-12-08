@@ -1,6 +1,7 @@
 #pragma once
 
 #include <string>
+#include <mutex>
 #include <queue>
 
 namespace inferno {
@@ -27,43 +28,52 @@ struct ModuleCredit
 
 class Ray;
 class HitInfo;
-class Material;
 
 HART_INTERFACE typedef void* (*HART_INIT_F)(void);
 HART_INTERFACE typedef void (*HART_DESTROY_F)(void*);
 HART_INTERFACE typedef void* (*HART_CREDIT_F)(void);
 
-typedef void (*HART_HIT_CALLBACK)(HitInfo* hit);
+typedef void (*HART_HIT_CALLBACK)(void* context, HitInfo* hit);
 
+// Module should set up it's worker in the constructor
+// worker(s) pop items from mToTrace, intersect with
+// programmer-defined structure from submitTris and calls
+// Hit() with the context and the result of the trace
 class HARTModule
 {
 public:
     // Constructor & destructor is done in the module
-    virtual void submitTris(void* vert,
-                            void* norm,
-                            int vc,
-                            void* indicies,
-                            int ic) = 0;
-    virtual void updateTris(void* vert,
-                            void* norm,
-                            int vc,
-                            void* indicies,
-                            int ic) = 0;
+    virtual void submitTris(void* vert, void* norm, int vc, void* indicies, int ic) = 0;
+    virtual void updateTris() = 0;
 
     // module keeps queue reference
-    virtual void submitQueue(std::vector<Ray*> queue) = 0;
-    virtual void pushtoQueue(Ray* ray) = 0;
-
-    inline void passHitCallback(HART_HIT_CALLBACK callback)
+    inline void submitQueue(std::vector<Ray*> queue) 
     {
+        std::lock_guard<std::mutex> lock(_mData);
+        for (const auto& e: queue)
+            mToTrace.push(e);
+    }
+
+    inline void pushtoQueue(Ray* ray)
+    {
+        std::lock_guard<std::mutex> lock(_mData);
+        mToTrace.push(ray);
+    }
+
+    inline void passContext(void* context, HART_HIT_CALLBACK callback)
+    {
+        mCtx = context;
         Hit = callback;
     }
 
 private:
+    void* mCtx;
     HART_HIT_CALLBACK Hit = nullptr;
 
 private:
     std::queue<Ray*> mToTrace;
+
+    std::mutex _mData;
 };
     
 }
