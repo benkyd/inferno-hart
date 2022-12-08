@@ -1,5 +1,5 @@
 // Adapted from https://raw.githubusercontent.com/tamato/simple-obj-loader/master/objloader.cpp
-#include <scene/objloader.hpp>
+#include "objloader.hpp"
 
 #include <spdlog/spdlog.h>
 

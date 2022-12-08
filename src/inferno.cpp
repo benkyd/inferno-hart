@@ -261,8 +261,8 @@ int Inferno::run()
                     ImGui::Text(activeCredit->ModuleName.c_str());
                     ImGui::SameLine();
                     ImGui::Text("v%i.%i.%i", activeCredit->VersionMajor,
-                                                   activeCredit->VersionMinor,
-                                                   activeCredit->VersionBuild);
+                                             activeCredit->VersionMinor,
+                                             activeCredit->VersionBuild);
                     ImGui::BulletText(activeCredit->ModuleDesc.c_str());
                     ImGui::BulletText("Authored by %s", activeCredit->AuthorName.c_str());
 

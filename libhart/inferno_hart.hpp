@@ -41,12 +41,14 @@ public:
     // Constructor & destructor is done in the module
     virtual void submitTris(void* vert,
                             void* norm,
-                            std::vector<Material*>* mats,
-                            std::vector<int>* indicies) = 0;
+                            int vc,
+                            void* indicies,
+                            int ic) = 0;
     virtual void updateTris(void* vert,
                             void* norm,
-                            std::vector<Material*>* mats,
-                            std::vector<int>* indicies) = 0;
+                            int vc,
+                            void* indicies,
+                            int ic) = 0;
 
     // module keeps queue reference
     virtual void submitQueue(std::vector<Ray*> queue) = 0;

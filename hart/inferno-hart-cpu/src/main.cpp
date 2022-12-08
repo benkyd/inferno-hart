@@ -1,5 +1,4 @@
 #include <inferno_hart.hpp>
-#include <scene/mesh.hpp>
 
 #include <iostream>
 
@@ -19,14 +18,16 @@ public:
     }
 
     void submitTris(void* vert,
-                            void* norm,
-                            std::vector<Material*>* mats,
-                            std::vector<int>* indicies) override {}
+                    void* norm,
+                    int vc,
+                    void* indicies,
+                    int ic) override {}
     void updateTris(void* vert,
-                            void* norm,
-                            std::vector<Material*>* mats,
-                            std::vector<int>* indicies)  override {}
-
+                    void* norm,
+                    int vc,
+                    void* indicies,
+                    int ic) override {}
+ 
     void submitQueue(std::vector<Ray*> queue) override 
     {
         

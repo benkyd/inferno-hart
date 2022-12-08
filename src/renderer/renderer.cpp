@@ -71,11 +71,16 @@ glm::fvec4* RayRenderer::getRenderData()
 void RayRenderer::prepare()
 {
     assert(mCurrentScene != NULL);
-    mIface->newScene(mCurrentScene);
+    if (mCurrentScene->didUpdate())
+    {
+        mIface->newScene(mCurrentScene);
+    }
 }
 
 void RayRenderer::draw()
 {
+    mCurrentScene->newFrame();
+
     RayField startRays = mRaySource->getInitialRays(true);
     mIface->startTrace(startRays);
 

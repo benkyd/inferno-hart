@@ -1,4 +1,4 @@
-#include <scene/scene.hpp>
+#include "scene.hpp"
 
 #include <scene/object.hpp>
 #include <scene/camera.hpp>
@@ -19,6 +19,7 @@ Scene::~Scene()
 void Scene::setCamera(Camera* camera)
 {
     mCurrentCamera = camera;
+    mDidUpdate = true;
 }
 
 Camera* Scene::getCamera()
@@ -29,6 +30,17 @@ Camera* Scene::getCamera()
 void Scene::addMesh(Mesh* mesh)
 {
     mMeshs.push_back(mesh);
+    mDidUpdate = true;
+}
+
+bool Scene::didUpdate()
+{
+	return mDidUpdate;
+}
+
+void Scene::newFrame()
+{
+	mDidUpdate = false;
 }
 
 const std::vector<Mesh*>& Scene::getRenderables()

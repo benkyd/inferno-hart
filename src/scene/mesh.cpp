@@ -1,4 +1,4 @@
-#include <scene/mesh.hpp>
+#include "mesh.hpp"
 
 #include <spdlog/spdlog.h>
 
@@ -71,22 +71,20 @@ void Mesh::ready()
 
     glBindVertexArray(0);
 
-    spdlog::debug("MESH READY");
+    spdlog::debug("PREVIEW MESH READY");
 }
 
-GLuint Mesh::getVAO()
+int Mesh::getVerticies(void* v, void* n)
 {
-    return mVAO;
+    v = (void*)&mObjLoader->getPositions()[0];
+    n = (void*)&mObjLoader->getNormals()[0];
+    return mObjLoader->getVertCount();
 }
 
-GLuint Mesh::getVBO()
+int Mesh::getIndicies(void* i)
 {
-    return mVBO;
-}
-
-GLuint Mesh::getEBO()
-{
-    return mEBO;
+    i = (void*)&mObjLoader->getFaces()[0];
+    return mObjLoader->getIndexCount();
 }
 
 int Mesh::getIndexCount()
@@ -102,4 +100,19 @@ void Mesh::setMaterial(Material* mat)
 Material* Mesh::getMaterial()
 {
     return mMaterial;
+}
+
+GLuint Mesh::getVAO()
+{
+    return mVAO;
+}
+
+GLuint Mesh::getVBO()
+{
+    return mVBO;
+}
+
+GLuint Mesh::getEBO()
+{
+    return mEBO;
 }

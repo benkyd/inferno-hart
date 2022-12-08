@@ -1,4 +1,4 @@
-#include <scene/material.hpp>
+#include "material.hpp"
 
 #include "preview_renderer/shader.hpp"
 

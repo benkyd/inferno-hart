@@ -19,6 +19,9 @@ public:
     Camera* getCamera();
     void addMesh(Mesh* mesh);
 
+	bool didUpdate();
+	void newFrame();
+
     const std::vector<Mesh*>& getRenderables();
 
 private:
@@ -26,6 +29,9 @@ private:
 
     Camera* mCurrentCamera;
     Sky* mCurrentSky;
+
+private:
+    bool mDidUpdate = true;
 };
 
 }
