@@ -36,6 +36,7 @@ public:
     {
         for (;;)
         {
+            std::lock_guard<std::mutex> lock(_mData);
             if (mToTrace.empty()) continue;
             std::cout << "WORK " << mToTrace.size() << std::endl;
             mToTrace.pop();

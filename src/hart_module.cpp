@@ -11,7 +11,7 @@ using namespace inferno;
 HHM::HHM() 
     : mDirectory()
 {
-    mDirectory.discoverModules("./hart/", true);   
+    mDirectory.discoverModules("./hart/", true);
 }
 
 HHM::~HHM()

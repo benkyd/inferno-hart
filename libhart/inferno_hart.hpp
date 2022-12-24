@@ -2,7 +2,31 @@
 
 #include <string>
 #include <mutex>
+#include <atomic>
 #include <queue>
+
+/**
+ * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~ infero HART modules ~~~~~~~~~~~~~~~~~~~~~~~~~~~ *
+ * Modules are registered at load time - instantiated when selected             *
+ * _GET, _DESTROY & _CREDIT must be defined and return valid context's          *
+ *                                                                              *
+ * Inferno will first initialise the module and then wait for the Ready state.  *
+ *                                                                              *
+ * Once the HHM dispatches a new scene to the module, it will wait until        *
+ * the state is Done to dispatch work during scene building the modules         *
+ * state must be Build.                                                         *
+ *                                                                              *
+ * Once the scene is ready and so is the trace, the HHM will start the tracing  *
+ * state by pushing rays to the queue, the module must go through these and     *
+ * for each ray, call Hit and pass the current context, this may resul          *
+ * in Inferno to push another ray to the queue, the module will go until        *
+ * empty or signaled to stop.                                                   *
+ *                                                                              *
+ * Once empty the module will switch to the Done state, so Inferno can get      *
+ * the next frame ready and repeat.                                             *
+ *                                                                              *
+ * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ *
+*/
 
 namespace inferno {
 
@@ -26,19 +50,24 @@ struct ModuleCredit
     const int VersionBuild;
 };
 
+enum class EModuleStatus : uint8_t
+{
+    Bad,    // Not ready!
+    Ready,  // Ready for initial command or scene
+    Build,  // Scene is passed, optimisation is taking place
+    Trace,  // Tracing!
+    Done,   // Done all pending work
+};
+
 class Ray;
 class HitInfo;
 
 HART_INTERFACE typedef void* (*HART_INIT_F)(void);
-HART_INTERFACE typedef void (*HART_DESTROY_F)(void*);
+HART_INTERFACE typedef void  (*HART_DESTROY_F)(void*);
 HART_INTERFACE typedef void* (*HART_CREDIT_F)(void);
 
 typedef void (*HART_HIT_CALLBACK)(void* context, HitInfo* hit);
 
-// Module should set up it's worker in the constructor
-// worker(s) pop items from mToTrace, intersect with
-// programmer-defined structure from submitTris and calls
-// Hit() with the context and the result of the trace
 // FOR NOW: Rays and tri's are owned by Inferno, _NOT_ HART
 class HARTModule
 {
@@ -69,13 +98,14 @@ public:
     }
 
 protected:
-    void* mCtx;
-    HART_HIT_CALLBACK Hit = nullptr;
-
-protected:
     std::queue<Ray*> mToTrace;
+    std::atomic<EModuleStatus> mStatus = EModuleStatus::Bad;
 
     std::mutex _mData;
+
+protected:
+    void* mCtx;
+    HART_HIT_CALLBACK Hit = nullptr;
 };
     
 }

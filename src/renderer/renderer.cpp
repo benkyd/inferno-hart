@@ -84,8 +84,6 @@ void RayRenderer::draw()
     RayField startRays = mRaySource->getInitialRays(true);
     mIface->startTrace(startRays);
 
-    
-
     // hault wait for the module to finish
 
     // {
