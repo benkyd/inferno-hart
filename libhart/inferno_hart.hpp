@@ -22,8 +22,8 @@
  * in Inferno to push another ray to the queue, the module will go until        *
  * empty or signaled to stop.                                                   *
  *                                                                              *
- * Once empty the module will switch to the Done state, so Inferno can get      *
- * the next frame ready and repeat.                                             *
+ * Once empty the module will switch to the Ready state again, so Inferno       *
+ * can get the next frame ready and repeat.                                     *
  *                                                                              *
  * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ *
 */
@@ -50,13 +50,12 @@ struct ModuleCredit
     const int VersionBuild;
 };
 
-enum class EModuleStatus : uint8_t
+enum class EModuleState : uint8_t
 {
     Bad,    // Not ready!
     Ready,  // Ready for initial command or scene
     Build,  // Scene is passed, optimisation is taking place
     Trace,  // Tracing!
-    Done,   // Done all pending work
 };
 
 class Ray;
@@ -79,6 +78,7 @@ public:
     // module keeps queue reference
     inline void submitQueue(std::vector<Ray*> queue)
     {
+        mState = EModuleState::Trace;
         std::lock_guard<std::mutex> lock(_mData);
         for (const auto& e: queue)
             mToTrace.push(e);
@@ -97,9 +97,14 @@ public:
         Hit = callback;
     }
 
+    inline EModuleState getState()
+    {
+        return mState;
+    }
+
 protected:
     std::queue<Ray*> mToTrace;
-    std::atomic<EModuleStatus> mStatus = EModuleStatus::Bad;
+    std::atomic<EModuleState> mState = EModuleState::Bad;
 
     std::mutex _mData;
 

@@ -6,6 +6,8 @@
 #include "hart_module.hpp"
 #include "ray_source.hpp"
 
+#include <spdlog/spdlog.h>
+
 #include <iostream>
 
 using namespace inferno;
@@ -85,16 +87,24 @@ void RayRenderer::draw()
     mIface->startTrace(startRays);
 
     // hault wait for the module to finish
+    bool frameStatus = false;
+    while (!frameStatus)
+    {
+        EModuleState state = mIface->getModuleState();
+        switch(state)
+        {
+            case EModuleState::Bad:
+                spdlog::error("MODULE STATE BAD");
+            case EModuleState::Build:
+            case EModuleState::Trace:
+                break;
+            case EModuleState::Ready:
+                frameStatus = true;
+                break;
+        }
+    }
 
-    // {
-    //     std::lock_guard<std::mutex> lock(this->_mTarget);
-
-    //     for (int x = 0; x < mRenderTargetSize.x; x++)
-    //     for (int y = 0; y < mRenderTargetSize.y; y++)
-    //     {
-    //         mTarget[y * mRenderTargetSize.x + x] = { startRays[y * mRenderTargetSize.x + x]->Direction, 1.0f };
-    //     }
-    // }
+    spdlog::debug("Sample complete");
 
     for (auto* ray : startRays)
     {

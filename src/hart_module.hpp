@@ -22,6 +22,7 @@ public:
     ~HHM();
 
     HARTModuleDirectory* getModuleDirectory();
+    EModuleState getModuleState();
 
     void newScene(Scene* scene);
     void notifySceneUpdate();    

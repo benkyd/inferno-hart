@@ -24,6 +24,12 @@ HARTModuleDirectory* HHM::getModuleDirectory()
     return &mDirectory;
 }
 
+EModuleState HHM::getModuleState()
+{
+    HARTModule* mod = mDirectory.getActiveModule();
+    return mod->getState();
+}
+
 void HHM::newScene(Scene* scene)
 {
     HARTModule* mod = mDirectory.getActiveModule();

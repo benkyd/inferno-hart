@@ -18,7 +18,7 @@ public:
 
     ~HARTCPU()
     {
-
+        mMasterWorker.detach();
     }
 
     void submitTris(void* vert,
@@ -27,7 +27,11 @@ public:
                     void* indicies,
                     int ic) override 
     {
+        mState = EModuleState::Build;
+
         std::cout << "INFERNO HART CPU RECIEVED " << vc / 3 << " VERTICIES AND " << ic / 3 << " INDICIES" << std::endl;
+     
+        mState = EModuleState::Ready;
     }
     
     void updateTris() override {}
@@ -36,9 +40,15 @@ public:
     {
         for (;;)
         {
-            std::lock_guard<std::mutex> lock(_mData);
-            if (mToTrace.empty()) continue;
-            std::cout << "WORK " << mToTrace.size() << std::endl;
+            std::unique_lock<std::mutex> lock(_mData);
+            if (mToTrace.empty())
+            {
+                lock.unlock();
+                mState = EModuleState::Ready;
+                continue;
+            }
+            mState = EModuleState::Trace;
+
             mToTrace.pop();
         }
     }
