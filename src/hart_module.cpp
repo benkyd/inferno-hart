@@ -1,10 +1,12 @@
 #include "hart_module.hpp"
 
-#include <vector>
-
 #include <renderer/ray_source.hpp>
 #include <scene/scene.hpp>
 #include <scene/mesh.hpp>
+
+#include <spdlog/spdlog.h>
+
+#include <vector>
 
 using namespace inferno;
 
@@ -39,6 +41,7 @@ void HHM::newScene(Scene* scene)
     // as it is now, submitTris assumes it's getting the whole scene
     // which would involve a lot of mesh copying (avoid!) if i were to chain them
     for (auto* mesh : meshs) {
+        spdlog::debug("MESH BEING SUBMITTED TO MODULE");
         void* verticies; void* normals; void* indicies;
         int vertexCount = mesh->getVerticies(verticies, normals);
         int indexCount = mesh->getIndicies(indicies);

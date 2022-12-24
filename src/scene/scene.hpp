@@ -31,7 +31,7 @@ private:
     Sky* mCurrentSky;
 
 private:
-    bool mDidUpdate = true;
+    bool mDidUpdate = false;
 };
 
 }

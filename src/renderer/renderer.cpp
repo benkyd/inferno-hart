@@ -44,7 +44,10 @@ void RayRenderer::setScene(Scene* scene)
         delete mRaySource;
     }
     mRaySource = new RaySource(scene->getCamera());
-    mIface->newScene(scene);
+    // the scene will be sent to the module on prepare
+    // as it did update during initialisation
+
+    // mIface->newScene(scene);
 }
 
 void RayRenderer::setTargetSize(glm::ivec2 size)
@@ -90,8 +93,7 @@ void RayRenderer::draw()
     bool frameStatus = false;
     while (!frameStatus)
     {
-        EModuleState state = mIface->getModuleState();
-        switch(state)
+        switch(mIface->getModuleState())
         {
             case EModuleState::Bad:
                 spdlog::error("MODULE STATE BAD");
