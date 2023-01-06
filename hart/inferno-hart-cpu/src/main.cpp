@@ -5,6 +5,7 @@
 
 #include <iostream>
 #include <thread>
+#include <chrono>
 
 using namespace inferno;
 
@@ -28,9 +29,7 @@ public:
                     int ic) override 
     {
         mState = EModuleState::Build;
-
-        std::cout << "INFERNO HART CPU RECIEVED " << vc / 3 << " VERTICIES AND " << ic / 3 << " INDICIES" << std::endl;
-     
+        spdlog::info("[hartcpu] Recieved {} verticies and {} indicies", vc / 3, ic / 3);
         mState = EModuleState::Ready;
     }
     
@@ -47,6 +46,7 @@ public:
                 mState = EModuleState::Ready;
                 continue;
             }
+            std::this_thread::sleep_for(std::chrono::microseconds(10));
             mState = EModuleState::Trace;
 
             mToTrace.pop();

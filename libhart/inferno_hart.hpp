@@ -1,5 +1,7 @@
 #pragma once
 
+#include <spdlog/spdlog.h>
+
 #include <string>
 #include <mutex>
 #include <atomic>
@@ -11,6 +13,12 @@
  * _GET, _DESTROY & _CREDIT must be defined and return valid context's          *
  *                                                                              *
  * Inferno will first initialise the module and then wait for the Ready state.  *
+ *                                                                              *
+ * The possible states a module can be in are:                                  *
+ *  - Bad (Not ready)                                                           *
+ *  - Ready (Ready for a command or a scene)                                    *
+ *  - Build (Scene is submitted and being processed)                            *
+ *  - Trace (Tracing!)                                                          *
  *                                                                              *
  * Once the HHM dispatches a new scene to the module, it will wait until        *
  * the state is Done to dispatch work during scene building the modules         *
@@ -53,7 +61,7 @@ struct ModuleCredit
 enum class EModuleState : uint8_t
 {
     Bad,    // Not ready!
-    Ready,  // Ready for initial command or scene
+    Ready,  // Ready for command or scene
     Build,  // Scene is passed, optimisation is taking place
     Trace,  // Tracing!
 };
@@ -82,6 +90,7 @@ public:
         std::lock_guard<std::mutex> lock(_mData);
         for (const auto& e: queue)
             mToTrace.push(e);
+        spdlog::info("[hartmodule] New trace queue");  
     }
 
     inline void pushtoQueue(Ray* ray)

@@ -41,7 +41,7 @@ void HHM::newScene(Scene* scene)
     // as it is now, submitTris assumes it's getting the whole scene
     // which would involve a lot of mesh copying (avoid!) if i were to chain them
     for (auto* mesh : meshs) {
-        spdlog::debug("MESH BEING SUBMITTED TO MODULE");
+        spdlog::debug("Mesh for module ready...");
         void* verticies; void* normals; void* indicies;
         int vertexCount = mesh->getVerticies(verticies, normals);
         int indexCount = mesh->getIndicies(indicies);

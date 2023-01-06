@@ -71,7 +71,7 @@ void Mesh::ready()
 
     glBindVertexArray(0);
 
-    spdlog::debug("PREVIEW MESH READY");
+    spdlog::debug("Mesh for preview ready...");
 }
 
 int Mesh::getVerticies(void* v, void* n)

@@ -53,7 +53,7 @@ std::vector<HARTModuleDirectory::discoveryEntry> HARTModuleDirectory::discoverMo
 
 HARTModuleDirectory::discoveryEntry HARTModuleDirectory::registerModule(std::filesystem::path file)
 {
-    spdlog::debug("Registering module at {}", file.c_str());
+    spdlog::info("Registering module at {}", file.c_str());
 
     discoveryEntry entry;
     entry.Location = file;
@@ -103,7 +103,7 @@ HARTModuleDirectory::discoveryEntry HARTModuleDirectory::registerModule(std::fil
 
     entry.Credit = (ModuleCredit*)credit();
 
-    spdlog::info("Module {0} v{2}.{3}.{4} by {5}", entry.Credit->ModuleName,
+    spdlog::info("Module {0} v{1}.{2}.{3} by {4}", entry.Credit->ModuleName,
                                                    entry.Credit->VersionMajor,
                                                    entry.Credit->VersionMinor,
                                                    entry.Credit->VersionBuild,

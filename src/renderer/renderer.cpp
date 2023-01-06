@@ -93,12 +93,14 @@ void RayRenderer::draw()
     bool frameStatus = false;
     while (!frameStatus)
     {
+        std::this_thread::sleep_for(std::chrono::milliseconds(1000));
         switch(mIface->getModuleState())
         {
             case EModuleState::Bad:
                 spdlog::error("MODULE STATE BAD");
             case EModuleState::Build:
             case EModuleState::Trace:
+                spdlog::debug("MODULE BUSY..");
                 break;
             case EModuleState::Ready:
                 frameStatus = true;
@@ -106,7 +108,7 @@ void RayRenderer::draw()
         }
     }
 
-    spdlog::debug("Sample complete");
+    spdlog::info("Sample complete");
 
     for (auto* ray : startRays)
     {
