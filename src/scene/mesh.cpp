@@ -74,14 +74,15 @@ void Mesh::ready()
     spdlog::debug("Mesh for preview ready...");
 }
 
-int Mesh::getVerticies(void* v, void* n)
+int Mesh::getVerticies(void*& v, void*& n)
 {
     v = (void*)&mObjLoader->getPositions()[0];
     n = (void*)&mObjLoader->getNormals()[0];
+    spdlog::debug("Mesh get {} {}", v, n);
     return mObjLoader->getVertCount();
 }
 
-int Mesh::getIndicies(void* i)
+int Mesh::getIndicies(void*& i)
 {
     i = (void*)&mObjLoader->getFaces()[0];
     return mObjLoader->getIndexCount();
