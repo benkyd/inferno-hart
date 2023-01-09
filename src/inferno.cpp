@@ -137,11 +137,11 @@ int Inferno::run()
     cornell.setMaterial(&basicMaterial);
     mScene->addMesh(&cornell);
 
-    // Mesh dragon;
-    // dragon.loadOBJ("res/dragon-cornell-size.obj");
-    // dragon.ready();
-    // dragon.setMaterial(&basicMaterial);
-    // mScene->addMesh(&dragon);
+    Mesh dragon;
+    dragon.loadOBJ("res/dragon-cornell-size.obj");
+    dragon.ready();
+    dragon.setMaterial(&basicMaterial);
+    mScene->addMesh(&dragon);
 
     Camera camera;
     mScene->setCamera(&camera);

@@ -1,5 +1,7 @@
 #include "window.hpp"
 
+#include "gui/style.hpp"
+
 #include "spdlog/spdlog.h"
 
 using namespace inferno;
@@ -160,6 +162,8 @@ void Window::setupImGui()
     // Setup Platform/Renderer backends
     ImGui_ImplGlfw_InitForOpenGL(window, true);
     ImGui_ImplOpenGL3_Init(glslVersion);
+
+    SetupImGuiStyle2();
 }
 
 void Window::shutdownImGui() 
