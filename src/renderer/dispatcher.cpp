@@ -15,6 +15,7 @@ RenderDispatcher::RenderDispatcher()
 {
     mHHM = new HHM();
     mRenderer = new RayRenderer(mHHM);
+    mHHM->Renderer = mRenderer;
 }
 
 RenderDispatcher::~RenderDispatcher()

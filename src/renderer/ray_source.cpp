@@ -27,7 +27,7 @@ void RaySource::generate()
     // float scale = tan(mReferenceCamera->FOV / 2.0f * helpers::PI / 180.0f);
 }
 
-RayField RaySource::getInitialRays(bool MSAA)
+ReferencedRayField RaySource::getInitialRays(bool MSAA)
 {
     if (mReferenceCamera->didUpdate())
     {
@@ -43,6 +43,9 @@ RayField RaySource::getInitialRays(bool MSAA)
     glm::mat4 cameraToWorld = mReferenceCamera->getCameraLook();
     glm::vec3 origin = mReferenceCamera->Position;
 
+    std::unordered_map<uint32_t, glm::ivec2> reference;
+
+    int i = 0;
     for (int x = 0; x < mReferenceCamera->getRayViewport().x; x++)
     for (int y = 0; y < mReferenceCamera->getRayViewport().y; y++)
     {
@@ -52,9 +55,12 @@ RayField RaySource::getInitialRays(bool MSAA)
         Ray* ray = new Ray;
         ray->Origin = origin;
         ray->Direction = glm::normalize((glm::vec4(Px, Py, -1.0f, 1.0f) * cameraToWorld));
-    
+        ray->Reference = i;
+        reference[i] = {x, y};
+
         field.push_back(ray);
+        i++;
     }
 
-    return field;
+    return { field, reference };
 }

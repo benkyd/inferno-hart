@@ -1,6 +1,8 @@
 #include "hart_module.hpp"
 
 #include <renderer/ray_source.hpp>
+#include <renderer/renderer.hpp>
+
 #include <scene/scene.hpp>
 #include <scene/mesh.hpp>
 
@@ -64,6 +66,7 @@ void HHM::rayReturn(HitInfo* hit)
 {
     HARTModule* mod = mDirectory.getActiveModule();
     spdlog::debug("HIT!!");
+    Renderer->computeHit(hit);
 }
 
 void HHM::bounce(Ray* newRay)

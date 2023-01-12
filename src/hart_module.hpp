@@ -14,6 +14,7 @@ class Scene;
 class Ray;
 class HitInfo;
 class HARTModule;
+class RayRenderer;
 
 class HHM 
 {
@@ -31,6 +32,8 @@ public:
     void bounce(Ray* newRay);
 
     void startTrace(RayField sourceScatter);
+
+    RayRenderer* Renderer;
 
 private:
     HARTModuleDirectory mDirectory;

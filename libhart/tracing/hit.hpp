@@ -4,8 +4,11 @@
 
 namespace inferno {
 
+class Ray;
+
 struct HitInfo
 {
+    Ray* Caller;
     // indicie of hit ^ mesh idx of hit
     int Identifier;
     glm::vec2 UV;

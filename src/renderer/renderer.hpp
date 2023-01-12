@@ -3,12 +3,14 @@
 #include <graphics.hpp>
 
 #include <mutex>
+#include <unordered_map>
 
 namespace inferno {
 
 class HHM;
 
 class Scene;
+class HitInfo;
 class RaySource;
 class RenderDispatcher;
 
@@ -27,6 +29,12 @@ public:
 
     void prepare();
     void draw();
+
+public:
+    void computeHit(HitInfo* info);
+
+private:
+    std::unordered_map<uint32_t, glm::ivec2>* mCurrentRefTable;
 
 private:
     GLuint mRenderTargetTexture = 0;

@@ -1,7 +1,11 @@
 #include "renderer.hpp"
 
+#include <graphics.hpp>
+
 #include <scene/camera.hpp>
 #include <scene/scene.hpp>
+#include <tracing/ray.hpp>
+#include <tracing/hit.hpp>
 
 #include "hart_module.hpp"
 #include "ray_source.hpp"
@@ -86,21 +90,27 @@ void RayRenderer::draw()
 {
     mCurrentScene->newFrame();
 
-    RayField startRays = mRaySource->getInitialRays(true);
-    mIface->startTrace(startRays);
+    ReferencedRayField startRays = mRaySource->getInitialRays(true);
+
+    for (int x = 0; x < mRenderTargetSize.x; x++)
+    for (int y = 0; y < mRenderTargetSize.y; y++)
+    {
+        mTarget[y * mRenderTargetSize.x + x] = { 1.0f, 0.0f, 0.0f, 1.0f };
+    }
+
+    mCurrentRefTable = &startRays.Reference;
+    mIface->startTrace(startRays.Field);
 
     // hault wait for the module to finish
     bool frameStatus = false;
     while (!frameStatus)
     {
-        std::this_thread::sleep_for(std::chrono::milliseconds(1000));
         switch(mIface->getModuleState())
         {
             case EModuleState::Bad:
                 spdlog::error("MODULE STATE BAD");
             case EModuleState::Build:
             case EModuleState::Trace:
-                spdlog::debug("MODULE BUSY..");
                 break;
             case EModuleState::Ready:
                 frameStatus = true;
@@ -110,8 +120,16 @@ void RayRenderer::draw()
 
     spdlog::info("Sample complete");
 
-    for (auto* ray : startRays)
+    for (auto* ray : startRays.Field)
     {
         delete ray;
     }
+}
+
+void RayRenderer::computeHit(HitInfo* info)
+{
+    glm::ivec2 pos = (*mCurrentRefTable)[info->Caller->Reference];
+    std::lock_guard<std::mutex> lock(this->_mTarget);
+    float d = info->Distance;
+    mTarget[pos.y * mRenderTargetSize.x + pos.x] = { d, d, d, 1.0f };
 }

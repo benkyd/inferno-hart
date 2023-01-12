@@ -1,6 +1,7 @@
 #pragma once
 
 #include <vector>
+#include <unordered_map>
 
 #include <graphics.hpp>
 
@@ -10,6 +11,12 @@ namespace inferno {
 
 class Camera;
 
+struct ReferencedRayField
+{
+    RayField Field;
+    std::unordered_map<uint32_t, glm::ivec2> Reference;
+};
+
 class RaySource
 {
 public:
@@ -17,7 +24,7 @@ public:
     ~RaySource();
 
     void generate();
-    RayField getInitialRays(bool MSAA);
+    ReferencedRayField getInitialRays(bool MSAA);
 
 private:
     Camera* mReferenceCamera;
