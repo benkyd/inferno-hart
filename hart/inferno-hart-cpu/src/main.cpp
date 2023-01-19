@@ -43,6 +43,7 @@ public:
         for (;;)
         {
             std::unique_lock<std::mutex> lock(_mData);
+            mLastState = mState.load();
             if (mToTrace.empty())
             {
                 lock.unlock();
@@ -50,6 +51,11 @@ public:
                 continue;
             }
             mState = EModuleState::Trace;
+
+            if (mLastState != mState)
+            {
+                spdlog::info("[hartcpu] Signal start");
+            }
 
             auto* ray = mToTrace.front();
             int bestIdx = -1;

@@ -86,11 +86,11 @@ public:
     // module keeps queue reference
     inline void submitQueue(std::vector<Ray*> queue)
     {
-        mState = EModuleState::Trace;
         std::lock_guard<std::mutex> lock(_mData);
+        // mState = EModuleState::Trace;
         for (const auto& e: queue)
             mToTrace.push(e);
-        spdlog::info("[hartmodule] New trace queue");  
+        spdlog::info("[hartmodule] New trace queue: {}", mToTrace.size());  
     }
 
     inline void pushtoQueue(Ray* ray)
@@ -101,6 +101,7 @@ public:
 
     inline void passContext(void* context, HART_HIT_CALLBACK callback)
     {
+        spdlog::debug("[hartmodule] Recieved context from HHM");
         std::lock_guard<std::mutex> lock(_mData);
         mCtx = context;
         Hit = callback;
@@ -114,6 +115,7 @@ public:
 protected:
     std::queue<Ray*> mToTrace;
     std::atomic<EModuleState> mState = EModuleState::Bad;
+    std::atomic<EModuleState> mLastState = EModuleState::Bad;
 
     std::mutex _mData;
 

@@ -109,7 +109,9 @@ void RayRenderer::draw()
         {
             case EModuleState::Bad:
                 spdlog::error("MODULE STATE BAD");
+                break;
             case EModuleState::Build:
+                spdlog::error("MODULE STATE BUILD");
             case EModuleState::Trace:
                 break;
             case EModuleState::Ready:
