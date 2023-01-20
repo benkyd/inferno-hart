@@ -78,7 +78,7 @@ int Mesh::getVerticies(void*& v, void*& n)
 {
     v = (void*)&mObjLoader->getPositions()[0];
     n = (void*)&mObjLoader->getNormals()[0];
-    spdlog::debug("Mesh get {} {}", v, n);
+    // spdlog::debug("Mesh get {} {}", v, n);
     return mObjLoader->getVertCount();
 }
 

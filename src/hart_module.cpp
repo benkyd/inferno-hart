@@ -65,7 +65,6 @@ void rayHitCallback(void* hhm, HitInfo* hit)
 void HHM::rayReturn(HitInfo* hit)
 {
     HARTModule* mod = mDirectory.getActiveModule();
-    spdlog::debug("HIT!!");
     Renderer->computeHit(hit);
 }
 
