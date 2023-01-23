@@ -26,8 +26,8 @@ public:
     void loadOBJ(std::filesystem::path file);
     void ready();
 
-    int getVerticies(void*& v, void*& n);
-    int getIndicies(void*& i);
+    int getVerticies(void** v, void** n);
+    int getIndicies(void** i);
 
     int getIndexCount();
 

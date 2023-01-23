@@ -44,8 +44,8 @@ void HHM::newScene(Scene* scene)
     // which would involve a lot of mesh copying (avoid!) if i were to chain them
     for (auto* mesh : meshs) {
         void* verticies; void* normals; void* indicies;
-        int vertexCount = mesh->getVerticies(verticies, normals);
-        int indexCount = mesh->getIndicies(indicies);
+        int vertexCount = mesh->getVerticies(&verticies, &normals);
+        int indexCount = mesh->getIndicies(&indicies);
         spdlog::debug("Mesh for module ready... {} {}", verticies, normals);
         mod->submitTris(verticies, normals, vertexCount, indicies, indexCount);
     }
@@ -64,13 +64,11 @@ void rayHitCallback(void* hhm, HitInfo* hit)
 
 void HHM::rayReturn(HitInfo* hit)
 {
-    HARTModule* mod = mDirectory.getActiveModule();
     Renderer->computeHit(hit);
 }
 
 void HHM::bounce(Ray* newRay)
 {
-    HARTModule* mod = mDirectory.getActiveModule();
 
 }
 

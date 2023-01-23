@@ -83,7 +83,30 @@ void RayRenderer::prepare()
     assert(mCurrentScene != NULL);
     if (mCurrentScene->didUpdate())
     {
+        spdlog::debug("New Scene!");
         mIface->newScene(mCurrentScene);
+    }
+}
+
+void RayRenderer::mHaultWait()
+{
+    bool frameStatus = false;
+    while (!frameStatus)
+    {
+        std::lock_guard<std::mutex> lock(this->_mTarget);
+        switch(mIface->getModuleState())
+        {
+            case EModuleState::Bad:
+                spdlog::error("MODULE STATE BAD");
+                break;
+            case EModuleState::Build:
+                spdlog::error("MODULE STATE BUILD");
+            case EModuleState::Trace:
+                break;
+            case EModuleState::Ready:
+                frameStatus = true;
+                break;
+        }
     }
 }
 
@@ -99,74 +122,12 @@ void RayRenderer::draw()
         mTarget[y * mRenderTargetSize.x + x] = { 1.0f, 0.0f, 0.0f, 1.0f };
     }
 
+    mHaultWait();
+
     mCurrentRefTable = &startRays.Reference;
-    // mIface->startTrace(startRays.Field);
+    mIface->startTrace(startRays.Field);
 
-    // hault wait for the module to finish
-    // bool frameStatus = false;
-    // while (!frameStatus)
-    // {
-    //     switch(mIface->getModuleState())
-    //     {
-    //         case EModuleState::Bad:
-    //             spdlog::error("MODULE STATE BAD");
-    //             break;
-    //         case EModuleState::Build:
-    //             spdlog::error("MODULE STATE BUILD");
-    //         case EModuleState::Trace:
-    //             break;
-    //         case EModuleState::Ready:
-    //             frameStatus = true;
-    //             break;
-    //     }
-    // }
-
-    while(!startRays.Field.empty())
-    {
-        void* verticies; void* normals; void* indicies;
-        int vertexCount = mCurrentScene->getRenderables()[0]->getVerticies(verticies, normals);
-        int indexCount = mCurrentScene->getRenderables()[0]->getIndicies(indicies);
-        float* mVert = (float*)verticies; float* mNorm = (float*)normals; 
-        int mVc = vertexCount; uint32_t* mIndicies = (uint32_t*)indicies; int mIc = indexCount;
-
-        auto* ray = startRays.Field.front();
-        int bestIdx = -1;
-        glm::vec2 coords;
-        glm::vec2 bestTexcoord;
-        float bestDist = INFINITY;
-        float dist;
-        for (int i = 0; i < mCurrentScene->getRenderables()[0]->getIndexCount() ; i += 9)
-        {
-            uint32_t ind = mIndicies[i];
-            // Check if the ray intersects
-            const glm::vec3 a = { mVert[ind + 1], mVert[ind + 2], mVert[ind + 3] };
-            const glm::vec3 b = { mVert[ind + 4], mVert[ind + 5], mVert[ind + 6] };
-            const glm::vec3 c = { mVert[ind + 7], mVert[ind + 8], mVert[ind + 9] };
-        
-            if (!glm::intersectRayTriangle(ray->Origin, ray->Direction, a, b, c, coords, dist)) { continue; }
-            if (dist > bestDist || dist < 0.0f) { continue; }
-            bestIdx = i;
-            bestDist = dist;
-            bestTexcoord = coords;
-        }
-
-        HitInfo* hit = new HitInfo{};
-        // If no hit, we still need to inform the HHM
-        if (bestIdx < 0) 
-        {
-            startRays.Field.pop_back();
-            continue;
-        }
-
-        hit->Distance = bestDist;
-        hit->UV = bestTexcoord;
-
-        glm::ivec2 pos = (*mCurrentRefTable)[ray->Reference];
-        spdlog::debug("HIT!!");
-        mTarget[pos.y * mRenderTargetSize.x + pos.x] = { bestDist, bestDist, bestDist, 1.0f };
-        startRays.Field.pop_back();
-        // this->computeHit(hit);
-    }
+    mHaultWait();
 
     spdlog::info("Sample complete");
 
@@ -179,6 +140,11 @@ void RayRenderer::draw()
 void RayRenderer::computeHit(HitInfo* info)
 {
     spdlog::debug("HIT!!");
+    if (!(*mCurrentRefTable).count(info->Caller->Reference))
+    {
+        spdlog::warn("Why is the ray not in the map?!");
+        return;
+    }
     glm::ivec2 pos = (*mCurrentRefTable)[info->Caller->Reference];
     std::lock_guard<std::mutex> lock(this->_mTarget);
     float d = info->Distance;

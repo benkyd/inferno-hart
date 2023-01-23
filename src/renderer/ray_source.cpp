@@ -45,14 +45,14 @@ ReferencedRayField RaySource::getInitialRays(bool MSAA)
 
     std::unordered_map<uint32_t, glm::ivec2> reference;
 
-    int i = 0;
+    uint32_t i = 0;
     for (int x = 0; x < mReferenceCamera->getRayViewport().x; x++)
     for (int y = 0; y < mReferenceCamera->getRayViewport().y; y++)
     {
         float Px = (2.0f * ((x + 0.5f) /  mReferenceCamera->getRayViewport().x) - 1.0f) * scale * aspect;
         float Py = (1.0f - 2.0f * ((y + 0.5f) /  mReferenceCamera->getRayViewport().y) * scale); 
 
-        Ray* ray = new Ray;
+        Ray* ray = new Ray{};
         ray->Origin = origin;
         ray->Direction = glm::normalize((glm::vec4(Px, Py, -1.0f, 1.0f) * cameraToWorld));
         ray->Reference = i;

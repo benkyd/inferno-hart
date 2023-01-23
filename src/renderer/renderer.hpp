@@ -34,6 +34,8 @@ public:
     void computeHit(HitInfo* info);
 
 private:
+    void mHaultWait();
+
     std::unordered_map<uint32_t, glm::ivec2>* mCurrentRefTable;
 
 private:

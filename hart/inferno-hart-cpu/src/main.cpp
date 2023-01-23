@@ -44,7 +44,7 @@ public:
         {
             std::unique_lock<std::mutex> lock(_mData);
             mLastState = mState.load();
-            if (mToTrace.empty())
+            if (mToTrace.size() == 0)
             {
                 lock.unlock();
                 mState = EModuleState::Ready;
@@ -57,7 +57,7 @@ public:
                 spdlog::info("[hartcpu] Signal start");
             }
 
-            auto* ray = mToTrace.front();
+            Ray* ray = mToTrace.front();
             int bestIdx = -1;
             glm::vec2 coords;
             glm::vec2 bestTexcoord;
@@ -78,7 +78,8 @@ public:
                 bestTexcoord = coords;
             }
 
-            HitInfo* hit = new HitInfo{};
+            HitInfo hit;
+            hit.Caller = ray;
             // If no hit, we still need to inform the HHM
             if (bestIdx < 0) 
             {
@@ -86,10 +87,10 @@ public:
                 continue;
             }
 
-            hit->Distance = bestDist;
-            hit->UV = bestTexcoord;
+            hit.Distance = bestDist;
+            hit.UV = bestTexcoord;
 
-            Hit(mCtx, hit);
+            Hit(mCtx, &hit);
 
             mToTrace.pop();
         }
