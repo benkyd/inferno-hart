@@ -74,6 +74,7 @@ void HHM::bounce(Ray* newRay)
 
 void HHM::startTrace(RayField sourceScatter)
 {
+    // TODO: Signal start
     HARTModule* mod = mDirectory.getActiveModule();
     mod->passContext((void*)this, &rayHitCallback);
     spdlog::debug("SubmitQueue {}", sourceScatter.size());

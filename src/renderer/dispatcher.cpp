@@ -69,7 +69,7 @@ bool RenderDispatcher::progressionStatus()
 
 GLuint RenderDispatcher::getLatestTexture()
 {
-    std::lock_guard<std::mutex> lock(mRenderer->_mTarget);
+    std::lock_guard<std::mutex> lock(mRenderer->_RenderData);
     glBindTexture(GL_TEXTURE_2D, mRenderer->mRenderTargetTexture);
     glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, mRenderer->mRenderTargetSize.x, mRenderer->mRenderTargetSize.y, 0, GL_RGBA, GL_FLOAT, mRenderer->mTarget);
     glBindTexture(GL_TEXTURE_2D, 0);

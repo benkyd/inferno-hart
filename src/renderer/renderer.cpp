@@ -67,7 +67,7 @@ glm::ivec2 RayRenderer::getTargetSize()
 
 GLuint RayRenderer::getRenderedTexture()
 {
-    std::lock_guard<std::mutex> lock(this->_mTarget);
+    std::lock_guard<std::mutex> lock(this->_RenderData);
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
     glBindTexture(GL_TEXTURE_2D, mRenderTargetTexture);
     return mRenderTargetTexture;
@@ -93,7 +93,7 @@ void RayRenderer::mHaultWait()
     bool frameStatus = false;
     while (!frameStatus)
     {
-        std::lock_guard<std::mutex> lock(this->_mTarget);
+        std::lock_guard<std::mutex> lock(this->_RenderData);
         switch(mIface->getModuleState())
         {
             case EModuleState::Bad:
@@ -121,10 +121,11 @@ void RayRenderer::draw()
     {
         mTarget[y * mRenderTargetSize.x + x] = { 1.0f, 0.0f, 0.0f, 1.0f };
     }
+    mCurrentRefTable = &startRays.Reference;
 
+    // TODO: Why do we need to wait here?
     mHaultWait();
 
-    mCurrentRefTable = &startRays.Reference;
     mIface->startTrace(startRays.Field);
 
     mHaultWait();
@@ -139,13 +140,13 @@ void RayRenderer::draw()
 
 void RayRenderer::computeHit(HitInfo* info)
 {
+    // TODO: Make sure signal is started
     if (!(*mCurrentRefTable).count(info->Caller->Reference))
     {
         spdlog::warn("Why is the ray not in the map?!");
         return;
     }
     glm::ivec2 pos = (*mCurrentRefTable)[info->Caller->Reference];
-    std::lock_guard<std::mutex> lock(this->_mTarget);
     float d = info->Distance;
     mTarget[pos.y * mRenderTargetSize.x + pos.x] = { d, d, d, 1.0f };
 }

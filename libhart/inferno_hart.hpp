@@ -101,7 +101,7 @@ public:
 
     inline void passContext(void* context, HART_HIT_CALLBACK callback)
     {
-        spdlog::debug("[hartmodule] Recieved context from HHM");
+        spdlog::debug("[hartmodule] Recieved context");
         std::lock_guard<std::mutex> lock(_mData);
         mCtx = context;
         Hit = callback;

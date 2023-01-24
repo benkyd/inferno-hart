@@ -4,6 +4,7 @@
 
 #include <mutex>
 #include <unordered_map>
+#include <condition_variable>
 
 namespace inferno {
 
@@ -41,7 +42,9 @@ private:
 private:
     GLuint mRenderTargetTexture = 0;
     glm::fvec4* mTarget;
-    std::mutex _mTarget;
+
+    std::mutex _RenderData;
+    std::condition_variable _RenderPause;
 
     glm::ivec2 mRenderTargetSize = {300, 300};
 
