@@ -139,7 +139,6 @@ void RayRenderer::draw()
 
 void RayRenderer::computeHit(HitInfo* info)
 {
-    spdlog::debug("HIT!!");
     if (!(*mCurrentRefTable).count(info->Caller->Reference))
     {
         spdlog::warn("Why is the ray not in the map?!");
