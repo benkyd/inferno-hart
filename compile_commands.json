@@ -1,0 +1,132 @@
+[
+{
+  "directory": "/home/benk/programming/inferno-hart/build",
+  "command": "/usr/bin/c++  -I/home/benk/programming/inferno-hart/libhart -I/home/benk/programming/inferno-hart/libhart/thirdparty -I/home/benk/programming/inferno-hart/src -I/home/benk/programming/inferno-hart/src/thirdparty -g -std=c++17 -O1 -Wall -g -o CMakeFiles/inferno.dir/src/hart_directory.cpp.o -c /home/benk/programming/inferno-hart/src/hart_directory.cpp",
+  "file": "/home/benk/programming/inferno-hart/src/hart_directory.cpp"
+},
+{
+  "directory": "/home/benk/programming/inferno-hart/build",
+  "command": "/usr/bin/c++  -I/home/benk/programming/inferno-hart/libhart -I/home/benk/programming/inferno-hart/libhart/thirdparty -I/home/benk/programming/inferno-hart/src -I/home/benk/programming/inferno-hart/src/thirdparty -g -std=c++17 -O1 -Wall -g -o CMakeFiles/inferno.dir/src/hart_module.cpp.o -c /home/benk/programming/inferno-hart/src/hart_module.cpp",
+  "file": "/home/benk/programming/inferno-hart/src/hart_module.cpp"
+},
+{
+  "directory": "/home/benk/programming/inferno-hart/build",
+  "command": "/usr/bin/c++  -I/home/benk/programming/inferno-hart/libhart -I/home/benk/programming/inferno-hart/libhart/thirdparty -I/home/benk/programming/inferno-hart/src -I/home/benk/programming/inferno-hart/src/thirdparty -g -std=c++17 -O1 -Wall -g -o CMakeFiles/inferno.dir/src/inferno.cpp.o -c /home/benk/programming/inferno-hart/src/inferno.cpp",
+  "file": "/home/benk/programming/inferno-hart/src/inferno.cpp"
+},
+{
+  "directory": "/home/benk/programming/inferno-hart/build",
+  "command": "/usr/bin/c++  -I/home/benk/programming/inferno-hart/libhart -I/home/benk/programming/inferno-hart/libhart/thirdparty -I/home/benk/programming/inferno-hart/src -I/home/benk/programming/inferno-hart/src/thirdparty -g -std=c++17 -O1 -Wall -g -o CMakeFiles/inferno.dir/src/main.cpp.o -c /home/benk/programming/inferno-hart/src/main.cpp",
+  "file": "/home/benk/programming/inferno-hart/src/main.cpp"
+},
+{
+  "directory": "/home/benk/programming/inferno-hart/build",
+  "command": "/usr/bin/c++  -I/home/benk/programming/inferno-hart/libhart -I/home/benk/programming/inferno-hart/libhart/thirdparty -I/home/benk/programming/inferno-hart/src -I/home/benk/programming/inferno-hart/src/thirdparty -g -std=c++17 -O1 -Wall -g -o CMakeFiles/inferno.dir/src/preview_renderer/renderer.cpp.o -c /home/benk/programming/inferno-hart/src/preview_renderer/renderer.cpp",
+  "file": "/home/benk/programming/inferno-hart/src/preview_renderer/renderer.cpp"
+},
+{
+  "directory": "/home/benk/programming/inferno-hart/build",
+  "command": "/usr/bin/c++  -I/home/benk/programming/inferno-hart/libhart -I/home/benk/programming/inferno-hart/libhart/thirdparty -I/home/benk/programming/inferno-hart/src -I/home/benk/programming/inferno-hart/src/thirdparty -g -std=c++17 -O1 -Wall -g -o CMakeFiles/inferno.dir/src/preview_renderer/shader.cpp.o -c /home/benk/programming/inferno-hart/src/preview_renderer/shader.cpp",
+  "file": "/home/benk/programming/inferno-hart/src/preview_renderer/shader.cpp"
+},
+{
+  "directory": "/home/benk/programming/inferno-hart/build",
+  "command": "/usr/bin/c++  -I/home/benk/programming/inferno-hart/libhart -I/home/benk/programming/inferno-hart/libhart/thirdparty -I/home/benk/programming/inferno-hart/src -I/home/benk/programming/inferno-hart/src/thirdparty -g -std=c++17 -O1 -Wall -g -o CMakeFiles/inferno.dir/src/renderer/dispatcher.cpp.o -c /home/benk/programming/inferno-hart/src/renderer/dispatcher.cpp",
+  "file": "/home/benk/programming/inferno-hart/src/renderer/dispatcher.cpp"
+},
+{
+  "directory": "/home/benk/programming/inferno-hart/build",
+  "command": "/usr/bin/c++  -I/home/benk/programming/inferno-hart/libhart -I/home/benk/programming/inferno-hart/libhart/thirdparty -I/home/benk/programming/inferno-hart/src -I/home/benk/programming/inferno-hart/src/thirdparty -g -std=c++17 -O1 -Wall -g -o CMakeFiles/inferno.dir/src/renderer/ray_source.cpp.o -c /home/benk/programming/inferno-hart/src/renderer/ray_source.cpp",
+  "file": "/home/benk/programming/inferno-hart/src/renderer/ray_source.cpp"
+},
+{
+  "directory": "/home/benk/programming/inferno-hart/build",
+  "command": "/usr/bin/c++  -I/home/benk/programming/inferno-hart/libhart -I/home/benk/programming/inferno-hart/libhart/thirdparty -I/home/benk/programming/inferno-hart/src -I/home/benk/programming/inferno-hart/src/thirdparty -g -std=c++17 -O1 -Wall -g -o CMakeFiles/inferno.dir/src/renderer/renderer.cpp.o -c /home/benk/programming/inferno-hart/src/renderer/renderer.cpp",
+  "file": "/home/benk/programming/inferno-hart/src/renderer/renderer.cpp"
+},
+{
+  "directory": "/home/benk/programming/inferno-hart/build",
+  "command": "/usr/bin/c++  -I/home/benk/programming/inferno-hart/libhart -I/home/benk/programming/inferno-hart/libhart/thirdparty -I/home/benk/programming/inferno-hart/src -I/home/benk/programming/inferno-hart/src/thirdparty -g -std=c++17 -O1 -Wall -g -o CMakeFiles/inferno.dir/src/scene/camera.cpp.o -c /home/benk/programming/inferno-hart/src/scene/camera.cpp",
+  "file": "/home/benk/programming/inferno-hart/src/scene/camera.cpp"
+},
+{
+  "directory": "/home/benk/programming/inferno-hart/build",
+  "command": "/usr/bin/c++  -I/home/benk/programming/inferno-hart/libhart -I/home/benk/programming/inferno-hart/libhart/thirdparty -I/home/benk/programming/inferno-hart/src -I/home/benk/programming/inferno-hart/src/thirdparty -g -std=c++17 -O1 -Wall -g -o CMakeFiles/inferno.dir/src/scene/material.cpp.o -c /home/benk/programming/inferno-hart/src/scene/material.cpp",
+  "file": "/home/benk/programming/inferno-hart/src/scene/material.cpp"
+},
+{
+  "directory": "/home/benk/programming/inferno-hart/build",
+  "command": "/usr/bin/c++  -I/home/benk/programming/inferno-hart/libhart -I/home/benk/programming/inferno-hart/libhart/thirdparty -I/home/benk/programming/inferno-hart/src -I/home/benk/programming/inferno-hart/src/thirdparty -g -std=c++17 -O1 -Wall -g -o CMakeFiles/inferno.dir/src/scene/mesh.cpp.o -c /home/benk/programming/inferno-hart/src/scene/mesh.cpp",
+  "file": "/home/benk/programming/inferno-hart/src/scene/mesh.cpp"
+},
+{
+  "directory": "/home/benk/programming/inferno-hart/build",
+  "command": "/usr/bin/c++  -I/home/benk/programming/inferno-hart/libhart -I/home/benk/programming/inferno-hart/libhart/thirdparty -I/home/benk/programming/inferno-hart/src -I/home/benk/programming/inferno-hart/src/thirdparty -g -std=c++17 -O1 -Wall -g -o CMakeFiles/inferno.dir/src/scene/object.cpp.o -c /home/benk/programming/inferno-hart/src/scene/object.cpp",
+  "file": "/home/benk/programming/inferno-hart/src/scene/object.cpp"
+},
+{
+  "directory": "/home/benk/programming/inferno-hart/build",
+  "command": "/usr/bin/c++  -I/home/benk/programming/inferno-hart/libhart -I/home/benk/programming/inferno-hart/libhart/thirdparty -I/home/benk/programming/inferno-hart/src -I/home/benk/programming/inferno-hart/src/thirdparty -g -std=c++17 -O1 -Wall -g -o CMakeFiles/inferno.dir/src/scene/objloader.cpp.o -c /home/benk/programming/inferno-hart/src/scene/objloader.cpp",
+  "file": "/home/benk/programming/inferno-hart/src/scene/objloader.cpp"
+},
+{
+  "directory": "/home/benk/programming/inferno-hart/build",
+  "command": "/usr/bin/c++  -I/home/benk/programming/inferno-hart/libhart -I/home/benk/programming/inferno-hart/libhart/thirdparty -I/home/benk/programming/inferno-hart/src -I/home/benk/programming/inferno-hart/src/thirdparty -g -std=c++17 -O1 -Wall -g -o CMakeFiles/inferno.dir/src/scene/scene.cpp.o -c /home/benk/programming/inferno-hart/src/scene/scene.cpp",
+  "file": "/home/benk/programming/inferno-hart/src/scene/scene.cpp"
+},
+{
+  "directory": "/home/benk/programming/inferno-hart/build",
+  "command": "/usr/bin/cc  -I/home/benk/programming/inferno-hart/libhart -I/home/benk/programming/inferno-hart/libhart/thirdparty -I/home/benk/programming/inferno-hart/src -I/home/benk/programming/inferno-hart/src/thirdparty -g -std=c++17 -O1 -Wall -g -o CMakeFiles/inferno.dir/src/thirdparty/glad/glad.c.o -c /home/benk/programming/inferno-hart/src/thirdparty/glad/glad.c",
+  "file": "/home/benk/programming/inferno-hart/src/thirdparty/glad/glad.c"
+},
+{
+  "directory": "/home/benk/programming/inferno-hart/build",
+  "command": "/usr/bin/c++  -I/home/benk/programming/inferno-hart/libhart -I/home/benk/programming/inferno-hart/libhart/thirdparty -I/home/benk/programming/inferno-hart/src -I/home/benk/programming/inferno-hart/src/thirdparty -g -std=c++17 -O1 -Wall -g -o CMakeFiles/inferno.dir/src/thirdparty/imgui/imgui.cpp.o -c /home/benk/programming/inferno-hart/src/thirdparty/imgui/imgui.cpp",
+  "file": "/home/benk/programming/inferno-hart/src/thirdparty/imgui/imgui.cpp"
+},
+{
+  "directory": "/home/benk/programming/inferno-hart/build",
+  "command": "/usr/bin/c++  -I/home/benk/programming/inferno-hart/libhart -I/home/benk/programming/inferno-hart/libhart/thirdparty -I/home/benk/programming/inferno-hart/src -I/home/benk/programming/inferno-hart/src/thirdparty -g -std=c++17 -O1 -Wall -g -o CMakeFiles/inferno.dir/src/thirdparty/imgui/imgui_demo.cpp.o -c /home/benk/programming/inferno-hart/src/thirdparty/imgui/imgui_demo.cpp",
+  "file": "/home/benk/programming/inferno-hart/src/thirdparty/imgui/imgui_demo.cpp"
+},
+{
+  "directory": "/home/benk/programming/inferno-hart/build",
+  "command": "/usr/bin/c++  -I/home/benk/programming/inferno-hart/libhart -I/home/benk/programming/inferno-hart/libhart/thirdparty -I/home/benk/programming/inferno-hart/src -I/home/benk/programming/inferno-hart/src/thirdparty -g -std=c++17 -O1 -Wall -g -o CMakeFiles/inferno.dir/src/thirdparty/imgui/imgui_draw.cpp.o -c /home/benk/programming/inferno-hart/src/thirdparty/imgui/imgui_draw.cpp",
+  "file": "/home/benk/programming/inferno-hart/src/thirdparty/imgui/imgui_draw.cpp"
+},
+{
+  "directory": "/home/benk/programming/inferno-hart/build",
+  "command": "/usr/bin/c++  -I/home/benk/programming/inferno-hart/libhart -I/home/benk/programming/inferno-hart/libhart/thirdparty -I/home/benk/programming/inferno-hart/src -I/home/benk/programming/inferno-hart/src/thirdparty -g -std=c++17 -O1 -Wall -g -o CMakeFiles/inferno.dir/src/thirdparty/imgui/imgui_impl_glfw.cpp.o -c /home/benk/programming/inferno-hart/src/thirdparty/imgui/imgui_impl_glfw.cpp",
+  "file": "/home/benk/programming/inferno-hart/src/thirdparty/imgui/imgui_impl_glfw.cpp"
+},
+{
+  "directory": "/home/benk/programming/inferno-hart/build",
+  "command": "/usr/bin/c++  -I/home/benk/programming/inferno-hart/libhart -I/home/benk/programming/inferno-hart/libhart/thirdparty -I/home/benk/programming/inferno-hart/src -I/home/benk/programming/inferno-hart/src/thirdparty -g -std=c++17 -O1 -Wall -g -o CMakeFiles/inferno.dir/src/thirdparty/imgui/imgui_impl_opengl3.cpp.o -c /home/benk/programming/inferno-hart/src/thirdparty/imgui/imgui_impl_opengl3.cpp",
+  "file": "/home/benk/programming/inferno-hart/src/thirdparty/imgui/imgui_impl_opengl3.cpp"
+},
+{
+  "directory": "/home/benk/programming/inferno-hart/build",
+  "command": "/usr/bin/c++  -I/home/benk/programming/inferno-hart/libhart -I/home/benk/programming/inferno-hart/libhart/thirdparty -I/home/benk/programming/inferno-hart/src -I/home/benk/programming/inferno-hart/src/thirdparty -g -std=c++17 -O1 -Wall -g -o CMakeFiles/inferno.dir/src/thirdparty/imgui/imgui_tables.cpp.o -c /home/benk/programming/inferno-hart/src/thirdparty/imgui/imgui_tables.cpp",
+  "file": "/home/benk/programming/inferno-hart/src/thirdparty/imgui/imgui_tables.cpp"
+},
+{
+  "directory": "/home/benk/programming/inferno-hart/build",
+  "command": "/usr/bin/c++  -I/home/benk/programming/inferno-hart/libhart -I/home/benk/programming/inferno-hart/libhart/thirdparty -I/home/benk/programming/inferno-hart/src -I/home/benk/programming/inferno-hart/src/thirdparty -g -std=c++17 -O1 -Wall -g -o CMakeFiles/inferno.dir/src/thirdparty/imgui/imgui_widgets.cpp.o -c /home/benk/programming/inferno-hart/src/thirdparty/imgui/imgui_widgets.cpp",
+  "file": "/home/benk/programming/inferno-hart/src/thirdparty/imgui/imgui_widgets.cpp"
+},
+{
+  "directory": "/home/benk/programming/inferno-hart/build",
+  "command": "/usr/bin/c++  -I/home/benk/programming/inferno-hart/libhart -I/home/benk/programming/inferno-hart/libhart/thirdparty -I/home/benk/programming/inferno-hart/src -I/home/benk/programming/inferno-hart/src/thirdparty -g -std=c++17 -O1 -Wall -g -o CMakeFiles/inferno.dir/src/window.cpp.o -c /home/benk/programming/inferno-hart/src/window.cpp",
+  "file": "/home/benk/programming/inferno-hart/src/window.cpp"
+},
+{
+  "directory": "/home/benk/programming/inferno-hart/build/hart/inferno-hart-cpu",
+  "command": "/usr/bin/c++ -Dhart_cpu_accel_EXPORTS -I/home/benk/programming/inferno-hart/hart/inferno-hart-cpu/../../libhart -I/home/benk/programming/inferno-hart/hart/inferno-hart-cpu/../../libhart/thirdparty -I/home/benk/programming/inferno-hart/hart/inferno-hart-cpu/src -g -fPIC -o CMakeFiles/hart_cpu_accel.dir/src/main.cpp.o -c /home/benk/programming/inferno-hart/hart/inferno-hart-cpu/src/main.cpp",
+  "file": "/home/benk/programming/inferno-hart/hart/inferno-hart-cpu/src/main.cpp"
+},
+{
+  "directory": "/home/benk/programming/inferno-hart/build/hart/inferno-hart-opencl",
+  "command": "/usr/bin/c++ -Dhart_ocl_accel_EXPORTS -I/home/benk/programming/inferno-hart/hart/inferno-hart-opencl/../../libhart -I/home/benk/programming/inferno-hart/hart/inferno-hart-opencl/../../libhart/thirdparty -I/home/benk/programming/inferno-hart/hart/inferno-hart-opencl/src -g -fPIC -o CMakeFiles/hart_ocl_accel.dir/src/main.cpp.o -c /home/benk/programming/inferno-hart/hart/inferno-hart-opencl/src/main.cpp",
+  "file": "/home/benk/programming/inferno-hart/hart/inferno-hart-opencl/src/main.cpp"
+}
+]
