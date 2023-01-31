@@ -83,6 +83,10 @@ public:
     virtual void submitTris(void* vert, void* norm, int vc, void* indicies, int ic) = 0;
     virtual void updateTris() = 0;
 
+    virtual void start() = 0;
+    virtual void pause() = 0;
+    virtual void stop() = 0;
+
     // module keeps queue reference
     inline void submitQueue(std::vector<Ray*> queue)
     {
@@ -91,6 +95,7 @@ public:
         for (const auto& e: queue)
             mToTrace.push(e);
         spdlog::info("[hartmodule] New trace queue: {}", mToTrace.size());  
+        this->start();
     }
 
     inline void pushtoQueue(Ray* ray)

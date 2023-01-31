@@ -113,7 +113,6 @@ void RayRenderer::mHaultWait()
 void RayRenderer::draw()
 {
     mCurrentScene->newFrame();
-
     ReferencedRayField startRays = mRaySource->getInitialRays(true);
 
     for (int x = 0; x < mRenderTargetSize.x; x++)

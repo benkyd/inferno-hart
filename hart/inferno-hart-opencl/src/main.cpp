@@ -23,6 +23,18 @@ public:
                     void* indicies,
                     int ic) override {}
     void updateTris() override {}
+
+    void start() override 
+    {
+    }
+    
+    void pause() override
+    {
+    }
+
+    void stop() override
+    {
+    }
 };
 
 HART_INTERFACE void* _GET()

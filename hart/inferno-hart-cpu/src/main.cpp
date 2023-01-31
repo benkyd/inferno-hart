@@ -38,6 +38,18 @@ public:
     
     void updateTris() override {}
 
+    void start() override 
+    {
+    }
+    
+    void pause() override
+    {
+    }
+
+    void stop() override
+    {
+    }
+
     void intersectMasterWorker()
     {
         for (;;)
@@ -77,7 +89,7 @@ public:
                 bestDist = dist;
                 bestTexcoord = coords;
             }
-
+            
             HitInfo hit;
             hit.Caller = ray;
             // If no hit, we still need to inform the HHM
@@ -97,14 +109,16 @@ public:
     }
 
 private:
+    std::condition_variable _mSignal;
+    std::mutex _mStopperSignal;
+    std::thread mMasterWorker;
+    
+private:  
     float* mVert;
     float* mNorm;
     int mVc;
     uint32_t* mIndicies;
     int mIc;
-
-private:
-    std::thread mMasterWorker;
 };
 
 HART_INTERFACE void* _GET()
