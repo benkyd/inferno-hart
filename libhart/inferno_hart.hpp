@@ -85,7 +85,7 @@ public:
 
     virtual void start() = 0;
     virtual void pause() = 0;
-    virtual void stop() = 0;
+    virtual void stop(bool interrupt) = 0;
 
     // module keeps queue reference
     inline void submitQueue(std::vector<Ray*> queue)
