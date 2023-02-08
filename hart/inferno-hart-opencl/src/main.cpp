@@ -32,7 +32,7 @@ public:
     {
     }
 
-    void stop() override
+    void stop(bool interrupt) override
     {
     }
 };

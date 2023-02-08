@@ -40,13 +40,14 @@ public:
 
     void start() override 
     {
+        
     }
     
     void pause() override
     {
     }
 
-    void stop() override
+    void stop(bool interrupt) override
     {
     }
 
