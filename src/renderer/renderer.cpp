@@ -91,6 +91,8 @@ void RayRenderer::prepare()
 void RayRenderer::draw()
 {
     mCurrentScene->newFrame();
+    // TODO: Rays should definately be bump allocated if possible, this is KBs of
+    // ray data and nothing else being reallocated every frame for no reason
     ReferencedRayField startRays = mRaySource->getInitialRays(true);
 
     for (int x = 0; x < mRenderTargetSize.x; x++)
@@ -120,6 +122,6 @@ void RayRenderer::computeHit(HitInfo* info)
         return;
     }
     glm::ivec2 pos = (*mCurrentRefTable)[info->Caller->Reference];
-    float d = info->Distance;
+    float d = info->Distance; 
     mTarget[pos.y * mRenderTargetSize.x + pos.x] = { d, d, d, 1.0f };
 }

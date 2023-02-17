@@ -49,12 +49,16 @@ ReferencedRayField RaySource::getInitialRays(bool MSAA)
     for (int x = 0; x < mReferenceCamera->getRayViewport().x; x++)
     for (int y = 0; y < mReferenceCamera->getRayViewport().y; y++)
     {
-        float Px = (2.0f * ((x + 0.5f) /  mReferenceCamera->getRayViewport().x) - 1.0f) * scale * aspect;
-        float Py = (1.0f - 2.0f * ((y + 0.5f) /  mReferenceCamera->getRayViewport().y) * scale); 
+        float Px = (2.0f * ((x + 0.5f) / mReferenceCamera->getRayViewport().x) - 1.0f) * scale * aspect;
+        float Py = (2.0f * ((y + 0.5f) / mReferenceCamera->getRayViewport().y) - 1.0f) * scale;
 
         Ray* ray = new Ray{};
+        
+        glm::vec4 dir4 = glm::vec4(Px, Py, -1.0f, 1.0f) * cameraToWorld;
+        glm::vec3 dir3 = glm::vec3(dir4) / dir4.w;
+        ray->Direction = glm::normalize(dir3);
+
         ray->Origin = origin;
-        ray->Direction = glm::normalize((glm::vec4(Px, Py, -1.0f, 1.0f) * cameraToWorld));
         ray->Reference = i;
         reference[i] = {x, y};
 

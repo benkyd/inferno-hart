@@ -60,7 +60,6 @@ public:
         if (!interrupt)
         {
             mIsRunning = false;
-            mMasterWorker.join(); 
             return;
         }
         // TODO: Find a way to force the thread to hault
@@ -91,16 +90,23 @@ public:
             glm::vec2 bestTexcoord;
             float bestDist = INFINITY;
             float dist;
-            for (int i = 0; i < mIc; i += 9)
+           
+            for (int i = 0; i < mIc; i += 3)
             {
-                uint32_t ind = mIndicies[i];
-                // Check if the ray intersects
-                const glm::vec3 a = { mVert[ind + 1], mVert[ind + 2], mVert[ind + 3] };
-                const glm::vec3 b = { mVert[ind + 4], mVert[ind + 5], mVert[ind + 6] };
-                const glm::vec3 c = { mVert[ind + 7], mVert[ind + 8], mVert[ind + 9] };
-            
+ 
+                uint32_t ind1 = mIndicies[i];
+                uint32_t ind2 = mIndicies[i + 1];
+                uint32_t ind3 = mIndicies[i + 2];
+
+                const glm::vec3 a = { mVert[ind1 * 3], mVert[ind1 * 3 + 1], mVert[ind1 * 3 + 2] };
+                const glm::vec3 b = { mVert[ind2 * 3], mVert[ind2 * 3 + 1], mVert[ind2 * 3 + 2] };
+                const glm::vec3 c = { mVert[ind3 * 3], mVert[ind3 * 3 + 1], mVert[ind3 * 3 + 2] };
+
+                // Perform intersection test...
+
                 if (!glm::intersectRayTriangle(ray->Origin, ray->Direction, a, b, c, coords, dist)) { continue; }
                 if (dist > bestDist || dist < 0.0f) { continue; }
+                
                 bestIdx = i;
                 bestDist = dist;
                 bestTexcoord = coords;
@@ -121,7 +127,6 @@ public:
             Hit(mCtx, &hit);
 
             mToTrace.pop();
-            spdlog::debug("[hartcpu] One (1) sample completed");
         }
     }
 
