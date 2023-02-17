@@ -80,33 +80,11 @@ glm::fvec4* RayRenderer::getRenderData()
 
 void RayRenderer::prepare()
 {
-    assert(mCurrentScene != NULL);
+    assert(mCurrentScene != nullptr);
     if (mCurrentScene->didUpdate())
     {
         spdlog::debug("New Scene!");
         mIface->newScene(mCurrentScene);
-    }
-}
-
-void RayRenderer::mHaultWait()
-{
-    bool frameStatus = false;
-    while (!frameStatus)
-    {
-        std::lock_guard<std::mutex> lock(this->_RenderData);
-        switch(mIface->getModuleState())
-        {
-            case EModuleState::Bad:
-                spdlog::error("MODULE STATE BAD");
-                break;
-            case EModuleState::Build:
-                spdlog::error("MODULE STATE BUILD");
-            case EModuleState::Trace:
-                break;
-            case EModuleState::Ready:
-                frameStatus = true;
-                break;
-        }
     }
 }
 
@@ -122,12 +100,8 @@ void RayRenderer::draw()
     }
     mCurrentRefTable = &startRays.Reference;
 
-    // TODO: Why do we need to wait here?
-    mHaultWait();
-
+    // before we start we now want to check that it hasn't been force-stopped
     mIface->startTrace(startRays.Field);
-
-    mHaultWait();
 
     spdlog::info("Sample complete");
 

@@ -20,6 +20,7 @@ public:
 
     ~HARTCPU()
     {
+        this->stop(true); 
         mMasterWorker.detach();
     }
 
@@ -29,26 +30,40 @@ public:
                     void* indicies,
                     int ic) override 
     {
+        std::lock_guard<std::mutex> lock(_mData);
+        
         mState = EModuleState::Build;
-
         mVert = (float*)vert; mNorm = (float*)norm; mVc = vc; mIndicies = (uint32_t*)indicies; mIc = ic;
         spdlog::info("[hartcpu] Recieved {} verticies ({}) and {} indicies ({})", vc / 3, vert, ic / 3, indicies);
-        mState = EModuleState::Ready;
+        mState = EModuleState::Idle;
     }
     
     void updateTris() override {}
 
     void start() override 
     {
+        std::lock_guard<std::mutex> signalLock(_mSignalMut);
+        mIsRunning = true;
+        mState = EModuleState::Trace;
+        _mSignalCv.notify_all();
         
+        spdlog::info("[hartcpu] Signal master to start");
+       
+        {
+            std::unique_lock<std::mutex> doneLock(_mDoneMut);
+            _mDoneCv.wait(doneLock, [this] { return mState == EModuleState::Idle; });
+        }
     }
     
-    void pause() override
-    {
-    }
-
     void stop(bool interrupt) override
     {
+        if (!interrupt)
+        {
+            mIsRunning = false;
+            mMasterWorker.join(); 
+            return;
+        }
+        // TODO: Find a way to force the thread to hault
     }
 
     void intersectMasterWorker()
@@ -56,19 +71,19 @@ public:
         for (;;)
         {
             std::unique_lock<std::mutex> lock(_mData);
-            mLastState = mState.load();
+            if (!mIsRunning) 
+            {
+                _mSignalCv.wait(lock, [this]{ return (mIsRunning || mState == EModuleState::Trace); });
+            }
+
             if (mToTrace.size() == 0)
             {
                 lock.unlock();
-                mState = EModuleState::Ready;
+                mState = EModuleState::Idle;
+                _mDoneCv.notify_all();
                 continue;
             }
             mState = EModuleState::Trace;
-
-            if (mLastState != mState)
-            {
-                spdlog::info("[hartcpu] Signal start");
-            }
 
             Ray* ray = mToTrace.front();
             int bestIdx = -1;
@@ -106,15 +121,21 @@ public:
             Hit(mCtx, &hit);
 
             mToTrace.pop();
+            spdlog::debug("[hartcpu] One (1) sample completed");
         }
     }
 
 private:
-    std::condition_variable _mSignal;
-    std::mutex _mStopperSignal;
+    // Signaling Stuffs
+    std::atomic<bool> mIsRunning;
     std::thread mMasterWorker;
+    std::mutex _mSignalMut;
+    std::mutex _mDoneMut;
+    std::condition_variable _mSignalCv;
+    std::condition_variable _mDoneCv; 
     
-private:  
+private:
+    // Scene Data 
     float* mVert;
     float* mNorm;
     int mVc;

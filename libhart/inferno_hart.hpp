@@ -16,7 +16,7 @@
  *                                                                              *
  * The possible states a module can be in are:                                  *
  *  - Bad (Not ready)                                                           *
- *  - Ready (Ready for a command or a scene)                                    *
+ *  - Idle (Ready for rays)                                                     *
  *  - Build (Scene is submitted and being processed)                            *
  *  - Trace (Tracing!)                                                          *
  *                                                                              *
@@ -61,7 +61,7 @@ struct ModuleCredit
 enum class EModuleState : uint8_t
 {
     Bad,    // Not ready!
-    Ready,  // Ready for command or scene
+    Idle,   // Waiting for rays 
     Build,  // Scene is passed, optimisation is taking place
     Trace,  // Tracing!
 };
@@ -84,18 +84,15 @@ public:
     virtual void updateTris() = 0;
 
     virtual void start() = 0;
-    virtual void pause() = 0;
     virtual void stop(bool interrupt) = 0;
 
     // module keeps queue reference
     inline void submitQueue(std::vector<Ray*> queue)
     {
         std::lock_guard<std::mutex> lock(_mData);
-        // mState = EModuleState::Trace;
         for (const auto& e: queue)
             mToTrace.push(e);
         spdlog::info("[hartmodule] New trace queue: {}", mToTrace.size());  
-        this->start();
     }
 
     inline void pushtoQueue(Ray* ray)
@@ -120,8 +117,6 @@ public:
 protected:
     std::queue<Ray*> mToTrace;
     std::atomic<EModuleState> mState = EModuleState::Bad;
-    std::atomic<EModuleState> mLastState = EModuleState::Bad;
-
     std::mutex _mData;
 
 protected:

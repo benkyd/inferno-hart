@@ -1,0 +1,3 @@
+[ ] The main thread is constantly polling for changes in the render texture, consider using a notification mechanism instead. For example, you could use a callback function that the renderer registers with the render texture, which is called whenever the texture is updated.
+[ ] 
+

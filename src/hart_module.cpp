@@ -79,4 +79,5 @@ void HHM::startTrace(RayField sourceScatter)
     mod->passContext((void*)this, &rayHitCallback);
     spdlog::debug("SubmitQueue {}", sourceScatter.size());
     mod->submitQueue(sourceScatter);
+    mod->start(); 
 }
