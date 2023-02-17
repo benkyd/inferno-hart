@@ -90,10 +90,9 @@ public:
             glm::vec2 bestTexcoord;
             float bestDist = INFINITY;
             float dist;
-           
+          
             for (int i = 0; i < mIc; i += 3)
             {
- 
                 uint32_t ind1 = mIndicies[i];
                 uint32_t ind2 = mIndicies[i + 1];
                 uint32_t ind3 = mIndicies[i + 2];
@@ -103,7 +102,6 @@ public:
                 const glm::vec3 c = { mVert[ind3 * 3], mVert[ind3 * 3 + 1], mVert[ind3 * 3 + 2] };
 
                 // Perform intersection test...
-
                 if (!glm::intersectRayTriangle(ray->Origin, ray->Direction, a, b, c, coords, dist)) { continue; }
                 if (dist > bestDist || dist < 0.0f) { continue; }
                 

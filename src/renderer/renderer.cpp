@@ -98,7 +98,7 @@ void RayRenderer::draw()
     for (int x = 0; x < mRenderTargetSize.x; x++)
     for (int y = 0; y < mRenderTargetSize.y; y++)
     {
-        mTarget[y * mRenderTargetSize.x + x] = { 1.0f, 0.0f, 0.0f, 1.0f };
+        mTarget[y * mRenderTargetSize.x + x] = { 0.1f, 0.1f, 0.1f, 1.0f };
     }
     mCurrentRefTable = &startRays.Reference;
 
@@ -115,6 +115,8 @@ void RayRenderer::draw()
 
 void RayRenderer::computeHit(HitInfo* info)
 {
+    static float mind = 100000.0f;
+    static float maxd = 0.0f; 
     // TODO: Make sure signal is started
     if (!(*mCurrentRefTable).count(info->Caller->Reference))
     {
@@ -123,5 +125,8 @@ void RayRenderer::computeHit(HitInfo* info)
     }
     glm::ivec2 pos = (*mCurrentRefTable)[info->Caller->Reference];
     float d = info->Distance; 
-    mTarget[pos.y * mRenderTargetSize.x + pos.x] = { d, d, d, 1.0f };
+    if (d < mind) mind = d;
+    if (d > maxd) maxd = d;
+    float n = (d - mind) / (maxd - mind);
+    mTarget[pos.y * mRenderTargetSize.x + pos.x] = { n, n, n, 1.0f};
 }
