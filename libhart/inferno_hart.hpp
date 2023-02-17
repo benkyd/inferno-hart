@@ -25,8 +25,9 @@
  * state must be Build.                                                         *
  *                                                                              *
  * Once the scene is ready and so is the trace, the HHM will start the tracing  *
- * state by pushing rays to the queue, the module must go through these and     *
- * for each ray, call Hit and pass the current context, this may resul          *
+ * state by calling the start function of the module, the module must go        *
+ * through the rays added to it before start was called and then                *
+ * for each ray, call Hit and pass the current context, this may result         *
  * in Inferno to push another ray to the queue, the module will go until        *
  * empty or signaled to stop.                                                   *
  *                                                                              *
