@@ -14,3 +14,5 @@ extern "C"
 // glm
 #include <glm/glm.hpp>
 #include <glm/gtx/intersect.hpp>
+#include <glm/gtx/component_wise.hpp>
+

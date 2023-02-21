@@ -4,9 +4,12 @@
 #include <tracing/ray.hpp>
 #include <tracing/hit.hpp>
 
+#include "kdtree.hpp"
+
 #include <iostream>
 #include <thread>
 #include <chrono>
+#include <numeric>
 
 using namespace inferno;
 
@@ -27,14 +30,25 @@ public:
     void submitTris(void* vert,
                     void* norm,
                     int vc,
-                    void* indicies,
+                    void* indices,
                     int ic) override 
     {
         std::lock_guard<std::mutex> lock(_mData);
         
         mState = EModuleState::Build;
-        mVert = (float*)vert; mNorm = (float*)norm; mVc = vc; mIndicies = (uint32_t*)indicies; mIc = ic;
-        spdlog::info("[hartcpu] Recieved {} verticies ({}) and {} indicies ({})", vc / 3, vert, ic / 3, indicies);
+        mVert = (float*)vert; mNorm = (float*)norm; mVc = vc; mIndices = (uint32_t*)indices; mIc = ic;
+        spdlog::info("[hartcpu] Recieved {} verticies ({}) and {} indicies ({})", vc / 3, vert, ic / 3, indices);
+
+        std::vector<uint32_t> indicesToProcess(ic / 3);
+        for (uint32_t i = 0; i < ic / 3; ++i)
+        {
+            indicesToProcess[i] = i;
+        }
+
+        mKdTree = new KDTree(mVert, mIndices, indicesToProcess, 0, indicesToProcess.size() - 1, 10);
+
+        spdlog::info("[hartcpu] Accelerator ready..");
+
         mState = EModuleState::Idle;
     }
     
@@ -91,21 +105,25 @@ public:
             float bestDist = INFINITY;
             float dist;
           
-            for (int i = 0; i < mIc; i += 3)
+            // Traverse the K-D tree to identify the set of triangles that may intersect the ray.
+            std::vector<uint32_t> candidateIndices;
+            mKdTree->intersect(ray, candidateIndices);
+
+            for (uint32_t idx : candidateIndices)
             {
-                uint32_t ind1 = mIndicies[i];
-                uint32_t ind2 = mIndicies[i + 1];
-                uint32_t ind3 = mIndicies[i + 2];
+                uint32_t ind1 = mIndices[idx * 3];
+                uint32_t ind2 = mIndices[idx * 3 + 1];
+                uint32_t ind3 = mIndices[idx * 3 + 2];
 
-                const glm::vec3 a = { mVert[ind1 * 3], mVert[ind1 * 3 + 1], mVert[ind1 * 3 + 2] };
-                const glm::vec3 b = { mVert[ind2 * 3], mVert[ind2 * 3 + 1], mVert[ind2 * 3 + 2] };
-                const glm::vec3 c = { mVert[ind3 * 3], mVert[ind3 * 3 + 1], mVert[ind3 * 3 + 2] };
-
+                const glm::vec3 a = { mVert[ind1], mVert[ind1 + 1], mVert[ind1 + 2] };
+                const glm::vec3 b = { mVert[ind2], mVert[ind2 + 1], mVert[ind2 + 2] };
+                const glm::vec3 c = { mVert[ind3], mVert[ind3 + 1], mVert[ind3 + 2] };
+            
                 // Perform intersection test...
                 if (!glm::intersectRayTriangle(ray->Origin, ray->Direction, a, b, c, coords, dist)) { continue; }
                 if (dist > bestDist || dist < 0.0f) { continue; }
                 
-                bestIdx = i;
+                bestIdx = idx;
                 bestDist = dist;
                 bestTexcoord = coords;
             }
@@ -139,10 +157,12 @@ private:
     
 private:
     // Scene Data 
+    KDTree* mKdTree; 
+    
     float* mVert;
     float* mNorm;
     int mVc;
-    uint32_t* mIndicies;
+    uint32_t* mIndices;
     int mIc;
 };
 
