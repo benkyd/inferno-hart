@@ -46,7 +46,7 @@ public:
         }
 
         mKdTree = new KDTree(mVert, mIndices, indicesToProcess, 0, indicesToProcess.size() - 1, 10);
-
+        mKdTree->printTree(mKdTree->getRoot(), 1);
         spdlog::info("[hartcpu] Accelerator ready..");
 
         mState = EModuleState::Idle;
@@ -108,6 +108,7 @@ public:
             // Traverse the K-D tree to identify the set of triangles that may intersect the ray.
             std::vector<uint32_t> candidateIndices;
             mKdTree->intersect(ray, candidateIndices);
+            //std::cout << "Ray Candidates Available: " << candidateIndices.size() << std::endl;
 
             for (uint32_t idx : candidateIndices)
             {

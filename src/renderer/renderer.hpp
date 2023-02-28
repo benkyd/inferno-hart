@@ -46,7 +46,7 @@ private:
     std::mutex _RenderData;
     std::condition_variable _RenderPause;
 
-    glm::ivec2 mRenderTargetSize = {300, 300};
+    glm::ivec2 mRenderTargetSize = {3, 3};
 
     Scene* mCurrentScene = nullptr;
     RaySource* mRaySource = nullptr;

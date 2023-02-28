@@ -24,7 +24,13 @@ bool AABBIntersection(glm::vec3 min, glm::vec3 max, const Ray* r)
         tmax = std::min(tmax, std::max(t1, t2));
     }
 
-    return tmin <= tmax;
+    bool hit = (tmin <= tmax);
+    if (hit) {
+        std::cout << "Ray hits AABB: " << tmin << ", " << tmax << std::endl;
+    } else {
+        std::cout << "Ray misses AABB" << std::endl;
+    }
+    return hit;
 }
 
 struct KDNode {
@@ -79,7 +85,25 @@ class KDTree {
         void intersect(const Ray* ray, std::vector<uint32_t>& outIndices) {
             intersect(mRoot, ray, outIndices);
         }
+        
+        KDNode* getRoot() const {
+            return mRoot;
+        }
 
+        void printTree(KDNode* node, int depth) const {
+            if (!node) {
+                return;
+            }
+
+            for (int i = 0; i < depth; i++) {
+                std::cout << "-";
+            }
+            std::cout << " " << glm::to_string(node->MinBounds) << " " << glm::to_string(node->MaxBounds) << ": " << node->TriIdx << "\n";
+
+            printTree(node->LeftChild, depth + 1);
+            printTree(node->RightChild, depth + 1);
+        }
+        
     private:
         KDNode* buildNode(std::vector<uint32_t>& indicesToProcess, uint32_t startIdx, uint32_t endIdx, uint32_t depth) {
             if (startIdx >= endIdx || depth >= mDepthLimit) {
@@ -101,6 +125,10 @@ class KDTree {
 
             uint32_t axis = depth % 3;
             uint32_t median = partition(indicesToProcess, startIdx, endIdx, axis);
+            bool isPartitionValid = checkPartition(indicesToProcess, startIdx, endIdx, axis, median);
+            if (!isPartitionValid) {
+                std::cout << "Partition failed!" << std::endl;
+            }
 
             KDNode* node = new KDNode(0, minBounds, maxBounds);
 
@@ -118,21 +146,30 @@ class KDTree {
                 return;
             }
 
+            std::cout << "Checking node bounds: " <<  glm::to_string(node->MinBounds) << " " << glm::to_string(node->MaxBounds) << std::endl;
+
             if (AABBIntersection(node->MinBounds, node->MaxBounds, ray)) {
+                std::cout << "Ray intersects node, num tris: " << (node->LeftChild || node->RightChild ? -1 : 1) << std::endl;
                 if (node->LeftChild || node->RightChild) {
                     intersect(node->LeftChild, ray, outIndices);
                     intersect(node->RightChild, ray, outIndices);
                 }
                 else {
+                    std::cout << "Ray hit leaf node with triangle index: " << node->TriIdx << std::endl;
                     outIndices.push_back(node->TriIdx);
                 }
             }
+            else {
+                std::cout << "Ray does not intersect node" << std::endl;
+            }
+            std::cout << std::endl;
         }
-
-        glm::vec3 getVertexBounds(uint32_t index) {
+        
+        glm::vec3 getVertexBounds(uint32_t index) const {
             return { mVertices[index * 3], mVertices[index * 3 + 1], mVertices[index * 3 + 2] };
         }
 
+        // TODO: this could definately be more advanced, at the moment is is a split down the middle
         uint32_t partition(std::vector<uint32_t>& indicesToProcess, uint32_t startIdx, uint32_t endIdx, uint32_t axis) {
             uint32_t medianIdx = (startIdx + endIdx) / 2;
             glm::vec3 pivot = getVertexBounds(mIndices[indicesToProcess[medianIdx] * 3]);
@@ -140,6 +177,23 @@ class KDTree {
                     [this, &pivot, axis](uint32_t a, uint32_t b) { return getVertexBounds(mIndices[a * 3])[axis] < getVertexBounds(mIndices[b * 3])[axis]; });
             return medianIdx;
         }
+
+        bool checkPartition(std::vector<uint32_t>& indicesToProcess, uint32_t startIdx, uint32_t endIdx, uint32_t axis, uint32_t median) {
+            for (uint32_t i = startIdx; i < median; ++i) {
+                if (getVertexBounds(mIndices[indicesToProcess[i] * 3])[axis] > getVertexBounds(mIndices[indicesToProcess[median] * 3])[axis]) {
+                    return false;
+                }
+            }
+
+            for (uint32_t i = median + 1; i < endIdx; ++i) {
+                if (getVertexBounds(mIndices[indicesToProcess[i] * 3])[axis] < getVertexBounds(mIndices[indicesToProcess[median] * 3])[axis]) {
+                    return false;
+                }
+            }
+
+            return true;
+        }
+        
     private:
         float* mVertices;
         uint32_t* mIndices;
