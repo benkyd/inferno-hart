@@ -2,7 +2,7 @@
 
 #include "gui/style.hpp"
 
-#include "spdlog/spdlog.h"
+#include "yolo/yolo.hpp"
 
 using namespace inferno;
 
@@ -188,5 +188,5 @@ void Window::glfwKeyCallback(GLFWwindow* window, int key, int scancode, int acti
 }
 
 void Window::glfwErrorCallback(int error, const char* description) {
-    spdlog::error("[GLFW {0}] {1}", error, description);
+    yolo::error("[GLFW {}] {}", error, description);
 }

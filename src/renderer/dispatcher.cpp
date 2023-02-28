@@ -3,8 +3,6 @@
 #include "hart_module.hpp"
 #include "renderer.hpp"
 
-#include <spdlog/spdlog.h>
-
 #include <mutex>
 #include <chrono>
 

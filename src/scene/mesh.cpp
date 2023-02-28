@@ -1,6 +1,6 @@
 #include "mesh.hpp"
 
-#include <spdlog/spdlog.h>
+#include <yolo/yolo.hpp>
 
 #include <scene/objloader.hpp>
 
@@ -71,14 +71,13 @@ void Mesh::ready()
 
     glBindVertexArray(0);
 
-    spdlog::debug("Mesh for preview ready...");
+    yolo::debug("Mesh for preview ready...");
 }
 
 int Mesh::getVerticies(void** v, void** n)
 {
     *v = (void*)&mObjLoader->getPositions()[0];
     *n = (void*)&mObjLoader->getNormals()[0];
-    // spdlog::debug("Mesh get {} {}", v, n);
     return mObjLoader->getVertCount();
 }
 

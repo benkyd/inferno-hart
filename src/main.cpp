@@ -1,5 +1,5 @@
 #include "inferno.hpp"
-#include "spdlog/spdlog.h"
+#include "yolo/yolo.hpp"
 
 #include <exception>
 
@@ -11,7 +11,7 @@ int main(int argc, char** argv)
     }
     catch (std::exception e) 
     {
-        spdlog::error(e.what());
+        yolo::error(e.what());
         return -1;
     }
 }

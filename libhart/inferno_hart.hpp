@@ -1,6 +1,6 @@
 #pragma once
 
-#include <spdlog/spdlog.h>
+#include <yolo/yolo.hpp>
 
 #include <string>
 #include <mutex>
@@ -93,7 +93,7 @@ public:
         std::lock_guard<std::mutex> lock(_mData);
         for (const auto& e: queue)
             mToTrace.push(e);
-        spdlog::info("[hartmodule] New trace queue: {}", mToTrace.size());  
+        yolo::info("[hartmodule] New trace queue: {}", mToTrace.size());  
     }
 
     inline void pushtoQueue(Ray* ray)
@@ -104,7 +104,7 @@ public:
 
     inline void passContext(void* context, HART_HIT_CALLBACK callback)
     {
-        spdlog::debug("[hartmodule] Recieved context");
+        yolo::debug("[hartmodule] Recieved context");
         std::lock_guard<std::mutex> lock(_mData);
         mCtx = context;
         Hit = callback;

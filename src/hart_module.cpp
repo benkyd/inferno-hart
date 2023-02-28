@@ -6,7 +6,7 @@
 #include <scene/scene.hpp>
 #include <scene/mesh.hpp>
 
-#include <spdlog/spdlog.h>
+#include <yolo/yolo.hpp>
 
 #include <vector>
 
@@ -46,7 +46,7 @@ void HHM::newScene(Scene* scene)
         void* verticies; void* normals; void* indicies;
         int vertexCount = mesh->getVerticies(&verticies, &normals);
         int indexCount = mesh->getIndicies(&indicies);
-        spdlog::debug("Mesh for module ready... {} {}", verticies, normals);
+        yolo::debug("Mesh for module ready... {} {}", verticies, normals);
         mod->submitTris(verticies, normals, vertexCount, indicies, indexCount);
     }
 }
@@ -77,7 +77,7 @@ void HHM::startTrace(RayField sourceScatter)
     // TODO: Signal start
     HARTModule* mod = mDirectory.getActiveModule();
     mod->passContext((void*)this, &rayHitCallback);
-    spdlog::debug("SubmitQueue {}", sourceScatter.size());
+    yolo::debug("SubmitQueue {}", sourceScatter.size());
     mod->submitQueue(sourceScatter);
     mod->start(); 
 }

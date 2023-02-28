@@ -8,6 +8,7 @@
 
 #include <iostream>
 #include <thread>
+#include <condition_variable>
 #include <chrono>
 #include <numeric>
 
@@ -37,7 +38,7 @@ public:
         
         mState = EModuleState::Build;
         mVert = (float*)vert; mNorm = (float*)norm; mVc = vc; mIndices = (uint32_t*)indices; mIc = ic;
-        spdlog::info("[hartcpu] Recieved {} verticies ({}) and {} indicies ({})", vc / 3, vert, ic / 3, indices);
+        yolo::info("[hartcpu] Recieved {} verticies ({}) and {} indicies ({})", vc / 3, vert, ic / 3, indices);
 
         std::vector<uint32_t> indicesToProcess(ic / 3);
         for (uint32_t i = 0; i < ic / 3; ++i)
@@ -47,7 +48,7 @@ public:
 
         mKdTree = new KDTree(mVert, mIndices, indicesToProcess, 0, indicesToProcess.size() - 1, 10);
         mKdTree->printTree(mKdTree->getRoot(), 1);
-        spdlog::info("[hartcpu] Accelerator ready..");
+        yolo::info("[hartcpu] Accelerator ready..");
 
         mState = EModuleState::Idle;
     }
@@ -61,7 +62,7 @@ public:
         mState = EModuleState::Trace;
         _mSignalCv.notify_all();
         
-        spdlog::info("[hartcpu] Signal master to start");
+        yolo::info("[hartcpu] Signal master to start");
        
         {
             std::unique_lock<std::mutex> doneLock(_mDoneMut);

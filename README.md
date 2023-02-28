@@ -40,6 +40,6 @@ compile with `make -j[threads]`
 
 - OpenGL, utilised with GLAD and GLFW
 - ImGui for lovely GUI
-- SPDLog for lovely logging
+- YOLO for lovely logging
 
 ## Acknowledgements

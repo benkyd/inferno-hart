@@ -14,7 +14,7 @@ namespace detail {
     static std::vector<std::pair<std::string, std::string>> modules;
 
     template<typename... Args>
-    std::string format(const std::string& format, Args... args)
+    inline std::string format(const std::string& format, Args... args)
     {
         std::ostringstream oss;
         size_t start = 0; size_t pos;
@@ -23,7 +23,7 @@ namespace detail {
         return oss.str();
     }
 
-    std::string formatTime() 
+    inline std::string formatTime() 
     {
         auto now = std::chrono::system_clock::now();
         std::time_t time = std::chrono::system_clock::to_time_t(now);

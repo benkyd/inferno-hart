@@ -2,7 +2,7 @@
 
 #include "inferno_hart.hpp"
 
-#include <spdlog/spdlog.h>
+#include <yolo/yolo.hpp>
 
 #include <iostream>
 
@@ -53,7 +53,7 @@ std::vector<HARTModuleDirectory::discoveryEntry> HARTModuleDirectory::discoverMo
 
 HARTModuleDirectory::discoveryEntry HARTModuleDirectory::registerModule(std::filesystem::path file)
 {
-    spdlog::info("Registering module at {}", file.c_str());
+    yolo::info("Registering module at {}", file.c_str());
 
     discoveryEntry entry;
     entry.Location = file;
@@ -62,7 +62,7 @@ HARTModuleDirectory::discoveryEntry HARTModuleDirectory::registerModule(std::fil
     entry.Handle = LoadLibraryA(file.c_str());
     if (entry.Handle == NULL) 
     {
-        spdlog::error("Cannot load module at {}.", file.c_str());
+        yolo::error("Cannot load module at {}.", file.c_str());
         entry.Handle = NULL; entry.DidLink = false;
         return entry;
     }
@@ -73,7 +73,7 @@ HARTModuleDirectory::discoveryEntry HARTModuleDirectory::registerModule(std::fil
     entry.Handle = dlopen(file.c_str(), RTLD_NOW | RTLD_LOCAL);
     if (entry.Handle == NULL) 
     {
-        spdlog::error("Cannot load module at ", dlerror());
+        yolo::error("Cannot load module at ", dlerror());
         entry.Handle = NULL; entry.DidLink = false;
         return entry;
     }
@@ -84,30 +84,30 @@ HARTModuleDirectory::discoveryEntry HARTModuleDirectory::registerModule(std::fil
 
     if (credit == NULL)
     {
-        spdlog::error("Cannot load module at {}... No credit...", file.c_str());
+        yolo::error("Cannot load module at {}... No credit...", file.c_str());
         entry.Handle = NULL; entry.DidLink = false;
         return entry;
     }
     if (entry.InitCallback == NULL)
     {
-        spdlog::error("Cannot load module at {}... No get...", file.c_str());
+        yolo::error("Cannot load module at {}... No get...", file.c_str());
         entry.Handle = NULL; entry.DidLink = false;
         return entry;
     }
     if (entry.DestroyCallback == NULL)
     {
-        spdlog::error("Cannot load module at {}... No destroy...", file.c_str());
+        yolo::error("Cannot load module at {}... No destroy...", file.c_str());
         entry.Handle = NULL; entry.DidLink = false;
         return entry;
     }
 
     entry.Credit = (ModuleCredit*)credit();
 
-    spdlog::info("Module {0} v{1}.{2}.{3} by {4}", entry.Credit->ModuleName,
-                                                   entry.Credit->VersionMajor,
-                                                   entry.Credit->VersionMinor,
-                                                   entry.Credit->VersionBuild,
-                                                   entry.Credit->AuthorName);
+    yolo::info("Module {} v{}.{}.{} by {}", entry.Credit->ModuleName,
+                                            entry.Credit->VersionMajor,
+                                            entry.Credit->VersionMinor,
+                                            entry.Credit->VersionBuild,
+                                            entry.Credit->AuthorName);
 
     entry.DidLink = true;
     mEntries[entry.Credit->ModuleName] = { entry, nullptr };

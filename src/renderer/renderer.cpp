@@ -11,7 +11,7 @@
 #include "hart_module.hpp"
 #include "ray_source.hpp"
 
-#include <spdlog/spdlog.h>
+#include <yolo/yolo.hpp>
 
 #include <iostream>
 
@@ -83,7 +83,7 @@ void RayRenderer::prepare()
     assert(mCurrentScene != nullptr);
     if (mCurrentScene->didUpdate())
     {
-        spdlog::debug("New Scene!");
+        yolo::debug("New Scene!");
         mIface->newScene(mCurrentScene);
     }
 }
@@ -105,7 +105,7 @@ void RayRenderer::draw()
     // before we start we now want to check that it hasn't been force-stopped
     mIface->startTrace(startRays.Field);
 
-    spdlog::info("Sample complete");
+    yolo::info("Sample complete");
 
     for (auto* ray : startRays.Field)
     {
@@ -120,7 +120,7 @@ void RayRenderer::computeHit(HitInfo* info)
     // TODO: Make sure signal is started
     if (!(*mCurrentRefTable).count(info->Caller->Reference))
     {
-        spdlog::warn("Why is the ray not in the map?!");
+        yolo::warn("Why is the ray not in the map?!");
         return;
     }
     glm::ivec2 pos = (*mCurrentRefTable)[info->Caller->Reference];

@@ -16,7 +16,7 @@
 #include "scene/material.hpp"
 #include "scene/mesh.hpp"
 
-#include <spdlog/spdlog.h>
+#include <yolo/yolo.hpp>
 
 #include <iostream>
 #include <memory>
@@ -28,8 +28,7 @@ using namespace inferno;
 Inferno::Inferno()
 {
     // MOTD
-    spdlog::set_level(spdlog::level::trace);
-    spdlog::info("INFERNO HART v" INFERNO_VERSION);
+    yolo::info("INFERNO HART v" INFERNO_VERSION);
 
     // Create window
     mWin = &Window::GetInstance();
@@ -72,7 +71,7 @@ void Inferno::uiPreset()
     ImGui::DockBuilderDockWindow("Render", dock_main_id);
     ImGui::DockBuilderFinish(dockspace_id);
 
-    spdlog::info("LAYOUT SET TO DEFAULT");
+    yolo::info("LAYOUT SET TO DEFAULT");
 }
 
 void Inferno::moveInput()
@@ -320,7 +319,7 @@ int Inferno::run()
                 case GL_INVALID_FRAMEBUFFER_OPERATION: error = "INVALID_FRAMEBUFFER_OPERATION"; break;
                 default:                               error = std::to_string((uint32_t)err); break;
             }
-            spdlog::error("[GL]: {0} {1}", err, error);
+            yolo::error("[GL]: {} {}", err, error);
         }    
         
         mWin->render();
