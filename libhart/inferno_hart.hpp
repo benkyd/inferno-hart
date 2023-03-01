@@ -34,6 +34,10 @@
  * Once empty the module will switch to the Ready state again, so Inferno       *
  * can get the next frame ready and repeat.                                     *
  *                                                                              *
+ *                                                                              *
+ * The module render system is an alternative system along with the HARTModule  *
+ * 
+ *
  * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ *
 */
 
@@ -76,7 +80,6 @@ HART_INTERFACE typedef void* (*HART_CREDIT_F)(void);
 
 typedef void (*HART_HIT_CALLBACK)(void* context, HitInfo* hit);
 
-// FOR NOW: Rays and tri's are owned by Inferno, _NOT_ HART
 class HARTModule
 {
 public:
@@ -93,7 +96,6 @@ public:
         std::lock_guard<std::mutex> lock(_mData);
         for (const auto& e: queue)
             mToTrace.push(e);
-        yolo::info("[hartmodule] New trace queue: {}", mToTrace.size());  
     }
 
     inline void pushtoQueue(Ray* ray)
@@ -104,7 +106,6 @@ public:
 
     inline void passContext(void* context, HART_HIT_CALLBACK callback)
     {
-        yolo::debug("[hartmodule] Recieved context");
         std::lock_guard<std::mutex> lock(_mData);
         mCtx = context;
         Hit = callback;

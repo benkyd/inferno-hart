@@ -163,6 +163,7 @@ class KDTree {
                 std::cout << "Ray does not intersect node" << std::endl;
             }
             std::cout << std::endl;
+            exit(0);
         }
         
         glm::vec3 getVertexBounds(uint32_t index) const {

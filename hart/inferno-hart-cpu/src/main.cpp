@@ -20,6 +20,7 @@ public:
     HARTCPU()
     {
         mMasterWorker = std::thread(&HARTCPU::intersectMasterWorker, this);
+        mLogModule = yolo::registerModule("hartcpu", "\u001b[35;1m");
     }
 
     ~HARTCPU()
@@ -38,7 +39,7 @@ public:
         
         mState = EModuleState::Build;
         mVert = (float*)vert; mNorm = (float*)norm; mVc = vc; mIndices = (uint32_t*)indices; mIc = ic;
-        yolo::info("[hartcpu] Recieved {} verticies ({}) and {} indicies ({})", vc / 3, vert, ic / 3, indices);
+        yolo::info(mLogModule, "Recieved {} verticies ({}) and {} indicies ({})", vc / 3, vert, ic / 3, indices);
 
         std::vector<uint32_t> indicesToProcess(ic / 3);
         for (uint32_t i = 0; i < ic / 3; ++i)
@@ -48,7 +49,7 @@ public:
 
         mKdTree = new KDTree(mVert, mIndices, indicesToProcess, 0, indicesToProcess.size() - 1, 10);
         mKdTree->printTree(mKdTree->getRoot(), 1);
-        yolo::info("[hartcpu] Accelerator ready..");
+        yolo::info(mLogModule, "Accelerator ready..");
 
         mState = EModuleState::Idle;
     }
@@ -62,7 +63,7 @@ public:
         mState = EModuleState::Trace;
         _mSignalCv.notify_all();
         
-        yolo::info("[hartcpu] Signal master to start");
+        yolo::info(mLogModule, "Signal master to start");
        
         {
             std::unique_lock<std::mutex> doneLock(_mDoneMut);
@@ -166,6 +167,8 @@ private:
     int mVc;
     uint32_t* mIndices;
     int mIc;
+    
+    uint8_t mLogModule; 
 };
 
 HART_INTERFACE void* _GET()
