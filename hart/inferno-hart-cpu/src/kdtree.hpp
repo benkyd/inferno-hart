@@ -11,7 +11,7 @@
 
 using namespace inferno;
 
-bool AABBIntersection(glm::vec3 min, glm::vec3 max, const Ray* r)
+inline bool AABBIntersection(glm::vec3 min, glm::vec3 max, const Ray* r)
 {
     float tmin = 0.0, tmax = INFINITY;
     glm::vec3 invDir = 1.0f / r->Direction;

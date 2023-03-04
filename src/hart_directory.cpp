@@ -21,7 +21,6 @@ HARTModuleDirectory::~HARTModuleDirectory()
 std::vector<HARTModuleDirectory::discoveryEntry> HARTModuleDirectory::discoverModules(std::filesystem::path folder, bool recurse)
 {
     if (!std::filesystem::exists(folder)) return { };
-
     if (!std::filesystem::is_directory(folder))
     {
         return { this->registerModule(folder) };
