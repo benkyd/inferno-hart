@@ -23,7 +23,7 @@ namespace detail {
         return oss.str();
     }
 
-    inline std::string formatTime() 
+    inline std::string formatTime()
     {
         auto now = std::chrono::system_clock::now();
         std::time_t time = std::chrono::system_clock::to_time_t(now);
@@ -38,9 +38,9 @@ namespace detail {
 template <typename... Args>
 inline void __log(const std::string& level, const std::string& col, const std::string& message, Args... args)
 {
-    std::cout 
+    std::cout
         << '[' << detail::formatTime() << "] "
-        << '[' << col << level << "\033[0m" << "] " 
+        << '[' << col << level << "\033[0m" << "] "
         << detail::format(message, args...) << std::endl;
 }
 
@@ -48,7 +48,7 @@ template <typename... Args>
 inline void __log(uint8_t module, const std::string& level, const std::string& col, const std::string& message, Args... args)
 {
     auto mod = detail::modules[module];
-    std::cout 
+    std::cout
         << '[' << detail::formatTime() << "] "
         << '[' << col << level << "\033[0m" << "] "
         << '[' << mod.second << mod.first << "\033[0m" << "] "
@@ -58,7 +58,7 @@ inline void __log(uint8_t module, const std::string& level, const std::string& c
 
 template <typename... Args>
 inline void info(const std::string& format, Args&&... args)
-{       
+{
     __log("INFO", "\u001b[32;1m", format, args...);
 }
 
@@ -83,7 +83,7 @@ inline void debug(const std::string& format, Args&&... args)
 
 template <typename... Args>
 inline void info(uint8_t module, const std::string& format, Args&&... args)
-{       
+{
     __log(module, "INFO", "\u001b[32;1m", format, args...);
 }
 
@@ -112,7 +112,7 @@ inline void debug(uint8_t module, const std::string& format, Args&&... args)
 inline uint8_t registerModule(std::string name, std::string ANSI)
 {
     detail::modules.push_back(std::make_pair(name, ANSI));
-    return detail::modules.size() - 1; 
+    return detail::modules.size() - 1;
 }
 
 }

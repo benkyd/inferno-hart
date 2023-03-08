@@ -12,7 +12,7 @@
 
 /**
  * infero HART modules
- * Modules are registered at load time - instantiated when selected 
+ * Modules are registered at load time - instantiated when selected
  * _GET, _DESTROY & _CREDIT must be defined and return valid context's
  *
  * Inferno will first initialise the module and then wait for the Ready state.
@@ -22,11 +22,11 @@
  *  - Idle (Ready for rays)
  *  - Build (Scene is submitted and being processed)
  *  - Trace (Tracing!)
- * 
+ *
  * Once the HHM dispatches a new scene to the module, it will wait until
  * the state is Done to dispatch work during scene building the modules
  * state must be Build.
- * 
+ *
  * Once the scene is ready and so is the trace, the HHM will start the tracing
  * state by calling the start function of the module, the module must go
  * through the rays added to it before start was called and then
@@ -129,5 +129,5 @@ struct ModuleCredit
     const int VersionMinor;
     const int VersionBuild;
 };
-    
+
 }
