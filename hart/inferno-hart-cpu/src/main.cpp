@@ -25,7 +25,7 @@ public:
 
     ~HARTCPU()
     {
-        this->stop(true); 
+        this->stop(true);
         mMasterWorker.detach();
     }
 
@@ -33,10 +33,10 @@ public:
                     void* norm,
                     int vc,
                     void* indices,
-                    int ic) override 
+                    int ic) override
     {
         std::lock_guard<std::mutex> lock(_mData);
-        
+
         mState = EModuleState::Build;
         mVert = (float*)vert; mNorm = (float*)norm; mVc = vc; mIndices = (uint32_t*)indices; mIc = ic;
         yolo::info(mLogModule, "Recieved {} verticies ({}) and {} indicies ({})", vc / 3, vert, ic / 3, indices);
@@ -53,24 +53,24 @@ public:
 
         mState = EModuleState::Idle;
     }
-    
+
     void updateTris() override {}
 
-    void start() override 
+    void start() override
     {
         std::lock_guard<std::mutex> signalLock(_mSignalMut);
         mIsRunning = true;
         mState = EModuleState::Trace;
         _mSignalCv.notify_all();
-        
+
         yolo::info(mLogModule, "Signal master to start");
-       
+
         {
             std::unique_lock<std::mutex> doneLock(_mDoneMut);
             _mDoneCv.wait(doneLock, [this] { return mState == EModuleState::Idle; });
         }
     }
-    
+
     void stop(bool interrupt) override
     {
         if (!interrupt)
@@ -86,7 +86,7 @@ public:
         for (;;)
         {
             std::unique_lock<std::mutex> lock(_mData);
-            if (!mIsRunning) 
+            if (!mIsRunning)
             {
                 _mSignalCv.wait(lock, [this]{ return (mIsRunning || mState == EModuleState::Trace); });
             }
@@ -106,11 +106,10 @@ public:
             glm::vec2 bestTexcoord;
             float bestDist = INFINITY;
             float dist;
-          
+
             // Traverse the K-D tree to identify the set of triangles that may intersect the ray.
             std::vector<uint32_t> candidateIndices;
             mKdTree->intersect(ray, candidateIndices);
-            //std::cout << "Ray Candidates Available: " << candidateIndices.size() << std::endl;
 
             for (uint32_t idx : candidateIndices)
             {
@@ -121,20 +120,20 @@ public:
                 const glm::vec3 a = { mVert[ind1], mVert[ind1 + 1], mVert[ind1 + 2] };
                 const glm::vec3 b = { mVert[ind2], mVert[ind2 + 1], mVert[ind2 + 2] };
                 const glm::vec3 c = { mVert[ind3], mVert[ind3 + 1], mVert[ind3 + 2] };
-            
+
                 // Perform intersection test...
                 if (!glm::intersectRayTriangle(ray->Origin, ray->Direction, a, b, c, coords, dist)) { continue; }
                 if (dist > bestDist || dist < 0.0f) { continue; }
-                
+
                 bestIdx = idx;
                 bestDist = dist;
                 bestTexcoord = coords;
             }
-            
+
             HitInfo hit;
             hit.Caller = ray;
             // If no hit, we still need to inform the HHM
-            if (bestIdx < 0) 
+            if (bestIdx < 0)
             {
                 mToTrace.pop();
                 continue;
@@ -156,19 +155,19 @@ private:
     std::mutex _mSignalMut;
     std::mutex _mDoneMut;
     std::condition_variable _mSignalCv;
-    std::condition_variable _mDoneCv; 
-    
+    std::condition_variable _mDoneCv;
+
 private:
-    // Scene Data 
-    KDTree* mKdTree; 
-    
+    // Scene Data
+    KDTree* mKdTree;
+
     float* mVert;
     float* mNorm;
     int mVc;
     uint32_t* mIndices;
     int mIc;
-    
-    uint8_t mLogModule; 
+
+    uint8_t mLogModule;
 };
 
 HART_INTERFACE void* _GET()

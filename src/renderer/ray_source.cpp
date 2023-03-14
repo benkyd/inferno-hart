@@ -39,7 +39,7 @@ ReferencedRayField RaySource::getInitialRays(bool MSAA)
 
     const float aspect =  mReferenceCamera->getRayViewport().x / mReferenceCamera->getRayViewport().y;
     float scale = tan(mReferenceCamera->FOV / 2.0f * helpers::PI / 180.0f);
-    
+
     glm::mat4 cameraToWorld = mReferenceCamera->getCameraLook();
     glm::vec3 origin = mReferenceCamera->Position;
 
@@ -53,7 +53,7 @@ ReferencedRayField RaySource::getInitialRays(bool MSAA)
         float Py = (2.0f * ((y + 0.5f) / mReferenceCamera->getRayViewport().y) - 1.0f) * scale;
 
         Ray* ray = new Ray{};
-        
+
         glm::vec4 dir4 = glm::vec4(Px, Py, -1.0f, 1.0f) * cameraToWorld;
         glm::vec3 dir3 = glm::vec3(dir4) / dir4.w;
         ray->Direction = glm::normalize(dir3);

@@ -57,14 +57,14 @@ static void HelpMarker(const char* desc)
     }
 }
 
-void Inferno::uiPreset() 
+void Inferno::uiPreset()
 {
     ImGuiID dockspace_id = ImGui::GetID("main");
 
     ImGui::DockBuilderRemoveNode(dockspace_id); // Clear out existing layout
     ImGui::DockBuilderAddNode(dockspace_id, ImGuiDockNodeFlags_DockSpace); // Add empty node
     ImGui::DockBuilderSetNodeSize(dockspace_id, {1000, 1000});
-    
+
     ImGuiID dock_main_id = dockspace_id; // This variable will track the document node, however we are not using it here as we aren't docking anything into it.
     ImGuiID dock_left = ImGui::DockBuilderSplitNode(dock_main_id, ImGuiDir_Left, 0.5f, NULL, &dock_main_id);
     ImGui::DockBuilderDockWindow("Preview", dock_left);
@@ -112,7 +112,7 @@ void Inferno::moveInput()
         movementDelta |= 0b00010000;
     if (glfwGetKey(mWin->getGLFWWindow(), GLFW_KEY_SPACE) == GLFW_PRESS)
         movementDelta |= 0b00001000;
-    if (glfwGetKey(mWin->getGLFWWindow(), GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS) 
+    if (glfwGetKey(mWin->getGLFWWindow(), GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS)
         movementDelta |= 0b00000100;
 }
 
@@ -148,7 +148,7 @@ int Inferno::run()
     mRasterRenderer->setScene(mScene);
     mRayRenderer->getRenderer()->setScene(mScene);
 
-    while (true) 
+    while (true)
     {
         if (!mWin->newFrame()) { break; }
         camera.newFrame();
@@ -320,8 +320,8 @@ int Inferno::run()
                 default:                               error = std::to_string((uint32_t)err); break;
             }
             yolo::error("[GL]: {} {}", err, error);
-        }    
-        
+        }
+
         mWin->render();
     }
 

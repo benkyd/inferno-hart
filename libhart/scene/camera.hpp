@@ -46,7 +46,7 @@ public:
 
 private:
 	glm::vec2 mViewport = { 100.0f, 100.0f };
-	glm::vec2 mRayViewport = { 3.0f, 3.0f };
+	glm::vec2 mRayViewport = { 200.0f, 200.0f };
 	glm::mat4 mViewMatrix = {};
 	glm::mat4 mProjMatrix = {};
 	glm::mat4 mCameraLook = {};

@@ -25,11 +25,11 @@ inline bool AABBIntersection(glm::vec3 min, glm::vec3 max, const Ray* r)
     }
 
     bool hit = (tmin <= tmax);
-    if (hit) {
-        std::cout << "Ray hits AABB: " << tmin << ", " << tmax << std::endl;
-    } else {
-        std::cout << "Ray misses AABB" << std::endl;
-    }
+    //if (hit) {
+        //std::cout << "Ray hits AABB: " << tmin << ", " << tmax << std::endl;
+    //} else {
+        //std::cout << "Ray misses AABB" << std::endl;
+    //}
     return hit;
 }
 
@@ -85,7 +85,7 @@ class KDTree {
         void intersect(const Ray* ray, std::vector<uint32_t>& outIndices) {
             intersect(mRoot, ray, outIndices);
         }
-        
+
         KDNode* getRoot() const {
             return mRoot;
         }
@@ -103,7 +103,7 @@ class KDTree {
             printTree(node->LeftChild, depth + 1);
             printTree(node->RightChild, depth + 1);
         }
-        
+
     private:
         KDNode* buildNode(std::vector<uint32_t>& indicesToProcess, uint32_t startIdx, uint32_t endIdx, uint32_t depth) {
             if (startIdx >= endIdx || depth >= mDepthLimit) {
@@ -146,26 +146,26 @@ class KDTree {
                 return;
             }
 
-            std::cout << "Checking node bounds: " <<  glm::to_string(node->MinBounds) << " " << glm::to_string(node->MaxBounds) << std::endl;
+            //std::cout << "Checking node bounds: " <<  glm::to_string(node->MinBounds) << " " << glm::to_string(node->MaxBounds) << std::endl;
 
             if (AABBIntersection(node->MinBounds, node->MaxBounds, ray)) {
-                std::cout << "Ray intersects node, num tris: " << (node->LeftChild || node->RightChild ? -1 : 1) << std::endl;
+                //std::cout << "Ray intersects node, num tris: " << (node->LeftChild || node->RightChild ? -1 : 1) << std::endl;
                 if (node->LeftChild || node->RightChild) {
                     intersect(node->LeftChild, ray, outIndices);
                     intersect(node->RightChild, ray, outIndices);
                 }
                 else {
-                    std::cout << "Ray hit leaf node with triangle index: " << node->TriIdx << std::endl;
+                    //std::cout << "Ray hit leaf node with triangle index: " << node->TriIdx << std::endl;
                     outIndices.push_back(node->TriIdx);
                 }
             }
             else {
-                std::cout << "Ray does not intersect node" << std::endl;
+                //std::cout << "Ray does not intersect node" << std::endl;
             }
-            std::cout << std::endl;
-            exit(0);
+            //std::cout << std::endl;
+            //exit(0);
         }
-        
+
         glm::vec3 getVertexBounds(uint32_t index) const {
             return { mVertices[index * 3], mVertices[index * 3 + 1], mVertices[index * 3 + 2] };
         }
@@ -174,7 +174,7 @@ class KDTree {
         uint32_t partition(std::vector<uint32_t>& indicesToProcess, uint32_t startIdx, uint32_t endIdx, uint32_t axis) {
             uint32_t medianIdx = (startIdx + endIdx) / 2;
             glm::vec3 pivot = getVertexBounds(mIndices[indicesToProcess[medianIdx] * 3]);
-            std::nth_element(indicesToProcess.begin() + startIdx, indicesToProcess.begin() + medianIdx, indicesToProcess.begin() + endIdx, 
+            std::nth_element(indicesToProcess.begin() + startIdx, indicesToProcess.begin() + medianIdx, indicesToProcess.begin() + endIdx,
                     [this, &pivot, axis](uint32_t a, uint32_t b) { return getVertexBounds(mIndices[a * 3])[axis] < getVertexBounds(mIndices[b * 3])[axis]; });
             return medianIdx;
         }
@@ -194,7 +194,7 @@ class KDTree {
 
             return true;
         }
-        
+
     private:
         float* mVertices;
         uint32_t* mIndices;

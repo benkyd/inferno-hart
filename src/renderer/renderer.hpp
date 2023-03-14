@@ -15,7 +15,7 @@ class HitInfo;
 class RaySource;
 class RenderDispatcher;
 
-class RayRenderer 
+class RayRenderer
 {
 public:
     RayRenderer(HHM* accelIface);
@@ -46,7 +46,7 @@ private:
     std::mutex _RenderData;
     std::condition_variable _RenderPause;
 
-    glm::ivec2 mRenderTargetSize = {3, 3};
+    glm::ivec2 mRenderTargetSize = {200, 200};
 
     Scene* mCurrentScene = nullptr;
     RaySource* mRaySource = nullptr;

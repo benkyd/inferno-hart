@@ -3,13 +3,13 @@
 
 #include <exception>
 
-int main(int argc, char** argv) 
+int main(int argc, char** argv)
 {
-    try 
+    try
     {
         return inferno::Inferno::GetInstance().run();
     }
-    catch (std::exception e) 
+    catch (std::exception e)
     {
         yolo::error(e.what());
         return -1;

@@ -16,17 +16,17 @@ class HitInfo;
 class HARTModule;
 class RayRenderer;
 
-class HHM 
+class HHM
 {
 public:
     HHM();
     ~HHM();
 
     HARTModuleDirectory* getModuleDirectory();
-    EModuleState getModuleState();
+    HARTModule::EModuleState getModuleState();
 
     void newScene(Scene* scene);
-    void notifySceneUpdate();    
+    void notifySceneUpdate();
 
     void rayReturn(HitInfo* hit);
     void bounce(Ray* newRay);
