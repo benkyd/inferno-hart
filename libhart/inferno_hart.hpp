@@ -38,7 +38,7 @@ class HARTModule
 public:
     class HARTViz
     {
-        
+
     };
 
     enum class EModuleState : uint8_t
