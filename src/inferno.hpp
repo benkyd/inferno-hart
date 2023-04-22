@@ -4,42 +4,27 @@
 
 #include <singleton.hpp>
 
-namespace inferno {
+namespace inferno::core {
 
 class Window;
 class HHM;
 
-class RasterizeRenderer;
-class RenderDispatcher;
-class Scene;
+typedef struct InfernoInput {
+    glm::vec2 MouseDelta;
+    uint8_t MovementDelta;
+} InfernoInput;
 
-class Inferno : public helpers::Singleton<Inferno>
-{
-public:
-    Inferno();
-    ~Inferno();
+typedef struct InfernoApp {
+    Window* Win;
+    InfernoInput* Input;
+} InfernoApp;
 
-    void uiPreset();
-    
-    void moveInput();
-    void stopMoveInput();
-    int run();
-
-public:
-    glm::vec2 mouseDelta;
-    // 0b00000000
-    // 0bFLBRUDxx
-    uint8_t movementDelta;
-
-private:
-    // need deffered init as they need an OpenGL context
-    // could and should be fixed with a static window
-    RasterizeRenderer* mRasterRenderer;
-    RenderDispatcher* mRayRenderer;
-    Scene* mScene;
-    
-private:
-    Window* mWin;
-};
+InfernoApp* create_inferno();
+void cleanup_inferno(InfernoApp* app);
+void preset_gui(InfernoApp* app);
+void move_input(InfernoApp* app);
+void stop_move_input(InfernoApp* app);
+int run(InfernoApp* app);
 
 }
+

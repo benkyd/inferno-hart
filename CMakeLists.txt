@@ -10,7 +10,7 @@ target_include_directories(inferno PRIVATE "src/")
 target_include_directories(inferno PRIVATE "src/thirdparty")
 
 # Hardware Acceleration Modules (HART)
-add_subdirectory("hart/inferno-hart-cpu")
+#add_subdirectory("hart/inferno-hart-cpu")
 #add_subdirectory("hart/inferno-hart-opencl")
 
 # Compiler arguments
@@ -66,3 +66,4 @@ else()
         OpenGL::GL
     )
 endif()
+
