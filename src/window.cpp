@@ -4,21 +4,26 @@
 
 #include "yolo/yolo.hpp"
 
-using namespace inferno;
+using namespace inferno::graphics;
 
-Window::Window() {}
+static WINDOW_MODE WinMode = WINDOW_MODE::WIN_MODE_DEFAULT;
+static KeyCallback KeyCallback = nullptr;
+static int Width, Height;
+static const char* GlslVersion;
+static GLFWwindow* Gindow;
 
-Window::~Window() {
+static void glfwErrorCallback(int error, const char* description);
+
+void window_cleanup() {
     shutdownImGui();
     shutdownGLFW();
 }
 
-void Window::init(std::string title, int width, int height) {
-    this->width = width;
-    this->height = height;
+void window_create(std::string title, int width, int height) {
+    Width = width;
+    Height = height;
     setupGLFW(title);
     glfwSetKeyCallback(getGLFWWindow(), glfwKeyCallback);
-
     setupImGui();
 }
 

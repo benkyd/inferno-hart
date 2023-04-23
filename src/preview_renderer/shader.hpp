@@ -39,6 +39,5 @@ GLuint shader_get_uniform(std::unique_ptr<Shader>& shader, const std::string& un
 void shader_use(std::unique_ptr<Shader>& shader);
 void shader_unuse(std::unique_ptr<Shader>& shader);
 
-
 }
 
