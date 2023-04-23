@@ -8,52 +8,37 @@
 #include <filesystem>
 #include <unordered_map>
 
-namespace inferno {
+namespace inferno::graphics {
 
-class Shader {
-public:
-	Shader();
-	~Shader();
+typedef struct ShaderPreprocessorDefinition {
+    int start, end;
+    std::string key;
+    std::string def;
+} shaderpreprocessordefinition;
 
-	Shader* preprocessorDefine(std::string statement);
 
-	Shader* load(std::filesystem::path path);
-	Shader* link();
+typedef struct Shader {
+    GLuint Shaders[3];
+    GLuint Program;
+    std::unordered_map<std::string, GLuint> Attributes;
+    std::unordered_map<std::string, GLuint> Uniforms;
+    std::vector<ShaderPreprocessorDefinition> PreprocessorDefinitions;
+} Shader;
 
-	Shader* use();
-	Shader* unUse();
+std::unique_ptr<Shader> shader_create();
+void shader_cleanup(std::unique_ptr<Shader>& shader);
 
-	GLuint getProgram();
+void shader_load(std::unique_ptr<Shader>& shader, std::filesystem::path path);
+void shader_link(std::unique_ptr<Shader>& shader);
+// TODO: Implement shader_reload
+void shader_add_attribute(std::unique_ptr<Shader>& shader, const std::string& attribute);
+void shader_add_uniform(std::unique_ptr<Shader>& shader, const std::string& uniform);
+GLuint shader_get_attribute(std::unique_ptr<Shader>& shader, const std::string& attribute);
+GLuint shader_get_uniform(std::unique_ptr<Shader>& shader, const std::string& uniform);
 
-	void addAttribute(const std::string& attribute);
-	void addUniform(const std::string& uniform);
-	GLuint operator[](const std::string& attribute) {
-		return mAttributes[attribute];
-	}
-	GLuint operator()(const std::string& uniform) {
-		return mUniformLocations[uniform];
-	}
+void shader_use(std::unique_ptr<Shader>& shader);
+void shader_unuse(std::unique_ptr<Shader>& shader);
 
-private:
-	GLuint mShaders[3];
-	GLuint mProgram;
-
-	std::unordered_map<std::string, GLuint> mAttributes;
-	std::unordered_map<std::string, GLuint> mUniformLocations;
-	bool mCheckShader(GLuint uid);
-
-private:
-	// preprocessor definitions can be defined by their
-	// start/end index, this is so that text can either be inserted
-	// in their place or for the "type" definition, the program
-	// can count until the next "type" definition per shader
-	struct mPreprocessorDefinition {
-		int start, end;
-		std::string key;
-		std::string def;
-	};
-	std::vector<mPreprocessorDefinition> mDefinitions;
-	std::vector<const Shader::mPreprocessorDefinition*> mGetKeys(std::string key);
-};
 
 }
+

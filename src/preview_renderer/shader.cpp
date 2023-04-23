@@ -3,6 +3,14 @@
 #include <iostream>
 #include <fstream>
 
+using namespace inferno::graphics;
+
+static std::unordered_map<GLuint, int> shader2Index = {
+    {GL_VERTEX_SHADER, 0},
+    {GL_GEOMETRY_SHADER, 1},
+    {GL_FRAGMENT_SHADER, 2}
+};
+
 inline std::string trim(std::string& str)
 {
     str.erase(str.find_last_not_of(' ')+1);         //suffixing spaces
@@ -10,35 +18,62 @@ inline std::string trim(std::string& str)
     return str;
 }
 
-static std::unordered_map<GLuint, int> Shader2Index = {
-	{GL_VERTEX_SHADER, 0},
-	{GL_GEOMETRY_SHADER, 1},
-	{GL_FRAGMENT_SHADER, 2}
-};
-
-using namespace inferno;
-
 std::string textFromFile(const std::filesystem::path& path) {
     std::ifstream input(path);
-    return std::string((std::istreambuf_iterator<char>(input)), 
-                        std::istreambuf_iterator<char>());
-
+    return std::string((std::istreambuf_iterator<char>(input)),
+            std::istreambuf_iterator<char>());
 }
 
-Shader::Shader()
-	: mShaders({ GL_NONE, GL_NONE, GL_NONE})
-	, mProgram(0) {
+std::vector<const ShaderPreprocessorDefinition*> getKeys(std::unique_ptr<Shader>& shader, std::string key) {
+	std::vector<const ShaderPreprocessorDefinition*> ret;
+	for (const auto& p : shader->PreprocessorDefinitions) if (p.key == key) ret.push_back(&p);
+	return ret;
+}
+
+bool checkShader(GLuint uid) {
+    GLint isCompiled = 0;
+    glGetShaderiv(uid, GL_COMPILE_STATUS, &isCompiled);
+    if(isCompiled == GL_FALSE)
+    {
+        GLint maxLength = 0;
+        glGetShaderiv(uid, GL_INFO_LOG_LENGTH, &maxLength);
+
+        std::vector<GLchar> errorLog(maxLength);
+        glGetShaderInfoLog(uid, maxLength, &maxLength, &errorLog[0]);
+
+        for (int i = 0; i < errorLog.size(); i++) {
+            std::cout << errorLog[i];
+        }
+
+        glDeleteShader(uid);
+        return false;
+    }
+
+    return true;
 }
 
 
-Shader::~Shader() {
+std::unique_ptr<Shader> shader_create() {
+    std::unique_ptr<Shader> shader = std::make_unique<Shader>();
+
+    shader->Program = 0;
+    shader->Shaders[0] = GL_NONE;
+    shader->Shaders[1] = GL_NONE;
+    shader->Shaders[2] = GL_NONE;
+
+    return shader;
+}
+
+void shader_cleanup(std::unique_ptr<Shader>& shader) {
 	for (int i = 0; i < 3; i++) {
-		if (mShaders[i] == GL_NONE) continue;
-		glDeleteShader(mShaders[i]);
+		if (shader->Shaders[i] == GL_NONE) continue;
+		glDeleteShader(shader->Shaders[i]);
 	}
+
+    glDeleteProgram(shader->Program);
 }
 
-Shader* Shader::load(std::filesystem::path path) {
+void shader_load(std::unique_ptr<Shader>& shader, std::filesystem::path path) {
 
 	assert(std::filesystem::exists(path));
 
@@ -47,7 +82,7 @@ Shader* Shader::load(std::filesystem::path path) {
 	for (int i = 0; i < loadedShaderSource.length(); i++) {
 		const char& c = loadedShaderSource[i];
 		if (c == '#') {
-			mPreprocessorDefinition def = { .start = i };
+			ShaderPreprocessorDefinition def = { .start = i };
 			int j;
 			for (j = ++i; loadedShaderSource[j] != ' '; j++) {
 				def.key += loadedShaderSource[j];
@@ -58,16 +93,16 @@ Shader* Shader::load(std::filesystem::path path) {
 			def.end = j; i = j; // advance i
 			def.def = trim(def.def);
 			def.key = trim(def.key);
-			mDefinitions.push_back(def);
+			shader->PreprocessorDefinitions.push_back(def);
 		}
 	}
 
 	// now we have all of the key/value definitions
 	// we can extract the relavent ones, for example
 	// "type"
-	auto types = mGetKeys("type");
+	std::vector<const ShaderPreprocessorDefinition*> types = getKeys(shader, "type");
 	int i = 0;
-	for (const mPreprocessorDefinition* type : types) {
+	for (const ShaderPreprocessorDefinition* type : types) {
 		GLuint glType = GL_NONE;
 		if (type->def == "vertex") glType = GL_VERTEX_SHADER;
 		if (type->def == "geometry") glType = GL_GEOMETRY_SHADER;
@@ -75,84 +110,54 @@ Shader* Shader::load(std::filesystem::path path) {
 
 		assert(glType != GL_NONE);
 
-		mShaders[Shader2Index[glType]] = glCreateShader(glType);
-		
+		shader->Shaders[shader2Index[glType]] = glCreateShader(glType);
+
 		const char* source = loadedShaderSource.c_str() + type->end;
 		int end = types.size() - 1 == i ? types.size(): types[i + 1]->start;
 		int length = end - type->end;
-		
-		glShaderSource(mShaders[Shader2Index[glType]], 1, &source, &length);
+
+		glShaderSource(shader->Shaders[shader2Index[glType]], 1, &source, &length);
 		i++;
 	}
-
-	return this;
 }
 
-Shader* Shader::link() {
+void shader_link(std::unique_ptr<Shader> &shader) {
+	shader->Program = glCreateProgram();
 
-	mProgram = glCreateProgram();
-	
 	for (int i = 0; i < 3; i++) {
-		if (mShaders[i] == GL_NONE) continue;
+		if (shader->Shaders[i] == GL_NONE) continue;
 
-		glCompileShader(mShaders[i]);
-		if (!mCheckShader(mShaders[i])) continue;
+		glCompileShader(shader->Shaders[i]);
+		if (!checkShader(shader->Shaders[i])) continue;
 
-		glAttachShader(mProgram, mShaders[i]);
+		glAttachShader(shader->Program, shader->Shaders[i]);
 	}
 
-	glLinkProgram(mProgram);
-	return this;
+	glLinkProgram(shader->Program);
 }
 
-Shader* Shader::use() {
-	glUseProgram(mProgram);
-	return this;
+
+void shader_add_attribute(std::unique_ptr<Shader> &shader, const std::string &attribute) {
+    shader->Attributes[attribute] = glGetAttribLocation(shader->Program, attribute.c_str());
 }
 
-Shader* Shader::unUse() {
+void shader_add_uniform(std::unique_ptr<Shader> &shader, const std::string &uniform) {
+    shader->Uniforms[uniform] = glGetUniformLocation(shader->Program, uniform.c_str());
+}
+
+GLuint shader_get_attribute(std::unique_ptr<Shader> &shader, const std::string &attribute) {
+    return shader->Attributes[attribute];
+}
+
+GLuint shader_get_uniform(std::unique_ptr<Shader> &shader, const std::string &uniform) {
+    return shader->Uniforms[uniform];
+}
+
+void shader_use(std::unique_ptr<Shader>& shader) {
+	glUseProgram(shader->Program);
+}
+
+void shader_unuse(std::unique_ptr<Shader>& shader) {
 	glUseProgram(0);
-	return this;
 }
 
-GLuint Shader::getProgram()
-{
-	return mProgram;
-}
-
-
-void Shader::addAttribute(const std::string& attribute) {
-	mAttributes[attribute] = glGetAttribLocation(mProgram, attribute.c_str());
-}
-
-void Shader::addUniform(const std::string& uniform) {
-	mUniformLocations[uniform] = glGetUniformLocation(mProgram, uniform.c_str());
-}
-
-bool Shader::mCheckShader(GLuint uid) {
-	GLint isCompiled = 0;
-	glGetShaderiv(uid, GL_COMPILE_STATUS, &isCompiled);
-	if(isCompiled == GL_FALSE)
-	{
-		GLint maxLength = 0;
-		glGetShaderiv(uid, GL_INFO_LOG_LENGTH, &maxLength);
-
-		std::vector<GLchar> errorLog(maxLength);
-		glGetShaderInfoLog(uid, maxLength, &maxLength, &errorLog[0]);
-
-		for (int i = 0; i < errorLog.size(); i++) {
-			std::cout << errorLog[i];
-		}
-
-		glDeleteShader(uid);
-		return false;
-	}
-
-	return true;
-}
-
-std::vector<const Shader::mPreprocessorDefinition*> Shader::mGetKeys(std::string key) {
-	std::vector<const Shader::mPreprocessorDefinition*> ret;
-	for (const auto& p : mDefinitions) if (p.key == key) ret.push_back(&p);
-	return ret;
-}

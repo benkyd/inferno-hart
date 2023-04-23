@@ -23,9 +23,9 @@
 #include <chrono>
 #include <numeric>
 
-namespace inferno::core {
+using namespace inferno;
 
-InfernoApp* create_inferno()
+InfernoApp* inferno_create()
 {
     // MOTD
     yolo::info("INFERNO HART v" INFERNO_VERSION);
@@ -38,11 +38,11 @@ InfernoApp* create_inferno()
     return app;
 }
 
-void cleanup_inferno(InfernoApp* app)
+void inferno_cleanup(InfernoApp* app)
 {
 }
 
-static void gui_help_marker(const char* desc)
+static void inferno_gui_help_marker(const char* desc)
 {
     ImGui::TextDisabled("(?)");
     if (ImGui::IsItemHovered(ImGuiHoveredFlags_DelayShort))
@@ -55,7 +55,7 @@ static void gui_help_marker(const char* desc)
     }
 }
 
-void preset_gui(InfernoApp *app)
+void inferno_preset_gui(InfernoApp *app)
 {
     ImGuiID dockspace_id = ImGui::GetID("main");
 
@@ -72,7 +72,7 @@ void preset_gui(InfernoApp *app)
     yolo::info("LAYOUT SET TO DEFAULT");
 }
 
-void move_input(InfernoApp *app)
+void inferno_move_input(InfernoApp *app)
 {
     static GLFWcursor* cursor = glfwCreateStandardCursor(GLFW_HAND_CURSOR);
     glfwSetCursor(app->Win->getGLFWWindow(), cursor);
@@ -114,16 +114,14 @@ void move_input(InfernoApp *app)
         app->Input->MovementDelta |= 0b00000100;
 }
 
-void stop_move_input(InfernoApp *app)
+void inferno_stop_move_input(InfernoApp *app)
 {
     app->Input->MovementDelta = 0x0;
     app->Input->MouseDelta = { 0.0f, 0.0f };
 }
 
-int run(InfernoApp *app)
+int inferno_run(InfernoApp *app)
 {
     return 1;
-}
-
 }
 

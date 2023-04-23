@@ -4,7 +4,7 @@
 
 #include "yolo/yolo.hpp"
 
-using namespace inferno::core;
+using namespace inferno;
 
 Window::Window() {}
 
