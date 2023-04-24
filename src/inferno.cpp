@@ -33,8 +33,7 @@ InfernoApp* inferno_create()
     InfernoApp* app = new InfernoApp();
 
     // Create window
-    app->Win = &Window::GetInstance();
-    app->Win->init("Inferno v" INFERNO_VERSION, 1280, 720);
+    graphics::window_create("Inferno v" INFERNO_VERSION, 1280, 720);
     return app;
 }
 
@@ -75,7 +74,7 @@ void inferno_preset_gui(InfernoApp *app)
 void inferno_move_input(InfernoApp *app)
 {
     static GLFWcursor* cursor = glfwCreateStandardCursor(GLFW_HAND_CURSOR);
-    glfwSetCursor(app->Win->getGLFWWindow(), cursor);
+    glfwSetCursor(graphics::window_get_glfw_window(), cursor);
 
     // KBD & MOUSE
     // pan only get on hold

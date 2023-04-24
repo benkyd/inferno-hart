@@ -15,7 +15,6 @@ typedef struct InfernoInput {
 } InfernoInput;
 
 typedef struct InfernoApp {
-    Window* Win;
     InfernoInput* Input;
 } InfernoApp;
 
