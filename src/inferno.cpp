@@ -117,6 +117,84 @@ void inferno_stop_move_input(InfernoApp* app)
 
 int inferno_run(InfernoApp* app)
 {
+
+    while (true) {
+        if (!graphics::window_new_frame())
+            break;
+
+        // set the main window to the dockspace and then on the first launch set the preset
+        ImGuiID dockspace_id = ImGui::GetID("main");
+        static ImGuiDockNodeFlags dockspace_flags = ImGuiDockNodeFlags_PassthruCentralNode;
+        if (ImGui::DockBuilderGetNode(dockspace_id) == NULL) {
+            inferno_preset_gui(app);
+        }
+        ImGui::DockSpace(dockspace_id, ImVec2(0.0f, 0.0f), dockspace_flags);
+
+        // Menu Bar
+        static bool showPreview = true;
+        static bool showRenderSettings = true;
+        static bool showDemoWindow = false;
+        if (ImGui::BeginMenuBar()) {
+            if (ImGui::BeginMenu("Menu")) {
+                ImGui::EndMenu();
+            }
+            if (ImGui::BeginMenu("View")) {
+                ImGui::Checkbox("Show Preview", &showPreview);
+                ImGui::SameLine();
+                inferno_gui_help_marker("Show the preview window");
+                ImGui::Checkbox("Show Settings", &showRenderSettings);
+                ImGui::SameLine();
+                inferno_gui_help_marker("Show the Inferno HART settings window");
+                ImGui::Checkbox("Show Demo", &showDemoWindow);
+
+                ImGui::EndMenu();
+            }
+            ImGui::EndMenuBar();
+        }
+
+        if (showPreview && ImGui::Begin("Preview", nullptr, ImGuiWindowFlags_NoScrollbar))
+        {
+            if (ImGui::IsWindowHovered())
+            {
+                inferno_move_input(app);
+            } else
+            {
+                inferno_stop_move_input(app);
+            }
+            if (glm::length(mouseDelta) > 0.0f) camera.mouseMoved(mouseDelta);
+            if (movementDelta != 0b00000000) camera.moveCamera(movementDelta);
+
+            camera.setRasterViewport({ImGui::GetWindowSize().x, ImGui::GetWindowSize().y});
+            mRasterRenderer->setTargetSize({ImGui::GetWindowSize().x, ImGui::GetWindowSize().y});
+            mRasterRenderer->prepare();
+            mRasterRenderer->draw();
+            ImGui::Image((ImTextureID)mRasterRenderer->getRenderedTexture(),
+                { mRasterRenderer->getTargetSize().x, mRasterRenderer->getTargetSize().y },
+                ImVec2(0,1), ImVec2(1,0));
+            glBindFramebuffer(GL_FRAMEBUFFER, 0);
+            ImGui::End();
+        }
+
+        // clang-format off
+        GLenum err;
+        while((err = glGetError()) != GL_NO_ERROR) {
+            std::string error;
+            switch (err) {
+                case GL_INVALID_ENUM:                  error = "INVALID_ENUM"; break;
+                case GL_INVALID_VALUE:                 error = "INVALID_VALUE"; break;
+                case GL_INVALID_OPERATION:             error = "INVALID_OPERATION"; break;
+                case GL_STACK_OVERFLOW:                error = "STACK_OVERFLOW"; break;
+                case GL_STACK_UNDERFLOW:               error = "STACK_UNDERFLOW"; break;
+                case GL_OUT_OF_MEMORY:                 error = "OUT_OF_MEMORY"; break;
+                case GL_INVALID_FRAMEBUFFER_OPERATION: error = "INVALID_FRAMEBUFFER_OPERATION"; break;
+                default:                               error = std::to_string((uint32_t)err); break;
+            }
+            yolo::error("[GL]: {} {}", err, error);
+        }
+
+        graphics::window_render();
+    }
+
     return 1;
 }
 
