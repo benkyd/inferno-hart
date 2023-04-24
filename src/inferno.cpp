@@ -80,15 +80,15 @@ void inferno_move_input(InfernoApp *app)
     // pan only get on hold
     static glm::dvec2 lastMousePos;
     static int firstClick = 0;
-    if (glfwGetMouseButton(app->Win->getGLFWWindow(), GLFW_MOUSE_BUTTON_1) == GLFW_PRESS)
+    if (glfwGetMouseButton(graphics::window_get_glfw_window(), GLFW_MOUSE_BUTTON_1) == GLFW_PRESS)
     {
         firstClick++;
         if (firstClick == 1)
         {
-            glfwGetCursorPos(app->Win->getGLFWWindow(), &lastMousePos.x, &lastMousePos.y);
+            glfwGetCursorPos(graphics::window_get_glfw_window(), &lastMousePos.x, &lastMousePos.y);
         }
         glm::dvec2 tempMousePos = { 0.0f, 0.0f };
-        glfwGetCursorPos(app->Win->getGLFWWindow(), &tempMousePos.x, &tempMousePos.y);
+        glfwGetCursorPos(graphics::window_get_glfw_window(), &tempMousePos.x, &tempMousePos.y);
         app->Input->MouseDelta = lastMousePos - tempMousePos;
         lastMousePos = tempMousePos;
     } else
@@ -99,17 +99,17 @@ void inferno_move_input(InfernoApp *app)
     }
 
     app->Input->MovementDelta = 0b00000000;
-    if (glfwGetKey(app->Win->getGLFWWindow(), GLFW_KEY_W) == GLFW_PRESS)
+    if (glfwGetKey(graphics::window_get_glfw_window(), GLFW_KEY_W) == GLFW_PRESS)
         app->Input->MovementDelta |= 0b10000000;
-    if (glfwGetKey(app->Win->getGLFWWindow(), GLFW_KEY_A) == GLFW_PRESS)
+    if (glfwGetKey(graphics::window_get_glfw_window(), GLFW_KEY_A) == GLFW_PRESS)
         app->Input->MovementDelta |= 0b01000000;
-    if (glfwGetKey(app->Win->getGLFWWindow(), GLFW_KEY_S) == GLFW_PRESS)
+    if (glfwGetKey(graphics::window_get_glfw_window(), GLFW_KEY_S) == GLFW_PRESS)
         app->Input->MovementDelta |= 0b00100000;
-    if (glfwGetKey(app->Win->getGLFWWindow(), GLFW_KEY_D) == GLFW_PRESS)
+    if (glfwGetKey(graphics::window_get_glfw_window(), GLFW_KEY_D) == GLFW_PRESS)
         app->Input->MovementDelta |= 0b00010000;
-    if (glfwGetKey(app->Win->getGLFWWindow(), GLFW_KEY_SPACE) == GLFW_PRESS)
+    if (glfwGetKey(graphics::window_get_glfw_window(), GLFW_KEY_SPACE) == GLFW_PRESS)
         app->Input->MovementDelta |= 0b00001000;
-    if (glfwGetKey(app->Win->getGLFWWindow(), GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS)
+    if (glfwGetKey(graphics::window_get_glfw_window(), GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS)
         app->Input->MovementDelta |= 0b00000100;
 }
 
