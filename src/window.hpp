@@ -29,7 +29,7 @@ glm::vec2 window_get_size();
 void window_get_pos(int& x, int& y);
 
 GLFWwindow* window_get_glfw_window();
-void window_set_fps_mode();
+void window_set_mode(WINDOW_MODE mode);
 
 void window_set_key_callback(KeyCallback callback);
 KeyCallback window_get_key_callback();

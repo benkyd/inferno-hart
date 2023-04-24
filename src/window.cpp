@@ -1,94 +1,28 @@
 #include "window.hpp"
 
 #include "gui/style.hpp"
-
 #include "yolo/yolo.hpp"
 
 using namespace inferno::graphics;
 
 static WINDOW_MODE WinMode = WINDOW_MODE::WIN_MODE_DEFAULT;
-static KeyCallback KeyCallback = nullptr;
+static KeyCallback UserKeyCallback = nullptr;
 static int Width, Height;
 static const char* GlslVersion;
-static GLFWwindow* Gindow;
+static GLFWwindow* Window;
 
-static void glfwErrorCallback(int error, const char* description);
-
-void window_cleanup() {
-    shutdownImGui();
-    shutdownGLFW();
-}
-
-void window_create(std::string title, int width, int height) {
-    Width = width;
-    Height = height;
-    setupGLFW(title);
-    glfwSetKeyCallback(getGLFWWindow(), glfwKeyCallback);
-    setupImGui();
-}
-
-void Window::setTitle(std::string title) {
-    glfwSetWindowTitle(window, title.c_str());
-}
-
-void Window::setSize(int w, int h) {
-    width = w;
-    height = h;
-    glfwSetWindowSize(window, width, height);
-}
-
-void Window::setPos(int x, int y) { glfwSetWindowPos(window, x, y); }
-
-glm::vec2 Window::getSize() { return {width, height}; }
-
-void Window::getPos(int &x, int &y) { glfwGetWindowPos(window, &x, &y); }
-
-void Window::setFPSMode() {
-    mWinMode = WIN_MODE_FPS;
-    glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_HIDDEN);
-}
-
-void Window::setKeyCallback(KeyCallback callback) { mKeyCallback = callback; }
-
-KeyCallback Window::getKeyCallback() { return mKeyCallback; }
-
-bool Window::newFrame() {
-    glfwPollEvents();
-    if (mWinMode == WIN_MODE_FPS) {
-        glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_HIDDEN);
-        glfwSetCursorPos(window, (double)width / 2, (double)height / 2);
+void glfwKeyCallback(GLFWwindow *window, int key, int scancode,
+        int action, int mods) {
+    if (UserKeyCallback != nullptr) {
+        UserKeyCallback(key, scancode, action, mods);
     }
-    if (glfwWindowShouldClose(window)) {
-        return false;
-    }
-
-    glfwGetWindowSize(window, &width, &height);
-
-    glClearColor(0.1, 0.1, 0.1, 1.0);
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-    ImGui_ImplOpenGL3_NewFrame();
-    ImGui_ImplGlfw_NewFrame();
-    ImGui::NewFrame();
-
-    ImGui::Begin("main", nullptr, WINDOW_FLAGS);
-    ImGui::SetWindowPos(ImVec2(0, 0));
-    ImGui::SetWindowSize(ImVec2(width, height));
-
-    return true;
 }
 
-void Window::render() {
-    ImGui::End();
-    ImGui::Render();
-    auto io = ImGui::GetIO();
-    glViewport(0, 0, (int)io.DisplaySize.x, (int)io.DisplaySize.y);
-    ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
-    glfwSwapBuffers(window);
-    ImGui::UpdatePlatformWindows();
+void glfwErrorCallback(int error, const char *description) {
+    yolo::error("[GLFW {}] {}", error, description);
 }
 
-void Window::setupGLFW(std::string title) {
+void setupGLFW(std::string title) {
     glfwSetErrorCallback(glfwErrorCallback);
     if (!glfwInit())
         throw std::runtime_error("Failed to initialize GLFW");
@@ -109,7 +43,7 @@ void Window::setupGLFW(std::string title) {
     glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);           // Required on Mac
 #else
     // GL 4.5 + GLSL 450
-    glslVersion = "#version 450";
+    GlslVersion = "#version 450";
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 5);
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE); // 3.2+ only
@@ -117,15 +51,15 @@ void Window::setupGLFW(std::string title) {
 #endif
 
     // Create window with graphics context
-    window = glfwCreateWindow(1280, 720, title.c_str(), NULL, NULL);
-    if (window == NULL)
+    Window = glfwCreateWindow(1280, 720, title.c_str(), NULL, NULL);
+    if (Window == NULL)
         throw std::runtime_error("Could not create window");
-    glfwMakeContextCurrent(window);
+    glfwMakeContextCurrent(Window);
     gladLoadGLLoader((GLADloadproc)glfwGetProcAddress);
     glfwSwapInterval(1); // Enable vsync
 }
 
-void Window::setupImGui() {
+void setupImGui() {
     // Setup Dear ImGui context
     IMGUI_CHECKVERSION();
     ImGui::CreateContext();
@@ -145,30 +79,97 @@ void Window::setupImGui() {
                                                                 // = true;
 
                                                                 // Setup Platform/Renderer backends
-    ImGui_ImplGlfw_InitForOpenGL(window, true);
-    ImGui_ImplOpenGL3_Init(glslVersion);
+    ImGui_ImplGlfw_InitForOpenGL(Window, true);
+    ImGui_ImplOpenGL3_Init(GlslVersion);
 
-    SetupImGuiStyle2();
+    inferno::SetupImGuiStyle2();
 }
 
-void Window::shutdownImGui() {
+void shutdownImGui() {
     ImGui_ImplOpenGL3_Shutdown();
     ImGui_ImplGlfw_Shutdown();
     ImGui::DestroyContext();
 }
 
-void Window::shutdownGLFW() {
-    glfwDestroyWindow(window);
+void shutdownGLFW() {
+    glfwDestroyWindow(Window);
     glfwTerminate();
 }
 
-void Window::glfwKeyCallback(GLFWwindow *window, int key, int scancode,
-        int action, int mods) {
-    if (Window::GetInstance().getKeyCallback() != nullptr) {
-        Window::GetInstance().getKeyCallback()(key, scancode, action, mods);
+
+void window_create(std::string title, int width, int height) {
+    Width = width;
+    Height = height;
+    setupGLFW(title);
+    glfwSetKeyCallback(Window, glfwKeyCallback);
+    setupImGui();
+}
+
+void window_cleanup() {
+    shutdownImGui();
+    shutdownGLFW();
+}
+
+void window_set_title(std::string title) {
+    glfwSetWindowTitle(Window, title.c_str());
+}
+
+void window_set_size(int w, int h) {
+    Width = w;
+    Height = h;
+    glfwSetWindowSize(Window, Width, Height);
+}
+
+void window_set_pos(int x, int y) { glfwSetWindowPos(Window, x, y); }
+
+glm::vec2 window_get_size() { return { Width, Height }; }
+
+void window_get_pos(int& x, int& y) { glfwGetWindowPos(Window, &x, &y); }
+
+void window_set_mode(WINDOW_MODE mode) {
+    WinMode = mode;
+    if (mode == WINDOW_MODE::WIN_MODE_FPS) {
+        glfwSetInputMode(Window, GLFW_CURSOR, GLFW_CURSOR_HIDDEN);
     }
 }
 
-void Window::glfwErrorCallback(int error, const char *description) {
-    yolo::error("[GLFW {}] {}", error, description);
+void window_set_key_callback(KeyCallback callback) { UserKeyCallback = callback; }
+
+KeyCallback window_get_key_callback() { return UserKeyCallback; }
+
+bool window_new_frame() {
+    glfwPollEvents();
+    if (WinMode == WIN_MODE_FPS) {
+        glfwSetInputMode(Window, GLFW_CURSOR, GLFW_CURSOR_HIDDEN);
+        glfwSetCursorPos(Window, (double)Width / 2, (double)Height / 2);
+    }
+    if (glfwWindowShouldClose(Window)) {
+        return false;
+    }
+
+    glfwGetWindowSize(Window, &Width, &Height);
+
+    glClearColor(0.1, 0.1, 0.1, 1.0);
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+    ImGui_ImplOpenGL3_NewFrame();
+    ImGui_ImplGlfw_NewFrame();
+    ImGui::NewFrame();
+
+    ImGui::Begin("main", nullptr, WINDOW_FLAGS);
+    ImGui::SetWindowPos(ImVec2(0, 0));
+    ImGui::SetWindowSize(ImVec2(Width, Height));
+
+    return true;
 }
+
+void window_render() {
+    ImGui::End();
+    ImGui::Render();
+    auto io = ImGui::GetIO();
+    glViewport(0, 0, (int)io.DisplaySize.x, (int)io.DisplaySize.y);
+    ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+    glfwSwapBuffers(Window);
+    ImGui::UpdatePlatformWindows();
+}
+
