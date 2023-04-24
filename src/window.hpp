@@ -2,8 +2,8 @@
 
 #include <string>
 
-#include "singleton.hpp"
 #include "graphics.hpp"
+#include "singleton.hpp"
 
 #define WINDOW_FLAGS ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoBringToFrontOnFocus | ImGuiWindowFlags_NoNavFocus | ImGuiWindowFlags_MenuBar | ImGuiWindowFlags_NoBackground | ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoCollapse
 
@@ -12,8 +12,7 @@ namespace inferno::graphics {
 typedef void (*KeyCallback)(int key, int scan, int action, int mod);
 typedef void (*MouseCallback)(double x, double y);
 
-enum WINDOW_MODE
-{
+enum WINDOW_MODE {
     WIN_MODE_DEFAULT,
     WIN_MODE_FPS,
 };
@@ -38,4 +37,3 @@ bool window_new_frame();
 void window_render();
 
 }
-

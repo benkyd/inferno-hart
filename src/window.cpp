@@ -1,9 +1,9 @@
-#include "window.hpp"
 
+#include "window.hpp"
 #include "gui/style.hpp"
 #include "yolo/yolo.hpp"
 
-using namespace inferno::graphics;
+namespace inferno::graphics {
 
 static WINDOW_MODE WinMode = WINDOW_MODE::WIN_MODE_DEFAULT;
 static KeyCallback UserKeyCallback = nullptr;
@@ -11,23 +11,26 @@ static int Width, Height;
 static const char* GlslVersion;
 static GLFWwindow* Window;
 
-void glfwKeyCallback(GLFWwindow *window, int key, int scancode,
-        int action, int mods) {
+void glfwKeyCallback(GLFWwindow* window, int key, int scancode,
+    int action, int mods)
+{
     if (UserKeyCallback != nullptr) {
         UserKeyCallback(key, scancode, action, mods);
     }
 }
 
-void glfwErrorCallback(int error, const char *description) {
+void glfwErrorCallback(int error, const char* description)
+{
     yolo::error("[GLFW {}] {}", error, description);
 }
 
-void setupGLFW(std::string title) {
+void setupGLFW(std::string title)
+{
     glfwSetErrorCallback(glfwErrorCallback);
     if (!glfwInit())
         throw std::runtime_error("Failed to initialize GLFW");
 
-    // Decide GL+GLSL versions
+        // Decide GL+GLSL versions
 #if defined(IMGUI_IMPL_OPENGL_ES2)
     // GL ES 2.0 + GLSL 100
     glslVersion = "#version 100";
@@ -40,14 +43,14 @@ void setupGLFW(std::string title) {
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 2);
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE); // 3.2+ only
-    glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);           // Required on Mac
+    glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE); // Required on Mac
 #else
     // GL 4.5 + GLSL 450
     GlslVersion = "#version 450";
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 5);
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE); // 3.2+ only
-    glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);           // 3.0+ only
+    glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE); // 3.0+ only
 #endif
 
     // Create window with graphics context
@@ -59,7 +62,8 @@ void setupGLFW(std::string title) {
     glfwSwapInterval(1); // Enable vsync
 }
 
-void setupImGui() {
+void setupImGui()
+{
     // Setup Dear ImGui context
     IMGUI_CHECKVERSION();
     ImGui::CreateContext();
@@ -67,37 +71,38 @@ void setupImGui() {
     // Setup Dear ImGui style
     ImGui::StyleColorsDark();
 
-    ImGuiIO &io = ImGui::GetIO();
+    ImGuiIO& io = ImGui::GetIO();
     (void)io;
     io.ConfigFlags |= ImGuiConfigFlags_DockingEnable; // Enable Docking
-    io.ConfigFlags |=
-        ImGuiConfigFlags_DpiEnableScaleFonts; // FIXME-DPI: THIS CURRENTLY DOESN'T
-                                              // WORK AS EXPECTED. DON'T USE IN
-                                              // USER APP!
+    io.ConfigFlags |= ImGuiConfigFlags_DpiEnableScaleFonts; // FIXME-DPI: THIS CURRENTLY DOESN'T
+                                                            // WORK AS EXPECTED. DON'T USE IN
+                                                            // USER APP!
     io.ConfigFlags |= ImGuiConfigFlags_DpiEnableScaleViewports; // FIXME-DPI
                                                                 // io.ConfigDockingWithShift
                                                                 // = true;
 
-                                                                // Setup Platform/Renderer backends
+    // Setup Platform/Renderer backends
     ImGui_ImplGlfw_InitForOpenGL(Window, true);
     ImGui_ImplOpenGL3_Init(GlslVersion);
 
     inferno::SetupImGuiStyle2();
 }
 
-void shutdownImGui() {
+void shutdownImGui()
+{
     ImGui_ImplOpenGL3_Shutdown();
     ImGui_ImplGlfw_Shutdown();
     ImGui::DestroyContext();
 }
 
-void shutdownGLFW() {
+void shutdownGLFW()
+{
     glfwDestroyWindow(Window);
     glfwTerminate();
 }
 
-
-void window_create(std::string title, int width, int height) {
+void window_create(std::string title, int width, int height)
+{
     Width = width;
     Height = height;
     setupGLFW(title);
@@ -105,16 +110,19 @@ void window_create(std::string title, int width, int height) {
     setupImGui();
 }
 
-void window_cleanup() {
+void window_cleanup()
+{
     shutdownImGui();
     shutdownGLFW();
 }
 
-void window_set_title(std::string title) {
+void window_set_title(std::string title)
+{
     glfwSetWindowTitle(Window, title.c_str());
 }
 
-void window_set_size(int w, int h) {
+void window_set_size(int w, int h)
+{
     Width = w;
     Height = h;
     glfwSetWindowSize(Window, Width, Height);
@@ -126,7 +134,10 @@ glm::vec2 window_get_size() { return { Width, Height }; }
 
 void window_get_pos(int& x, int& y) { glfwGetWindowPos(Window, &x, &y); }
 
-void window_set_mode(WINDOW_MODE mode) {
+GLFWwindow* window_get_glfw_window() { return Window; }
+
+void window_set_mode(WINDOW_MODE mode)
+{
     WinMode = mode;
     if (mode == WINDOW_MODE::WIN_MODE_FPS) {
         glfwSetInputMode(Window, GLFW_CURSOR, GLFW_CURSOR_HIDDEN);
@@ -137,7 +148,8 @@ void window_set_key_callback(KeyCallback callback) { UserKeyCallback = callback;
 
 KeyCallback window_get_key_callback() { return UserKeyCallback; }
 
-bool window_new_frame() {
+bool window_new_frame()
+{
     glfwPollEvents();
     if (WinMode == WIN_MODE_FPS) {
         glfwSetInputMode(Window, GLFW_CURSOR, GLFW_CURSOR_HIDDEN);
@@ -163,7 +175,8 @@ bool window_new_frame() {
     return true;
 }
 
-void window_render() {
+void window_render()
+{
     ImGui::End();
     ImGui::Render();
     auto io = ImGui::GetIO();
@@ -173,3 +186,4 @@ void window_render() {
     ImGui::UpdatePlatformWindows();
 }
 
+}

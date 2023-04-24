@@ -94,15 +94,15 @@ void RasterizeRenderer::draw()
     
     for (Mesh* m : mCurrentScene->getRenderables())
     {
-	    m->getMaterial()->getGlShader()->use();
-        GLint uniTrans = glGetUniformLocation(m->getMaterial()->getGlShader()->getProgram(), "model");
-        glUniformMatrix4fv(uniTrans, 1, GL_FALSE, glm::value_ptr(glm::mat4(1.0f)));
+		//m->getMaterial()->getGlShader()->use();
+        //GLint uniTrans = glGetUniformLocation(m->getMaterial()->getGlShader()->getProgram(), "model");
+        //glUniformMatrix4fv(uniTrans, 1, GL_FALSE, glm::value_ptr(glm::mat4(1.0f)));
 
-        GLint uniView = glGetUniformLocation(m->getMaterial()->getGlShader()->getProgram(), "view");
-        glUniformMatrix4fv(uniView, 1, GL_FALSE, glm::value_ptr(mCurrentScene->getCamera()->getViewMatrix()));
+        //GLint uniView = glGetUniformLocation(m->getMaterial()->getGlShader()->getProgram(), "view");
+        //glUniformMatrix4fv(uniView, 1, GL_FALSE, glm::value_ptr(mCurrentScene->getCamera()->getViewMatrix()));
 
-        GLint uniProj = glGetUniformLocation(m->getMaterial()->getGlShader()->getProgram(), "proj");
-        glUniformMatrix4fv(uniProj, 1, GL_FALSE, glm::value_ptr(mCurrentScene->getCamera()->getProjectionMatrix()));
+        //GLint uniProj = glGetUniformLocation(m->getMaterial()->getGlShader()->getProgram(), "proj");
+        //glUniformMatrix4fv(uniProj, 1, GL_FALSE, glm::value_ptr(mCurrentScene->getCamera()->getProjectionMatrix()));
         
         glBindVertexArray(m->getVAO());
         glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m->getEBO());

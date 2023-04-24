@@ -15,12 +15,12 @@ Material::~Material()
 
 }
 
-void Material::setGlShader(Shader* shader)
-{
-    mGlShader = shader;
-}
+//void Material::setGlShader(Shader* shader)
+//{
+    //mGlShader = shader;
+//}
 
-Shader* Material::getGlShader()
-{
-    return mGlShader;
-}
+//Shader* Material::getGlShader()
+//{
+    //return mGlShader;
+//}

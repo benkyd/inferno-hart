@@ -6,7 +6,7 @@
 
 namespace inferno {
 
-class Shader;
+//class Shader;
 class HitInfo;
 
 class Material {
@@ -15,14 +15,14 @@ public:
     ~Material();
 
     std::string getName();
-    void setGlShader(Shader* shader);
-    Shader* getGlShader();
+    //void setGlShader(Shader* shader);
+    //Shader* getGlShader();
 
     glm::vec3 sample(HitInfo* hit);
 
 private:
     std::string mName;
-    Shader* mGlShader;
+    //Shader* mGlShader;
 };
 
 }

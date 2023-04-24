@@ -2,11 +2,11 @@
 
 #include "../graphics.hpp"
 
-#include <string>
-#include <memory>
-#include <vector>
 #include <filesystem>
+#include <memory>
+#include <string>
 #include <unordered_map>
+#include <vector>
 
 namespace inferno::graphics {
 
@@ -15,7 +15,6 @@ typedef struct ShaderPreprocessorDefinition {
     std::string key;
     std::string def;
 } shaderpreprocessordefinition;
-
 
 typedef struct Shader {
     GLuint Shaders[3];
@@ -40,4 +39,3 @@ void shader_use(std::unique_ptr<Shader>& shader);
 void shader_unuse(std::unique_ptr<Shader>& shader);
 
 }
-

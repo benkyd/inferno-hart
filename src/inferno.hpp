@@ -26,4 +26,3 @@ void inferno_stop_move_input(InfernoApp* app);
 int inferno_run(InfernoApp* app);
 
 }
-
