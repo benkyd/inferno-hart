@@ -161,7 +161,7 @@ int inferno_run(InfernoApp* app)
             {
                 inferno_stop_move_input(app);
             }
-            if (glm::length(mouseDelta) > 0.0f) camera.mouseMoved(mouseDelta);
+            if (glm::length(app->Input->MouseDelta) > 0.0f) camera.mouseMoved(mouseDelta);
             if (movementDelta != 0b00000000) camera.moveCamera(movementDelta);
 
             camera.setRasterViewport({ImGui::GetWindowSize().x, ImGui::GetWindowSize().y});
