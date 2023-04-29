@@ -25,20 +25,24 @@
 
 namespace inferno {
 
-InfernoApp* inferno_create()
+std::unique_ptr<InfernoApp> inferno_create()
 {
     // MOTD
     yolo::info("INFERNO HART v" INFERNO_VERSION);
 
-    InfernoApp* app = new InfernoApp();
+    std::unique_ptr<InfernoApp> app = std::make_unique<InfernoApp>();
+    app->Input = std::make_unique<InfernoInput>();
 
     // Create window
     graphics::window_create("Inferno v" INFERNO_VERSION, 1280, 720);
+
     return app;
 }
 
-void inferno_cleanup(InfernoApp* app)
+void inferno_cleanup(std::unique_ptr<InfernoApp>& app)
 {
+    graphics::window_cleanup();
+    app.reset();
 }
 
 static void inferno_gui_help_marker(const char* desc)
@@ -53,7 +57,7 @@ static void inferno_gui_help_marker(const char* desc)
     }
 }
 
-void inferno_preset_gui(InfernoApp* app)
+void inferno_preset_gui(std::unique_ptr<InfernoApp>& app)
 {
     ImGuiID dockspace_id = ImGui::GetID("main");
 
@@ -70,7 +74,7 @@ void inferno_preset_gui(InfernoApp* app)
     yolo::info("LAYOUT SET TO DEFAULT");
 }
 
-void inferno_move_input(InfernoApp* app)
+void inferno_move_input(std::unique_ptr<InfernoApp>& app)
 {
     static GLFWcursor* cursor = glfwCreateStandardCursor(GLFW_HAND_CURSOR);
     glfwSetCursor(graphics::window_get_glfw_window(), cursor);
@@ -109,13 +113,13 @@ void inferno_move_input(InfernoApp* app)
         app->Input->MovementDelta |= 0b00000100;
 }
 
-void inferno_stop_move_input(InfernoApp* app)
+void inferno_stop_move_input(std::unique_ptr<InfernoApp>& app)
 {
     app->Input->MovementDelta = 0x0;
     app->Input->MouseDelta = { 0.0f, 0.0f };
 }
 
-int inferno_run(InfernoApp* app)
+int inferno_run(std::unique_ptr<InfernoApp>& app)
 {
 
     while (true) {
@@ -152,25 +156,25 @@ int inferno_run(InfernoApp* app)
             ImGui::EndMenuBar();
         }
 
-        if (showPreview && ImGui::Begin("Preview", nullptr, ImGuiWindowFlags_NoScrollbar))
-        {
-            if (ImGui::IsWindowHovered())
-            {
+        if (showPreview && ImGui::Begin("Preview", nullptr, ImGuiWindowFlags_NoScrollbar)) {
+            if (ImGui::IsWindowHovered()) {
                 inferno_move_input(app);
-            } else
-            {
+            } else {
                 inferno_stop_move_input(app);
             }
-            if (glm::length(app->Input->MouseDelta) > 0.0f) camera.mouseMoved(mouseDelta);
-            if (movementDelta != 0b00000000) camera.moveCamera(movementDelta);
+            if (glm::length(app->Input->MouseDelta) > 0.0f)
+                camera.mouseMoved(app->Input->MouseDelta);
+            if (app->Input->MovementDelta != 0b00000000)
+                camera.moveCamera(app->Input->MovementDelta);
 
-            camera.setRasterViewport({ImGui::GetWindowSize().x, ImGui::GetWindowSize().y});
-            mRasterRenderer->setTargetSize({ImGui::GetWindowSize().x, ImGui::GetWindowSize().y});
+            camera.setRasterViewport({ ImGui::GetWindowSize().x, ImGui::GetWindowSize().y });
+            mRasterRenderer->setTargetSize({ ImGui::GetWindowSize().x, ImGui::GetWindowSize().y });
             mRasterRenderer->prepare();
             mRasterRenderer->draw();
-            ImGui::Image((ImTextureID)mRasterRenderer->getRenderedTexture(),
+
+            ImGui::Image((ImTextureID)mRasterRenderer->getRenderedTexture(),inderno
                 { mRasterRenderer->getTargetSize().x, mRasterRenderer->getTargetSize().y },
-                ImVec2(0,1), ImVec2(1,0));
+                ImVec2(0, 1), ImVec2(1, 0));
             glBindFramebuffer(GL_FRAMEBUFFER, 0);
             ImGui::End();
         }
