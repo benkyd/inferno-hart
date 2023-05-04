@@ -143,8 +143,8 @@ void camera_move(std::unique_ptr<Camera>& camera, uint8_t movement_delta)
     glm::vec3 delta(0.0f);
 
     glm::mat2 rotate {
-        cos(Yaw), -sin(Yaw),
-        sin(Yaw), cos(Yaw)
+        cos(camera->Yaw), -sin(camera->Yaw),
+        sin(camera->Yaw), cos(camera->Yaw)
     };
 
     glm::vec2 f(0.0, 1.0);
@@ -186,7 +186,7 @@ void camera_move(std::unique_ptr<Camera>& camera, uint8_t movement_delta)
     camera_update(camera);
 }
 
-void camera_mouse_move(std::unique_ptr<Camera> &camera, glm::vec2 mouse_delta)
+void camera_mouse_move(std::unique_ptr<Camera>& camera, glm::vec2 mouse_delta)
 {
     if (glm::length(mouse_delta) == 0)
         return;
@@ -205,7 +205,7 @@ void camera_set_position(std::unique_ptr<Camera>& camera, glm::vec3 position)
     camera_update(camera);
 }
 
-void camera_set_euler_look(std::unique_ptr<Camera> &camera, float roll, float pitch, float yaw)
+void camera_set_euler_look(std::unique_ptr<Camera>& camera, float roll, float pitch, float yaw)
 {
     camera->Roll = roll;
     camera->Pitch = pitch;
@@ -217,7 +217,7 @@ void camera_set_euler_look(std::unique_ptr<Camera> &camera, float roll, float pi
     camera_update(camera);
 }
 
-void camera_set_look(std::unique_ptr<Camera> &camera, glm::vec3 look_direction)
+void camera_set_look(std::unique_ptr<Camera>& camera, glm::vec3 look_direction)
 {
     camera->LookDirection = look_direction;
     camera->Pitch = asin(-look_direction.y);

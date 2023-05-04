@@ -11,7 +11,7 @@
 // #include "preview_renderer/shader.hpp"
 // #include "renderer/dispatcher.hpp"
 // #include "renderer/renderer.hpp"
-// #include "scene/camera.hpp"
+#include "scene/camera.hpp"
 // #include "scene/scene.hpp"
 // #include "scene/material.hpp"
 // #include "scene/mesh.hpp"
@@ -163,17 +163,16 @@ int inferno_run(std::unique_ptr<InfernoApp>& app)
                 inferno_stop_move_input(app);
             }
             if (glm::length(app->Input->MouseDelta) > 0.0f)
-                camera.mouseMoved(app->Input->MouseDelta);
+                graphics::camera_mouse_move(app->Camera, app->Input->MouseDelta);
             if (app->Input->MovementDelta != 0b00000000)
-                camera.moveCamera(app->Input->MovementDelta);
+                graphics::camera_move(app->Camera, app->Input->MovementDelta);
 
-            camera.setRasterViewport({ ImGui::GetWindowSize().x, ImGui::GetWindowSize().y });
+            graphics::raster_set_viewport({ ImGui::GetWindowSize().x, ImGui::GetWindowSize().y });
             mRasterRenderer->setTargetSize({ ImGui::GetWindowSize().x, ImGui::GetWindowSize().y });
             mRasterRenderer->prepare();
             mRasterRenderer->draw();
 
-            ImGui::Image((ImTextureID)mRasterRenderer->getRenderedTexture(),inderno
-                { mRasterRenderer->getTargetSize().x, mRasterRenderer->getTargetSize().y },
+            ImGui::Image((ImTextureID)mRasterRenderer->getRenderedTexture(), inderno { mRasterRenderer->getTargetSize().x, mRasterRenderer->getTargetSize().y },
                 ImVec2(0, 1), ImVec2(1, 0));
             glBindFramebuffer(GL_FRAMEBUFFER, 0);
             ImGui::End();

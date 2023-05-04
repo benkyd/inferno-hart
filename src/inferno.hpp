@@ -6,6 +6,10 @@
 
 namespace inferno {
 
+namespace graphics {
+    struct Camera;
+}
+
 typedef struct InfernoInput {
     glm::vec2 MouseDelta;
     uint8_t MovementDelta;
@@ -13,6 +17,7 @@ typedef struct InfernoInput {
 
 typedef struct InfernoApp {
     std::unique_ptr<InfernoInput> Input;
+    std::unique_ptr<graphics::Camera> Camera;
 } InfernoApp;
 
 std::unique_ptr<InfernoApp> inferno_create();
