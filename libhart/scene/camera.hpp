@@ -10,14 +10,23 @@ namespace inferno::graphics {
 
 struct _CameraImpl;
 
+typedef struct Viewports {
+    glm::ivec2 Raster;
+    glm::ivec2 Ray;
+} Viewports;
+
 typedef struct Camera {
     glm::mat4 ViewMatrix;
     glm::mat4 ProjectionMatrix;
     glm::mat4 LookMatrix;
+
+    std::shared_ptr<Viewports> Viewports;
+
     float MouseSensitivity = 0.4f;
-    float CameraSpeed = 0.1f;
+    float Speed = 0.1f;
     float Roll, Pitch, Yaw;
     float FOV = 45.0f;
+
     glm::vec3 Position = {};
     glm::vec3 LookDirection = {};
 
@@ -28,7 +37,7 @@ std::unique_ptr<Camera> camera_create();
 void camera_cleanup(std::unique_ptr<Camera>& camera);
 
 void camera_update(std::unique_ptr<Camera>& camera);
-void camera_did_update(std::unique_ptr<Camera>& camera);
+bool camera_did_update(std::unique_ptr<Camera>& camera);
 void camera_new_frame(std::unique_ptr<Camera>& camera);
 
 glm::mat4 camera_get_view(std::unique_ptr<Camera>& camera);
