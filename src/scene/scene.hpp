@@ -2,14 +2,17 @@
 
 #include <vector>
 
-namespace inferno {
+namespace inferno::scene {
 
 class SceneObject;
 class Camera;
 class Mesh;
 class Sky;
 
-class Scene 
+typedef struct Scene {
+
+} Scene;
+
 {
 public:
     Scene();

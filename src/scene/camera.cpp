@@ -12,9 +12,9 @@ std::unique_ptr<Camera> camera_create()
 {
     std::unique_ptr<Camera> camera = std::make_unique<Camera>();
     camera->_impl = std::make_unique<_CameraImpl>();
-    camera->Viewports = std::make_shared<Viewports>();
-    camera->Viewports->Raster = glm::ivec2(800, 600);
-    camera->Viewports->Ray = glm::ivec2(800, 600);
+    camera->Views = std::make_shared<Viewports>();
+    camera->Views->Raster = glm::ivec2(800, 600);
+    camera->Views->Ray = glm::ivec2(800, 600);
 
     camera->ProjectionMatrix = glm::perspective(
         glm::radians(camera->FOV),
@@ -61,7 +61,7 @@ void camera_update(std::unique_ptr<Camera>& camera)
     camera->ViewMatrix = rotate * translate;
     camera->ProjectionMatrix = glm::perspective(
         glm::radians(camera->FOV),
-        static_cast<float>(camera->Viewports->Raster.x) / static_cast<float>(camera->Viewports->Raster.y),
+        static_cast<float>(camera->Views->Raster.x) / static_cast<float>(camera->Views->Raster.y),
         0.1f,
         1000.0f);
 
@@ -108,7 +108,7 @@ glm::mat4 camera_get_look(std::unique_ptr<Camera>& camera)
 void raster_set_viewport(std::unique_ptr<Camera>& camera, glm::ivec2 viewport)
 {
     std::lock_guard<std::mutex> lock(camera->_impl->CamMutex);
-    camera->Viewports->Raster = viewport;
+    camera->Views->Raster = viewport;
     camera->ProjectionMatrix = glm::perspective(
         glm::radians(camera->FOV),
         static_cast<float>(viewport.x) / static_cast<float>(viewport.y),
@@ -119,19 +119,19 @@ void raster_set_viewport(std::unique_ptr<Camera>& camera, glm::ivec2 viewport)
 glm::ivec2 raster_get_viewport(std::unique_ptr<Camera>& camera)
 {
     std::lock_guard<std::mutex> lock(camera->_impl->CamMutex);
-    return camera->Viewports->Raster;
+    return camera->Views->Raster;
 }
 
 void ray_set_viewport(std::unique_ptr<Camera>& camera, glm::ivec2 viewport)
 {
     std::lock_guard<std::mutex> lock(camera->_impl->CamMutex);
-    camera->Viewports->Ray = viewport;
+    camera->Views->Ray = viewport;
 }
 
 glm::ivec2 ray_get_viewport(std::unique_ptr<Camera>& camera)
 {
     std::lock_guard<std::mutex> lock(camera->_impl->CamMutex);
-    return camera->Viewports->Ray;
+    return camera->Views->Ray;
 }
 
 void camera_move(std::unique_ptr<Camera>& camera, uint8_t movement_delta)

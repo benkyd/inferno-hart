@@ -10,7 +10,7 @@ namespace inferno::graphics {
 
 struct _CameraImpl;
 
-typedef struct Viewports {
+typedef struct Viewport {
     glm::ivec2 Raster;
     glm::ivec2 Ray;
 } Viewports;
@@ -20,7 +20,7 @@ typedef struct Camera {
     glm::mat4 ProjectionMatrix;
     glm::mat4 LookMatrix;
 
-    std::shared_ptr<Viewports> Viewports;
+    std::shared_ptr<Viewport> Views;
 
     float MouseSensitivity = 0.4f;
     float Speed = 0.1f;

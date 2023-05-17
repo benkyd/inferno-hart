@@ -53,7 +53,7 @@ public:
 
     void setActive(std::string moduleName);
     void setActiveIndex(int index);
-    
+
     HARTModule* getActiveModule();
     std::string getActive();
     int getActiveIndex();

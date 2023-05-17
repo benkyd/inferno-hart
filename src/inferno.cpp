@@ -1,4 +1,4 @@
-#include "inferno.hpp"
+#include "infergo.hpp"
 
 #include <version.hpp>
 // #include "gui/layout.hpp"
