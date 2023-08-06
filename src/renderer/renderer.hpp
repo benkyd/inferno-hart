@@ -2,58 +2,50 @@
 
 #include <graphics.hpp>
 
+#include <condition_variable>
 #include <mutex>
 #include <unordered_map>
-#include <condition_variable>
 
-namespace inferno {
+namespace inferno::scene {
+struct Scene;
+}
+
+namespace inferno::graphics {
 
 class HHM;
 
-class Scene;
 class HitInfo;
 class RaySource;
 class RenderDispatcher;
 
-class RayRenderer
-{
-public:
-    RayRenderer(HHM* accelIface);
-    ~RayRenderer();
+typedef struct RayRenderer {
+    glm::fvec4* RenderData = nullptr;
+    GLuint RenderTargetTexture = 0;
 
-    void setScene(Scene* scene);
+    // TODO: Put this inside an internal struct
+    std::mutex RenderDataMutex;
+    std::condition_variable RenderPause;
+    // TODO: End
 
-    void setTargetSize(glm::ivec2 size);
-    glm::ivec2 getTargetSize();
-    GLuint getRenderedTexture();
-    glm::fvec4* getRenderData();
+    std::shared_ptr<scene::Scene> CurrentScene;
+    // std::shared_ptr<const Viewport> RenderTargetSize;
+    glm::ivec2 RenderTargetSize;
 
-    void prepare();
-    void draw();
+    HHM* AccelerationInterface = nullptr;
+    RenderDispatcher* Dispatcher = nullptr;
+    RaySource* RaySource = nullptr;
+} RayRenderer;
 
-public:
-    void computeHit(HitInfo* info);
+std::unique_ptr<RayRenderer> rayr_create(glm::ivec2 viewport, HHM* accelIface);
+void rayr_cleanup(std::unique_ptr<RayRenderer>& renderer);
+void rayr_set_scene(std::unique_ptr<RayRenderer>& renderer, std::shared_ptr<scene::Scene> scene);
+void rayr_set_viewport(std::unique_ptr<RayRenderer>& renderer, glm::ivec2 size);
+glm::ivec2 rayr_get_viewport(std::unique_ptr<RayRenderer>& renderer);
+GLuint rayr_get_rendered_texture(std::unique_ptr<RayRenderer>& renderer);
+glm::fvec4* rayr_get_render_data(std::unique_ptr<RayRenderer>& renderer);
+void rayr_prepare(std::unique_ptr<RayRenderer>& renderer);
+void rayr_draw(std::unique_ptr<RayRenderer>& renderer);
 
-private:
-    void mHaultWait();
-
-    std::unordered_map<uint32_t, glm::ivec2>* mCurrentRefTable;
-
-private:
-    GLuint mRenderTargetTexture = 0;
-    glm::fvec4* mTarget;
-
-    std::mutex _RenderData;
-    std::condition_variable _RenderPause;
-
-    glm::ivec2 mRenderTargetSize = {200, 200};
-
-    Scene* mCurrentScene = nullptr;
-    RaySource* mRaySource = nullptr;
-
-    friend class RenderDispatcher;
-private:
-    HHM* mIface;
-};
+void raryr_compute_hit(HitInfo* info);
 
 }

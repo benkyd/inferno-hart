@@ -29,22 +29,22 @@ void scene_add_object(std::unique_ptr<Scene>& scene, std::unique_ptr<SceneObject
     scene->DidUpdate = true;
 }
 
-std::vector<std::unique_ptr<SceneObject>>& get_renderables(std::unique_ptr<Scene>& scene)
+std::vector<std::unique_ptr<SceneObject>>& scene_get_renderables(std::unique_ptr<Scene>& scene)
 {
     return scene->Objects;
 }
 
-bool did_update(std::unique_ptr<Scene>& scene)
+bool scene_did_update(std::unique_ptr<Scene>& scene)
 {
     return scene->DidUpdate;
 }
 
-void frame_tick(std::unique_ptr<Scene>& scene)
+void scene_frame_tick(std::unique_ptr<Scene>& scene)
 {
     scene->DidUpdate = false;
 }
 
-void tick(std::unique_ptr<Scene>& scene)
+void scene_tick(std::unique_ptr<Scene>& scene)
 {
     for (auto& object : scene->Objects) {
         // object->tick();

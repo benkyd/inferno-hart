@@ -15,15 +15,16 @@
 
 #include <iostream>
 
-using namespace inferno;
+namespace inferno::graphics {
 
-RayRenderer::RayRenderer(HHM* accelIface)
-    : mIface(accelIface)
+std::unique_ptr<RayRenderer> rayr_create(glm::ivec2 viewport, HHM* accelIface)
 {
-    mTarget = new glm::fvec4[mRenderTargetSize.x * mRenderTargetSize.y];
+    std::unique_ptr<RayRenderer> renderer = std::make_unique<RayRenderer>();
+    renderer->RenderTargetSize = viewport;
+    renderer->RenderData = new glm::fvec4[renderer->RenderTargetSize.x * renderer->RenderTargetSize.y];
 
-    glGenTextures(1, &mRenderTargetTexture);
-    glBindTexture(GL_TEXTURE_2D, mRenderTargetTexture);
+    glGenTextures(1, &renderer->RenderTargetTexture);
+    glBindTexture(GL_TEXTURE_2D, renderer->RenderTargetTexture);
 
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
@@ -31,66 +32,72 @@ RayRenderer::RayRenderer(HHM* accelIface)
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 
     glPixelStorei(GL_UNPACK_ROW_LENGTH, 0);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, mRenderTargetSize.x, mRenderTargetSize.y, 0, GL_RGBA, GL_FLOAT, mTarget);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, renderer->RenderTargetSize.x, renderer->RenderTargetSize.y, 0, GL_RGBA, GL_FLOAT, renderer->RenderData);
 
     glBindTexture(GL_TEXTURE_2D, 0);
+
+    return renderer;
 }
 
-RayRenderer::~RayRenderer()
+void rayr_cleanup(std::unique_ptr<RayRenderer>& renderer)
 {
-    delete[] mTarget;
+    delete[] renderer->RenderData;
 }
 
-void RayRenderer::setScene(Scene* scene)
+void rayr_set_scene(std::unique_ptr<RayRenderer>& renderer, std::shared_ptr<scene::Scene> scene)
 {
-    mCurrentScene = scene;
-    if (mRaySource != nullptr)
+    renderer->CurrentScene = scene;
+    if (renderer->RaySource != nullptr)
     {
-        delete mRaySource;
+        delete renderer->RaySource;
     }
-    mRaySource = new RaySource(scene->getCamera());
+    // renderer->RaySource = new RaySource(scene->getCamera());
     // the scene will be sent to the module on prepare
     // as it did update during initialisation
 
     // mIface->newScene(scene);
 }
 
-void RayRenderer::setTargetSize(glm::ivec2 size)
+void rayr_set_viewport(std::unique_ptr<RayRenderer> &renderer, glm::ivec2 size)
 {
-    mRenderTargetSize = size;
+    renderer->RenderTargetSize = size;
 }
 
-glm::ivec2 RayRenderer::getTargetSize()
+glm::ivec2 rayr_get_viewport(std::unique_ptr<RayRenderer> &renderer)
 {
-    return mRenderTargetSize;
+    return renderer->RenderTargetSize;
 }
 
-GLuint RayRenderer::getRenderedTexture()
+GLuint rayr_get_rendered_texture(std::unique_ptr<RayRenderer> &renderer)
 {
-    std::lock_guard<std::mutex> lock(this->_RenderData);
+    std::lock_guard<std::mutex> lock(renderer->RenderDataMutex);
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
-    glBindTexture(GL_TEXTURE_2D, mRenderTargetTexture);
-    return mRenderTargetTexture;
+    glBindTexture(GL_TEXTURE_2D, renderer->RenderTargetTexture);
+    return renderer->RenderTargetTexture;
 }
 
-glm::fvec4* RayRenderer::getRenderData()
+glm::fvec4* rayr_get_render_data(std::unique_ptr<RayRenderer> &renderer)
 {
-    return mTarget;
+    std::lock_guard<std::mutex> lock(renderer->RenderDataMutex);
+    return renderer->RenderData;
 }
 
-void RayRenderer::prepare()
+void rayr_prepare(std::unique_ptr<RayRenderer> &renderer)
 {
-    assert(mCurrentScene != nullptr);
-    if (mCurrentScene->didUpdate())
+    assert(renderer->CurrentScene != nullptr);
+    // here, scene_did_update takes a unique_ptr, but we have a shared_ptr
+    // so we need to call unique() to get the unique_ptr but that will error
+    // with non-const ltype so we need to const_cast it
+    if (scene::scene_did_update(renderer->CurrentScene.unique()))
     {
         yolo::debug("New Scene!");
-        mIface->newScene(mCurrentScene);
+        // renderer->AccelerationInterface->newScene(renderer->CurrentScene);
     }
 }
 
-void RayRenderer::draw()
+void rayr_draw(std::unique_ptr<RayRenderer> &renderer)
 {
-    mCurrentScene->newFrame();
+    scene::scene_frame_tick(renderer->CurrentScene.unique());
     // TODO: Rays should definately be bump allocated if possible, this is KBs of
     // ray data and nothing else being reallocated every frame for no reason
     ReferencedRayField startRays = mRaySource->getInitialRays(true);
@@ -129,4 +136,9 @@ void RayRenderer::computeHit(HitInfo* info)
     if (d > maxd) maxd = d;
     float n = (d - mind) / (maxd - mind);
     mTarget[pos.y * mRenderTargetSize.x + pos.x] = { n, n, n, 1.0f};
+}
+    void mHaultWait();
+    std::unordered_map<uint32_t, glm::ivec2>* mCurrentRefTable;
+
+
 }
