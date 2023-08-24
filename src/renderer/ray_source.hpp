@@ -11,11 +11,11 @@ namespace inferno {
 
 class Camera;
 
-struct ReferencedRayField
-{
+struct ReferencedRayField {
     RayField Field;
     std::unordered_map<uint32_t, glm::ivec2> Reference;
 };
+
 
 class RaySource
 {

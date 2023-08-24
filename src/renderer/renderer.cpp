@@ -88,7 +88,7 @@ void rayr_prepare(std::unique_ptr<RayRenderer> &renderer)
     // here, scene_did_update takes a unique_ptr, but we have a shared_ptr
     // so we need to call unique() to get the unique_ptr but that will error
     // with non-const ltype so we need to const_cast it
-    if (scene::scene_did_update(renderer->CurrentScene.unique()))
+    if (scene::scene_did_update(renderer->CurrentScene))
     {
         yolo::debug("New Scene!");
         // renderer->AccelerationInterface->newScene(renderer->CurrentScene);
@@ -97,7 +97,7 @@ void rayr_prepare(std::unique_ptr<RayRenderer> &renderer)
 
 void rayr_draw(std::unique_ptr<RayRenderer> &renderer)
 {
-    scene::scene_frame_tick(renderer->CurrentScene.unique());
+    scene::scene_frame_tick(renderer->CurrentScene);
     // TODO: Rays should definately be bump allocated if possible, this is KBs of
     // ray data and nothing else being reallocated every frame for no reason
     ReferencedRayField startRays = mRaySource->getInitialRays(true);

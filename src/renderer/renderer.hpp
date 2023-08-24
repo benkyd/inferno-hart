@@ -3,6 +3,7 @@
 #include <graphics.hpp>
 
 #include <condition_variable>
+#include <memory>
 #include <mutex>
 #include <unordered_map>
 
@@ -27,7 +28,7 @@ typedef struct RayRenderer {
     std::condition_variable RenderPause;
     // TODO: End
 
-    std::shared_ptr<scene::Scene> CurrentScene;
+    std::unique_ptr<scene::Scene> CurrentScene;
     // std::shared_ptr<const Viewport> RenderTargetSize;
     glm::ivec2 RenderTargetSize;
 
@@ -38,7 +39,7 @@ typedef struct RayRenderer {
 
 std::unique_ptr<RayRenderer> rayr_create(glm::ivec2 viewport, HHM* accelIface);
 void rayr_cleanup(std::unique_ptr<RayRenderer>& renderer);
-void rayr_set_scene(std::unique_ptr<RayRenderer>& renderer, std::shared_ptr<scene::Scene> scene);
+void rayr_set_scene(std::unique_ptr<RayRenderer>& renderer, std::unique_ptr<scene::Scene> scene);
 void rayr_set_viewport(std::unique_ptr<RayRenderer>& renderer, glm::ivec2 size);
 glm::ivec2 rayr_get_viewport(std::unique_ptr<RayRenderer>& renderer);
 GLuint rayr_get_rendered_texture(std::unique_ptr<RayRenderer>& renderer);
