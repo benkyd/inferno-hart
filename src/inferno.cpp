@@ -167,7 +167,7 @@ int inferno_run(std::unique_ptr<InfernoApp>& app)
             if (app->Input->MovementDelta != 0b00000000)
                 graphics::camera_move(app->Camera, app->Input->MovementDelta);
 
-            graphics::raster_set_viewport({ ImGui::GetWindowSize().x, ImGui::GetWindowSize().y });
+            graphics::raster_set_viewport(app->Camera, { ImGui::GetWindowSize().x, ImGui::GetWindowSize().y });
             mRasterRenderer->setTargetSize({ ImGui::GetWindowSize().x, ImGui::GetWindowSize().y });
             mRasterRenderer->prepare();
             mRasterRenderer->draw();
