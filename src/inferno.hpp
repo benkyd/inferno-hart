@@ -1,6 +1,7 @@
 #pragma once
 
 #include "graphics.hpp"
+#include "preview_renderer/renderer.hpp"
 
 #include <memory>
 
@@ -17,7 +18,9 @@ typedef struct InfernoInput {
 
 typedef struct InfernoApp {
     std::unique_ptr<InfernoInput> Input;
-    std::unique_ptr<graphics::Camera> Camera;
+    std::unique_ptr<scene::Scene> Scene;
+    std::unique_ptr<graphics::PreviewRenderer> PreviewRenderer;
+    std::unique_ptr<graphics::RayRenderer> RayRenderer;
 } InfernoApp;
 
 std::unique_ptr<InfernoApp> inferno_create();
