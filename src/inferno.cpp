@@ -22,12 +22,12 @@
 
 namespace inferno {
 
-std::unique_ptr<InfernoApp> inferno_create()
+InfernoApp* inferno_create()
 {
     // MOTD
     yolo::info("INFERNO HART v" INFERNO_VERSION);
 
-    std::unique_ptr<InfernoApp> app = new InfernoApp;
+    InfernoApp* app = new InfernoApp;
     app->Input = new InfernoInput;
 
     // Create window
@@ -36,11 +36,11 @@ std::unique_ptr<InfernoApp> inferno_create()
     // setup the scene
     scene::Material basicMaterial("basic");
 
-    std::unique_ptr<graphics::Shader> basicShader = graphics::shader_create();
+    graphics::Shader* basicShader = graphics::shader_create();
     graphics::shader_load(basicShader, "res/shaders/basic.glsl");
     graphics::shader_link(basicShader);
 
-    std::unique_ptr<scene::SceneObject> object = scene::scene_object_create();
+    scene::SceneObject* object = scene::scene_object_create();
 
     scene::Mesh cornell;
     cornell.loadOBJ("res/cornell-box.obj");
@@ -54,7 +54,7 @@ std::unique_ptr<InfernoApp> inferno_create()
     return app;
 }
 
-void inferno_cleanup(std::unique_ptr<InfernoApp>& app)
+void inferno_cleanup(InfernoApp* app)
 {
     graphics::window_cleanup();
     app.reset();
@@ -72,7 +72,7 @@ static void inferno_gui_help_marker(const char* desc)
     }
 }
 
-void inferno_preset_gui(std::unique_ptr<InfernoApp>& app)
+void inferno_preset_gui(InfernoApp* app)
 {
     ImGuiID dockspace_id = ImGui::GetID("main");
 
@@ -89,7 +89,7 @@ void inferno_preset_gui(std::unique_ptr<InfernoApp>& app)
     yolo::info("LAYOUT SET TO DEFAULT");
 }
 
-void inferno_move_input(std::unique_ptr<InfernoApp>& app)
+void inferno_move_input(InfernoApp* app)
 {
     static GLFWcursor* cursor = glfwCreateStandardCursor(GLFW_HAND_CURSOR);
     glfwSetCursor(graphics::window_get_glfw_window(), cursor);
@@ -128,13 +128,13 @@ void inferno_move_input(std::unique_ptr<InfernoApp>& app)
         app->Input->MovementDelta |= 0b00000100;
 }
 
-void inferno_stop_move_input(std::unique_ptr<InfernoApp>& app)
+void inferno_stop_move_input(InfernoApp* app)
 {
     app->Input->MovementDelta = 0x0;
     app->Input->MouseDelta = { 0.0f, 0.0f };
 }
 
-int inferno_run(std::unique_ptr<InfernoApp>& app)
+int inferno_run(InfernoApp* app)
 {
     while (true) {
         if (!graphics::window_new_frame())
