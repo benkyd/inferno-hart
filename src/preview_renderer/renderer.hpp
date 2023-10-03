@@ -20,11 +20,11 @@ typedef struct PreviewRenderer {
     GLuint RenderTargetDepthTexture = 0;
 } PreviewRenderer;
 
-std::unique_ptr<PreviewRenderer> preview_create();
-void preview_cleanup(std::unique_ptr<PreviewRenderer>& renderer);
+PreviewRenderer* preview_create();
+void preview_cleanup(PreviewRenderer* renderer);
 
-GLuint preview_get_rendered_texture(std::unique_ptr<PreviewRenderer>& renderer);
+GLuint preview_get_rendered_texture(PreviewRenderer* renderer);
 
-void preview_draw(std::unique_ptr<PreviewRenderer>& renderer, std::unique_ptr<scene::Scene>& scene);
+void preview_draw(PreviewRenderer* renderer, scene::Scene* scene);
 
 } // namespace inferno::graphics

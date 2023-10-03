@@ -16,7 +16,7 @@ namespace inferno::graphics {
 
 std::unique_ptr<PreviewRenderer> preview_create()
 {
-    std::unique_ptr<PreviewRenderer> renderer = std::make_unique<PreviewRenderer>();
+    std::unique_ptr<PreviewRenderer> renderer = new PreviewRenderer;
 
     glGenFramebuffers(1, &renderer->RenderTarget);
     glBindFramebuffer(GL_FRAMEBUFFER, renderer->RenderTarget);

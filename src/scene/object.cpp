@@ -4,23 +4,23 @@
 
 namespace inferno::scene {
 
-std::unique_ptr<SceneObject> scene_object_create()
+SceneObject* scene_object_create()
 {
-    std::unique_ptr<SceneObject> object = std::make_unique<SceneObject>();
+    SceneObject* object = new SceneObject;
     return object;
 }
 
-void scene_object_cleanup(std::unique_ptr<SceneObject>& object)
+void scene_object_cleanup(SceneObject* object)
 {
 
 }
 
-void scene_object_add_mesh(std::unique_ptr<SceneObject>& object, Mesh* mesh)
+void scene_object_add_mesh(SceneObject* object, Mesh* mesh)
 {
     object->Meshs.push_back(mesh);
 }
 
-std::vector<Mesh*>& scene_object_get_meshs(std::unique_ptr<SceneObject>& object)
+std::vector<Mesh*>& scene_object_get_meshs(SceneObject* object)
 {
     return object->Meshs;
 }

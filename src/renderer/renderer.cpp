@@ -16,9 +16,9 @@
 //
 // namespace inferno::graphics {
 //
-// std::unique_ptr<RayRenderer> rayr_create(glm::ivec2 viewport, HHM* accelIface)
+// RayRenderer* rayr_create(glm::ivec2 viewport, HHM* accelIface)
 // {
-//     std::unique_ptr<RayRenderer> renderer = std::make_unique<RayRenderer>();
+//     RayRenderer* renderer = new RayRenderer;
 //     renderer->RenderTargetSize = viewport;
 //     renderer->RenderData = new glm::fvec4[renderer->RenderTargetSize.x * renderer->RenderTargetSize.y];
 //
@@ -38,12 +38,12 @@
 //     return renderer;
 // }
 //
-// void rayr_cleanup(std::unique_ptr<RayRenderer>& renderer)
+// void rayr_cleanup(RayRenderer* renderer)
 // {
 //     delete[] renderer->RenderData;
 // }
 //
-// void rayr_set_scene(std::unique_ptr<RayRenderer>& renderer, std::shared_ptr<scene::Scene> scene)
+// void rayr_set_scene(RayRenderer* renderer, std::shared_ptr<scene::Scene> scene)
 // {
 //     renderer->CurrentScene = scene;
 //     if (renderer->RaySource != nullptr)
@@ -57,17 +57,17 @@
 //     // mIface->newScene(scene);
 // }
 //
-// void rayr_set_viewport(std::unique_ptr<RayRenderer> &renderer, glm::ivec2 size)
+// void rayr_set_viewport(RayRenderer* &renderer, glm::ivec2 size)
 // {
 //     renderer->RenderTargetSize = size;
 // }
 //
-// glm::ivec2 rayr_get_viewport(std::unique_ptr<RayRenderer> &renderer)
+// glm::ivec2 rayr_get_viewport(RayRenderer* &renderer)
 // {
 //     return renderer->RenderTargetSize;
 // }
 //
-// GLuint rayr_get_rendered_texture(std::unique_ptr<RayRenderer> &renderer)
+// GLuint rayr_get_rendered_texture(RayRenderer* &renderer)
 // {
 //     std::lock_guard<std::mutex> lock(renderer->RenderDataMutex);
 //     glBindFramebuffer(GL_FRAMEBUFFER, 0);
@@ -75,13 +75,13 @@
 //     return renderer->RenderTargetTexture;
 // }
 //
-// glm::fvec4* rayr_get_render_data(std::unique_ptr<RayRenderer> &renderer)
+// glm::fvec4* rayr_get_render_data(RayRenderer* &renderer)
 // {
 //     std::lock_guard<std::mutex> lock(renderer->RenderDataMutex);
 //     return renderer->RenderData;
 // }
 //
-// void rayr_prepare(std::unique_ptr<RayRenderer> &renderer)
+// void rayr_prepare(RayRenderer* &renderer)
 // {
 //     assert(renderer->CurrentScene != nullptr);
 //     // here, scene_did_update takes a unique_ptr, but we have a shared_ptr
@@ -94,7 +94,7 @@
 //     }
 // }
 //
-// void rayr_draw(std::unique_ptr<RayRenderer> &renderer)
+// void rayr_draw(RayRenderer* &renderer)
 // {
 //     scene::scene_frame_tick(renderer->CurrentScene);
 //     // TODO: Rays should definately be bump allocated if possible, this is KBs of

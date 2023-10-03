@@ -27,8 +27,8 @@ std::unique_ptr<InfernoApp> inferno_create()
     // MOTD
     yolo::info("INFERNO HART v" INFERNO_VERSION);
 
-    std::unique_ptr<InfernoApp> app = std::make_unique<InfernoApp>();
-    app->Input = std::make_unique<InfernoInput>();
+    std::unique_ptr<InfernoApp> app = new InfernoApp;
+    app->Input = new InfernoInput;
 
     // Create window
     graphics::window_create("Inferno v" INFERNO_VERSION, 1280, 720);
