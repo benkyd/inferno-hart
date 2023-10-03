@@ -2,19 +2,16 @@
 
 #include <version.hpp>
 // #include "gui/layout.hpp"
+#include "imgui/imgui.h"
+#include "scene/scene.hpp"
 #include "window.hpp"
 
-// #include "hart_module.hpp"
-// #include "hart_directory.hpp"
-
-// #include "preview_renderer/renderer.hpp"
-// #include "preview_renderer/shader.hpp"
-// #include "renderer/dispatcher.hpp"
-// #include "renderer/renderer.hpp"
+#include "preview_renderer/renderer.hpp"
+#include "preview_renderer/shader.hpp"
+#include "scene/scene.hpp"
 #include "scene/camera.hpp"
-// #include "scene/scene.hpp"
-// #include "scene/material.hpp"
-// #include "scene/mesh.hpp"
+#include "scene/material.hpp"
+#include "scene/mesh.hpp"
 
 #include <yolo/yolo.hpp>
 
@@ -35,6 +32,24 @@ std::unique_ptr<InfernoApp> inferno_create()
 
     // Create window
     graphics::window_create("Inferno v" INFERNO_VERSION, 1280, 720);
+
+    // setup the scene
+    scene::Material basicMaterial("basic");
+
+    std::unique_ptr<graphics::Shader> basicShader = graphics::shader_create();
+    graphics::shader_load(basicShader, "res/shaders/basic.glsl");
+    graphics::shader_link(basicShader);
+
+    std::unique_ptr<scene::SceneObject> object = scene::scene_object_create();
+
+    scene::Mesh cornell;
+    cornell.loadOBJ("res/cornell-box.obj");
+    // cornell.loadOBJ("res/sponza.obj");
+    cornell.ready();
+    cornell.setMaterial(&basicMaterial);
+
+    scene::scene_object_add_mesh(object, &cornell);
+    scene::scene_add_object(app->Scene, object);
 
     return app;
 }
@@ -65,7 +80,7 @@ void inferno_preset_gui(std::unique_ptr<InfernoApp>& app)
     ImGui::DockBuilderAddNode(dockspace_id, ImGuiDockNodeFlags_DockSpace); // Add empty node
     ImGui::DockBuilderSetNodeSize(dockspace_id, { 1000, 1000 });
 
-    ImGuiID dock_main_id = dockspace_id; // This variable will track the document node, however we are not using it here as we aren't docking anything into it.
+    ImGuiID dock_main_id = dockspace_id;
     ImGuiID dock_left = ImGui::DockBuilderSplitNode(dock_main_id, ImGuiDir_Left, 0.5f, NULL, &dock_main_id);
     ImGui::DockBuilderDockWindow("Preview", dock_left);
     ImGui::DockBuilderDockWindow("Render", dock_main_id);
@@ -121,7 +136,6 @@ void inferno_stop_move_input(std::unique_ptr<InfernoApp>& app)
 
 int inferno_run(std::unique_ptr<InfernoApp>& app)
 {
-
     while (true) {
         if (!graphics::window_new_frame())
             break;
@@ -133,6 +147,11 @@ int inferno_run(std::unique_ptr<InfernoApp>& app)
             inferno_preset_gui(app);
         }
         ImGui::DockSpace(dockspace_id, ImVec2(0.0f, 0.0f), dockspace_flags);
+
+        if (glm::length(app->Input->MouseDelta) > 0.0f)
+            graphics::camera_mouse_move(app->Scene->Camera, app->Input->MouseDelta);
+        if (app->Input->MovementDelta != 0b00000000)
+            graphics::camera_move(app->Scene->Camera, app->Input->MovementDelta);
 
         // Menu Bar
         static bool showPreview = true;
@@ -162,18 +181,16 @@ int inferno_run(std::unique_ptr<InfernoApp>& app)
             } else {
                 inferno_stop_move_input(app);
             }
-            if (glm::length(app->Input->MouseDelta) > 0.0f)
-                graphics::camera_mouse_move(app->Camera, app->Input->MouseDelta);
-            if (app->Input->MovementDelta != 0b00000000)
-                graphics::camera_move(app->Camera, app->Input->MovementDelta);
 
-            graphics::raster_set_viewport(app->Camera, { ImGui::GetWindowSize().x, ImGui::GetWindowSize().y });
-            mRasterRenderer->setTargetSize({ ImGui::GetWindowSize().x, ImGui::GetWindowSize().y });
-            mRasterRenderer->prepare();
-            mRasterRenderer->draw();
+            graphics::raster_set_viewport(scene::scene_get_camera(app->Scene), { ImGui::GetWindowSize().x, ImGui::GetWindowSize().y });
+            graphics::preview_draw(app->PreviewRenderer, app->Scene);
 
-            ImGui::Image((ImTextureID)mRasterRenderer->getRenderedTexture(), inderno { mRasterRenderer->getTargetSize().x, mRasterRenderer->getTargetSize().y },
+            ImTextureID texture = (ImTextureID)graphics::preview_get_rendered_texture(app->PreviewRenderer);
+            ImGui::Image(
+                texture,
+                { ImGui::GetWindowSize().x, ImGui::GetWindowSize().y },
                 ImVec2(0, 1), ImVec2(1, 0));
+
             glBindFramebuffer(GL_FRAMEBUFFER, 0);
             ImGui::End();
         }

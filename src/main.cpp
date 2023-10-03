@@ -5,6 +5,6 @@
 
 int main(int argc, char** argv)
 {
-    std::unique_ptr<inferno::InfernoApp> inferno = inferno::inferno_create();
+    auto inferno = inferno::inferno_create();
     return inferno::inferno_run(inferno);
 }

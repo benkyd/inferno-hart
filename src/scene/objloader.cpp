@@ -10,7 +10,7 @@
 #include <assert.h>
 #include <map>
 
-using namespace inferno;
+namespace inferno::scene {
 
 struct FaceVert
 {
@@ -262,4 +262,6 @@ const float* ObjLoader::getTexCoords(int multiTexCoordLayer)
 {
     assert(multiTexCoordLayer < mTexCoordLayers);
     return (const float*)&mTexCoords[0];
+}
+
 }

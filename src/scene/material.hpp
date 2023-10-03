@@ -4,7 +4,7 @@
 
 #include <hart_graphics.hpp>
 
-namespace inferno {
+namespace inferno::scene {
 
 //class Shader;
 class HitInfo;

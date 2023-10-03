@@ -3,7 +3,7 @@
 #include <fstream>
 #include <iostream>
 
-using namespace inferno::graphics;
+namespace inferno::graphics {
 
 static std::unordered_map<GLuint, int> shader2Index = {
     { GL_VERTEX_SHADER, 0 },
@@ -178,4 +178,6 @@ void shader_use(std::unique_ptr<Shader>& shader)
 void shader_unuse(std::unique_ptr<Shader>& shader)
 {
     glUseProgram(0);
+}
+
 }

@@ -5,11 +5,12 @@
 
 #include <hart_graphics.hpp>
 
-namespace inferno {
+namespace inferno::scene {
 
 class ObjLoader;
 class Material;
 
+// TODO: This should be procedural like everything else
 struct Vert
 {
     glm::vec3 Position;
@@ -17,7 +18,7 @@ struct Vert
     glm::vec2 UV;
 };
 
-class Mesh 
+class Mesh
 {
 public:
     Mesh();
@@ -49,7 +50,7 @@ private:
 private:
     ObjLoader* mObjLoader;
     Material* mMaterial;
-    
+
     std::vector<Vert> mVerticies;
 };
 
