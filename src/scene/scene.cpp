@@ -20,7 +20,7 @@ void scene_cleanup(std::unique_ptr<Scene>& scene)
 
 void scene_add_object(std::unique_ptr<Scene>& scene, std::unique_ptr<SceneObject>& object)
 {
-    scene->Objects.push_back(std::move(object));
+    scene->Objects.emplace_back(std::move(object));
     scene->DidUpdate = true;
 }
 
