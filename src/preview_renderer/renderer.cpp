@@ -14,9 +14,9 @@
 
 namespace inferno::graphics {
 
-std::unique_ptr<PreviewRenderer> preview_create()
+PreviewRenderer* preview_create()
 {
-    std::unique_ptr<PreviewRenderer> renderer = new PreviewRenderer;
+    PreviewRenderer* renderer = new PreviewRenderer;
 
     glGenFramebuffers(1, &renderer->RenderTarget);
     glBindFramebuffer(GL_FRAMEBUFFER, renderer->RenderTarget);
@@ -47,21 +47,21 @@ std::unique_ptr<PreviewRenderer> preview_create()
     return renderer;
 }
 
-void preview_cleanup(std::unique_ptr<PreviewRenderer>& renderer)
+void preview_cleanup(PreviewRenderer* renderer)
 {
 }
 
-void preview_set_viewport(std::unique_ptr<PreviewRenderer>& renderer, std::unique_ptr<Viewport> viewport)
+void preview_set_viewport(PreviewRenderer* renderer, Viewport* viewport)
 {
 }
 
-GLuint preview_get_rendered_texture(std::unique_ptr<PreviewRenderer>& renderer)
+GLuint preview_get_rendered_texture(PreviewRenderer* renderer)
 {
     glBindFramebuffer(GL_FRAMEBUFFER, renderer->RenderTarget);
     return renderer->RenderTargetTexture;
 }
 
-void preview_draw(std::unique_ptr<PreviewRenderer>& renderer, std::unique_ptr<scene::Scene>& scene)
+void preview_draw(PreviewRenderer* renderer, scene::Scene* scene)
 {
     const glm::ivec2& viewport = graphics::raster_get_viewport(scene::scene_get_camera(scene));
     glBindFramebuffer(GL_FRAMEBUFFER, renderer->RenderTarget);
@@ -108,7 +108,7 @@ void preview_draw(std::unique_ptr<PreviewRenderer>& renderer, std::unique_ptr<sc
 
     glEnable(GL_DEPTH_TEST);
 
-    for (std::unique_ptr<scene::SceneObject>& o : scene::scene_get_renderables(scene)) {
+    for (scene::SceneObject* o : scene::scene_get_renderables(scene)) {
         for (scene::Mesh* m : scene::scene_object_get_meshs(o)) {
             glBindVertexArray(m->getVAO());
             glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m->getEBO());

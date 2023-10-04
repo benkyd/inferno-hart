@@ -33,33 +33,33 @@ typedef struct Camera {
     glm::vec3 Position = {};
     glm::vec3 LookDirection = {};
 
-    std::unique_ptr<_CameraImpl> _impl;
+    _CameraImpl* _impl;
 } Camera;
 
-std::unique_ptr<Camera> camera_create();
-void camera_cleanup(std::unique_ptr<Camera>& camera);
+Camera* camera_create();
+void camera_cleanup(Camera* camera);
 
-void camera_update(std::unique_ptr<Camera>& camera);
-bool camera_did_update(std::unique_ptr<Camera>& camera);
-void camera_new_frame(std::unique_ptr<Camera>& camera);
+void camera_update(Camera* camera);
+bool camera_did_update(Camera* camera);
+void camera_new_frame(Camera* camera);
 
-glm::mat4 camera_get_view(std::unique_ptr<Camera>& camera);
-glm::mat4 camera_get_projection(std::unique_ptr<Camera>& camera);
-glm::mat4 camera_get_look(std::unique_ptr<Camera>& camera);
+glm::mat4 camera_get_view(Camera* camera);
+glm::mat4 camera_get_projection(Camera* camera);
+glm::mat4 camera_get_look(Camera* camera);
 
-void raster_set_viewport(std::unique_ptr<Camera>& camera, glm::ivec2 viewport);
-glm::ivec2 raster_get_viewport(std::unique_ptr<Camera>& camera);
+void raster_set_viewport(Camera* camera, glm::ivec2 viewport);
+glm::ivec2 raster_get_viewport(Camera* camera);
 
-void ray_set_viewport(std::unique_ptr<Camera>& camera, glm::ivec2 viewport);
-glm::ivec2 ray_get_viewport(std::unique_ptr<Camera>& camera);
+void ray_set_viewport(Camera* camera, glm::ivec2 viewport);
+glm::ivec2 ray_get_viewport(Camera* camera);
 
-void camera_move(std::unique_ptr<Camera>& camera, uint8_t movement_delta);
-void camera_mouse_move(std::unique_ptr<Camera>& camera, glm::vec2 mouse_delta);
+void camera_move(Camera* camera, uint8_t movement_delta);
+void camera_mouse_move(Camera* camera, glm::vec2 mouse_delta);
 
-void camera_set_position(std::unique_ptr<Camera>& camera, glm::vec3 position);
-void camera_set_euler_look(std::unique_ptr<Camera>& camera, float roll,
+void camera_set_position(Camera* camera, glm::vec3 position);
+void camera_set_euler_look(Camera* camera, float roll,
     float pitch, float yaw);
-void camera_set_look(std::unique_ptr<Camera>& camera,
+void camera_set_look(Camera* camera,
     glm::vec3 look_direction);
 
 } // namespace inferno::graphics
