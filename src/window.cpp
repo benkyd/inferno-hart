@@ -60,6 +60,10 @@ void setupGLFW(std::string title)
     glfwMakeContextCurrent(Window);
     gladLoadGLLoader((GLADloadproc)glfwGetProcAddress);
     glfwSwapInterval(1); // Enable vsync
+    yolo::info("GLFW {} initialized", glfwGetVersionString());
+    yolo::info("OpenGL {} initialized", glGetString(GL_VERSION));
+    yolo::info("GLSL {} initialized", glGetString(GL_SHADING_LANGUAGE_VERSION));
+    yolo::info("INFERNO HART Running on ", glGetString(GL_RENDERER));
 }
 
 void setupImGui()

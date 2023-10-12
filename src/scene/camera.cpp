@@ -31,8 +31,8 @@ Camera* camera_create()
 
 void camera_cleanup(Camera* camera)
 {
-    camera->_impl.reset();
-    camera.reset();
+    delete camera->_impl;
+    delete camera;
 }
 
 void camera_update(Camera* camera)

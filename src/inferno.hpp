@@ -19,8 +19,8 @@ namespace scene {
 }
 
 typedef struct InfernoInput {
-    glm::vec2 MouseDelta;
-    uint8_t MovementDelta;
+    glm::vec2 MouseDelta = {0.0f, 0.0f};
+    uint8_t MovementDelta = 0;
 } InfernoInput;
 
 typedef struct InfernoApp {
