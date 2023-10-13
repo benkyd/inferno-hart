@@ -33,24 +33,24 @@ InfernoApp* inferno_create()
     // Create window
     graphics::window_create("Inferno v" INFERNO_VERSION, 1280, 720);
 
-    // setup the scene
-    scene::Material basicMaterial("basic");
-
-    graphics::Shader* basicShader = graphics::shader_create();
-    graphics::shader_load(basicShader, "res/shaders/basic.glsl");
-    graphics::shader_link(basicShader);
-
-    scene::SceneObject* object = scene::scene_object_create();
-
-    scene::Mesh cornell;
-    cornell.loadOBJ("res/cornell-box.obj");
-    // cornell.loadOBJ("res/sponza.obj");
-    cornell.ready();
-    cornell.setMaterial(&basicMaterial);
-
-    scene::scene_object_add_mesh(object, &cornell);
-    scene::scene_add_object(app->Scene, object);
-
+    // // setup the scene
+    // scene::Material basicMaterial("basic");
+    //
+    // graphics::Shader* basicShader = graphics::shader_create();
+    // graphics::shader_load(basicShader, "res/shaders/basic.glsl");
+    // graphics::shader_link(basicShader);
+    //
+    // scene::SceneObject* object = scene::scene_object_create();
+    //
+    // scene::Mesh cornell;
+    // cornell.loadOBJ("res/cornell-box.obj");
+    // // cornell.loadOBJ("res/sponza.obj");
+    // cornell.ready();
+    // cornell.setMaterial(&basicMaterial);
+    //
+    // scene::scene_object_add_mesh(object, &cornell);
+    // scene::scene_add_object(app->Scene, object);
+    //
     return app;
 }
 
