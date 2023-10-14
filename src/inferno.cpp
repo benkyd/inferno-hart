@@ -8,10 +8,10 @@
 
 #include "preview_renderer/renderer.hpp"
 #include "preview_renderer/shader.hpp"
-#include "scene/scene.hpp"
 #include "scene/camera.hpp"
 #include "scene/material.hpp"
 #include "scene/mesh.hpp"
+#include "scene/scene.hpp"
 
 #include <yolo/yolo.hpp>
 
@@ -29,6 +29,7 @@ InfernoApp* inferno_create()
 
     InfernoApp* app = new InfernoApp;
     app->Input = new InfernoInput;
+    app->Scene = scene::scene_create();
 
     // Create window
     graphics::window_create("Inferno v" INFERNO_VERSION, 1280, 720);
@@ -39,18 +40,18 @@ InfernoApp* inferno_create()
     graphics::shader_load(basicShader, "res/shaders/basic.glsl");
     graphics::shader_link(basicShader);
 
-    app->Scene = scene::scene_create();
+    scene::Mesh mesh;
+    mesh.loadOBJ("res/cornell-box.obj");
+    // mesh.loadOBJ("res/sponza.obj");
+    mesh.ready();
+    mesh.setMaterial(&basicMaterial);
+
     scene::SceneObject* object = scene::scene_object_create();
+    scene::scene_object_add_mesh(object, &mesh);
 
-    scene::Mesh cornell;
-    cornell.loadOBJ("res/cornell-box.obj");
-    // cornell.loadOBJ("res/sponza.obj");
-    cornell.ready();
-    cornell.setMaterial(&basicMaterial);
-    scene::scene_object_add_mesh(object, &cornell);
-
-    yolo::info("{} {}", app->Scene, object);
     scene::scene_add_object(app->Scene, object);
+
+    app->PreviewRenderer = graphics::preview_create();
 
     return app;
 }
@@ -141,79 +142,79 @@ int inferno_run(InfernoApp* app)
         if (!graphics::window_new_frame())
             break;
 
-        // // set the main window to the dockspace and then on the first launch set the preset
-        // ImGuiID dockspace_id = ImGui::GetID("main");
-        // static ImGuiDockNodeFlags dockspace_flags = ImGuiDockNodeFlags_PassthruCentralNode;
-        // if (ImGui::DockBuilderGetNode(dockspace_id) == NULL) {
-        //     inferno_preset_gui(app);
-        // }
-        // ImGui::DockSpace(dockspace_id, ImVec2(0.0f, 0.0f), dockspace_flags);
-        //
-        // yolo::debug("{} {} {}", app->Scene->Camera, app->Input, app->Input->MouseDelta.x);
-        // if (glm::length(app->Input->MouseDelta) > 0.0f)
-        //     graphics::camera_mouse_move(app->Scene->Camera, app->Input->MouseDelta);
-        // if (app->Input->MovementDelta != 0b00000000)
-        //     graphics::camera_move(app->Scene->Camera, app->Input->MovementDelta);
+        // set the main window to the dockspace and then on the first launch set the preset
+        ImGuiID dockspace_id = ImGui::GetID("main");
+        static ImGuiDockNodeFlags dockspace_flags = ImGuiDockNodeFlags_PassthruCentralNode;
+        if (ImGui::DockBuilderGetNode(dockspace_id) == NULL) {
+            inferno_preset_gui(app);
+        }
+        ImGui::DockSpace(dockspace_id, ImVec2(0.0f, 0.0f), dockspace_flags);
 
-        // // Menu Bar
-        // static bool showPreview = true;
-        // static bool showRenderSettings = true;
-        // static bool showDemoWindow = false;
-        // if (ImGui::BeginMenuBar()) {
-        //     if (ImGui::BeginMenu("Menu")) {
-        //         ImGui::EndMenu();
-        //     }
-        //     if (ImGui::BeginMenu("View")) {
-        //         ImGui::Checkbox("Show Preview", &showPreview);
-        //         ImGui::SameLine();
-        //         inferno_gui_help_marker("Show the preview window");
-        //         ImGui::Checkbox("Show Settings", &showRenderSettings);
-        //         ImGui::SameLine();
-        //         inferno_gui_help_marker("Show the Inferno HART settings window");
-        //         ImGui::Checkbox("Show Demo", &showDemoWindow);
-        //
-        //         ImGui::EndMenu();
-        //     }
-        //     ImGui::EndMenuBar();
-        // }
-        //
-        // if (showPreview && ImGui::Begin("Preview", nullptr, ImGuiWindowFlags_NoScrollbar)) {
-        //     if (ImGui::IsWindowHovered()) {
-        //         inferno_move_input(app);
-        //     } else {
-        //         inferno_stop_move_input(app);
-        //     }
-        //
-        //     graphics::raster_set_viewport(scene::scene_get_camera(app->Scene), { ImGui::GetWindowSize().x, ImGui::GetWindowSize().y });
-        //     graphics::preview_draw(app->PreviewRenderer, app->Scene);
-        //
-        //     ImTextureID texture = (ImTextureID)graphics::preview_get_rendered_texture(app->PreviewRenderer);
-        //     ImGui::Image(
-        //         texture,
-        //         { ImGui::GetWindowSize().x, ImGui::GetWindowSize().y },
-        //         ImVec2(0, 1), ImVec2(1, 0));
-        //
-        //     glBindFramebuffer(GL_FRAMEBUFFER, 0);
-        //     ImGui::End();
-        // }
+        if (glm::length(app->Input->MouseDelta) > 0.0f)
+            graphics::camera_mouse_move(app->Scene->Camera, app->Input->MouseDelta);
+        if (app->Input->MovementDelta != 0b00000000)
+            graphics::camera_move(app->Scene->Camera, app->Input->MovementDelta);
+
+        // Menu Bar
+        static bool showPreview = true;
+        static bool showRenderSettings = true;
+        static bool showDemoWindow = false;
+        if (ImGui::BeginMenuBar()) {
+            if (ImGui::BeginMenu("Menu")) {
+                ImGui::EndMenu();
+            }
+            if (ImGui::BeginMenu("View")) {
+                ImGui::Checkbox("Show Preview", &showPreview);
+                ImGui::SameLine();
+                inferno_gui_help_marker("Show the preview window");
+                ImGui::Checkbox("Show Settings", &showRenderSettings);
+                ImGui::SameLine();
+                inferno_gui_help_marker("Show the Inferno HART settings window");
+                ImGui::Checkbox("Show Demo", &showDemoWindow);
+
+                ImGui::EndMenu();
+            }
+            ImGui::EndMenuBar();
+        }
+
+        if (showPreview && ImGui::Begin("Preview", nullptr, ImGuiWindowFlags_NoScrollbar)) {
+            if (ImGui::IsWindowHovered()) {
+                inferno_move_input(app);
+            } else {
+                inferno_stop_move_input(app);
+            }
+
+            graphics::raster_set_viewport(scene::scene_get_camera(app->Scene),
+                { ImGui::GetWindowSize().x, ImGui::GetWindowSize().y });
+            graphics::preview_draw(app->PreviewRenderer, app->Scene);
+
+            ImTextureID texture = (ImTextureID)graphics::preview_get_rendered_texture(app->PreviewRenderer);
+            ImGui::Image(
+                texture,
+                { ImGui::GetWindowSize().x, ImGui::GetWindowSize().y },
+                ImVec2(0, 1), ImVec2(1, 0));
+
+            glBindFramebuffer(GL_FRAMEBUFFER, 0);
+            ImGui::End();
+        }
 
         // clang-format off
-        // GLenum err;
-        // while((err = glGetError()) != GL_NO_ERROR) {
-        //     std::string error;
-        //     switch (err) {
-        //         case GL_INVALID_ENUM:                  error = "INVALID_ENUM"; break;
-        //         case GL_INVALID_VALUE:                 error = "INVALID_VALUE"; break;
-        //         case GL_INVALID_OPERATION:             error = "INVALID_OPERATION"; break;
-        //         case GL_STACK_OVERFLOW:                error = "STACK_OVERFLOW"; break;
-        //         case GL_STACK_UNDERFLOW:               error = "STACK_UNDERFLOW"; break;
-        //         case GL_OUT_OF_MEMORY:                 error = "OUT_OF_MEMORY"; break;
-        //         case GL_INVALID_FRAMEBUFFER_OPERATION: error = "INVALID_FRAMEBUFFER_OPERATION"; break;
-        //         default:                               error = std::to_string((uint32_t)err); break;
-        //     }
-        //     yolo::error("[GL]: {} {}", err, error);
-        // }
-        //
+        GLenum err;
+        while((err = glGetError()) != GL_NO_ERROR) {
+            std::string error;
+            switch (err) {
+                case GL_INVALID_ENUM:                  error = "INVALID_ENUM"; break;
+                case GL_INVALID_VALUE:                 error = "INVALID_VALUE"; break;
+                case GL_INVALID_OPERATION:             error = "INVALID_OPERATION"; break;
+                case GL_STACK_OVERFLOW:                error = "STACK_OVERFLOW"; break;
+                case GL_STACK_UNDERFLOW:               error = "STACK_UNDERFLOW"; break;
+                case GL_OUT_OF_MEMORY:                 error = "OUT_OF_MEMORY"; break;
+                case GL_INVALID_FRAMEBUFFER_OPERATION: error = "INVALID_FRAMEBUFFER_OPERATION"; break;
+                default:                               error = std::to_string((uint32_t)err); break;
+            }
+            yolo::error("[GL]: {} {}", err, error);
+        }
+
         graphics::window_render();
     }
 

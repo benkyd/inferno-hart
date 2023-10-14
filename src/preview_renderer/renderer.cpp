@@ -3,6 +3,8 @@
 #include "scene/object.hpp"
 #include "shader.hpp"
 
+#include <yolo/yolo.hpp>
+
 #include <algorithm>
 #include <scene/camera.hpp>
 #include <scene/material.hpp>
@@ -109,12 +111,15 @@ void preview_draw(PreviewRenderer* renderer, scene::Scene* scene)
     glEnable(GL_DEPTH_TEST);
 
     for (scene::SceneObject* o : scene::scene_get_renderables(scene)) {
+        yolo::info("Rendering object: {}", o);
         for (scene::Mesh* m : scene::scene_object_get_meshs(o)) {
+            yolo::info("Rendering mesh: {}", m);
+            yolo::debug("Mesh VAO: {}, EBO: {}, Indicies: {}", m->getVAO(), m->getEBO(), m->getIndexCount());
+
             glBindVertexArray(m->getVAO());
             glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m->getEBO());
 
             glDrawElements(GL_TRIANGLES, m->getIndexCount() * sizeof(uint32_t), GL_UNSIGNED_INT, 0);
-
         }
     }
 

@@ -13,8 +13,8 @@ Scene* scene_create()
 {
     Scene* scene = new Scene;
     scene->Objects = std::vector<SceneObject*>();
-    scene->Camera = new graphics::Camera;
-    yolo::debug("Created scene {}", scene);
+    scene->Camera = graphics::camera_create();
+    yolo::debug("Created scene {} and camera {}", scene, scene->Camera);
     return scene;
 }
 

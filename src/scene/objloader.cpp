@@ -60,7 +60,7 @@ void ObjLoader::load(std::filesystem::path file)
 
     std::ifstream inf;
     inf.open(file.c_str(), std::ios_base::in);
-    if (!inf.is_open()) 
+    if (!inf.is_open())
     {
         yolo::error("Failed to open OBJ file ", file.string());
         return;
@@ -82,7 +82,7 @@ void ObjLoader::load(std::filesystem::path file)
     std::map<FaceVert, int, vert_less> uniqueverts;
     unsigned int vert_count = 0;
 
-    while (inf.good()) 
+    while (inf.good())
     {
         memset( (void*)line, 0, CHARACTER_COUNT);
         inf.getline(line, CHARACTER_COUNT);
@@ -94,7 +94,7 @@ void ObjLoader::load(std::filesystem::path file)
 
         // verts look like:
         //	v float float float
-        if (strcmp(token, "v") == 0) 
+        if (strcmp(token, "v") == 0)
         {
             float x=0, y=0, z=0, w=1;
             sscanf(line+2, "%f %f %f %f", &x, &y, &z, &w);
@@ -110,7 +110,7 @@ void ObjLoader::load(std::filesystem::path file)
         }
         // texcoords:
         //	vt	float float
-        else if (strcmp(token, "vt") == 0) 
+        else if (strcmp(token, "vt") == 0)
         {
             float x=0, y=0, z=0;
             sscanf(line+3, "%f %f %f", &x, &y, &z);
@@ -119,14 +119,14 @@ void ObjLoader::load(std::filesystem::path file)
 
         // keep track of smoothing groups
         // s [number|off]
-        else if (strcmp(token, "s") == 0) 
+        else if (strcmp(token, "s") == 0)
         {
 
         }
 
         // faces start with:
         //	f
-        else if (strcmp(token, "f") == 0) 
+        else if (strcmp(token, "f") == 0)
         {
 
             std::vector<int> vindices;
@@ -164,7 +164,7 @@ void ObjLoader::load(std::filesystem::path file)
 
             // being that some exporters can export either 3 or 4 sided polygon's
             // convert what ever was exported into triangles
-            for (size_t i=1; i<vindices.size()-1; ++i) 
+            for (size_t i=1; i<vindices.size()-1; ++i)
             {
                 Face face;
                 FaceVert tri;
@@ -211,25 +211,26 @@ void ObjLoader::load(std::filesystem::path file)
         mTexCoords.resize(vert_count);
 
     std::map<FaceVert, int, vert_less>::iterator iter;
-    for (iter = uniqueverts.begin(); iter != uniqueverts.end(); ++iter) 
+    for (iter = uniqueverts.begin(); iter != uniqueverts.end(); ++iter)
     {
 
         mPositions[iter->second] = verts[iter->first.vert];
 
-        if ( norms.size() > 0 ) 
+        if ( norms.size() > 0 )
         {
             mNormals[iter->second] = norms[iter->first.norm];
         }
 
-        if ( texcoords.size() > 0) 
+        if ( texcoords.size() > 0)
         {
             mTexCoords[iter->second] = texcoords[iter->first.coord];
         }
-    }    
+    }
 }
 
 int ObjLoader::getIndexCount()
 {
+    yolo::debug("Face count: {}", mFaces.size());
     return (int)mFaces.size() * 3;
 }
 
