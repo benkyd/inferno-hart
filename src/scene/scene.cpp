@@ -1,5 +1,7 @@
 #include "scene.hpp"
 
+#include <yolo/yolo.hpp>
+
 #include <memory>
 #include <scene/camera.hpp>
 #include <scene/mesh.hpp>
@@ -10,7 +12,9 @@ namespace inferno::scene {
 Scene* scene_create()
 {
     Scene* scene = new Scene;
+    scene->Objects = std::vector<SceneObject*>();
     scene->Camera = new graphics::Camera;
+    yolo::debug("Created scene {}", scene);
     return scene;
 }
 
@@ -20,7 +24,9 @@ void scene_cleanup(Scene* scene)
 
 void scene_add_object(Scene* scene, SceneObject* object)
 {
-    scene->Objects.emplace_back(std::move(object));
+    yolo::debug("Using scene {}", scene);
+    yolo::debug("Adding object to scene, no Objects: {}, adding to pool of: {}", object->Meshs.size(), scene->Objects.size());
+    scene->Objects.push_back(object);
     scene->DidUpdate = true;
 }
 
