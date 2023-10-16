@@ -193,7 +193,7 @@ bool inferno_pre(InfernoApp* app)
 {
     app->FrameCount++;
     if (app->FrameCount % 100 == 0) {
-        yolo::info("FPS: {}", 1.0 / inferno_timer_get_time(app->MainTimer).count());
+        yolo::info("Average FPS: {}", 1.0 / inferno_timer_get_time(app->MainTimer).count());
         inferno_timer_print(app->MainTimer, false);
     }
 
@@ -315,8 +315,6 @@ int inferno_run(InfernoApp* app)
         if (showDemoWindow) {
             ImGui::ShowDemoWindow();
         }
-
-        
 
         graphics::window_render();
         inferno_end(app);
