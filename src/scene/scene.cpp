@@ -1,49 +1,61 @@
 #include "scene.hpp"
 
-#include <scene/object.hpp>
+#include <yolo/yolo.hpp>
+
+#include <memory>
 #include <scene/camera.hpp>
 #include <scene/mesh.hpp>
+#include <scene/object.hpp>
 
-using namespace inferno;
+namespace inferno::scene {
 
-Scene::Scene()
+Scene* scene_create()
 {
-
+    Scene* scene = new Scene;
+    scene->Objects = std::vector<SceneObject*>();
+    scene->Camera = graphics::camera_create();
+    yolo::debug("Created scene {} and camera {}", scene, scene->Camera);
+    return scene;
 }
 
-Scene::~Scene()
+void scene_cleanup(Scene* scene)
 {
-
 }
 
-void Scene::setCamera(Camera* camera)
+void scene_add_object(Scene* scene, SceneObject* object)
 {
-    mCurrentCamera = camera;
-    mDidUpdate = true;
+    yolo::debug("Using scene {}", scene);
+    yolo::debug("Adding object to scene, no Objects: {}, adding to pool of: {}", object->Meshs.size(), scene->Objects.size());
+    yolo::debug("Object Mesh 0 is {}", object->Meshs[0]);
+    scene->Objects.push_back(object);
+    scene->DidUpdate = true;
 }
 
-Camera* Scene::getCamera()
+graphics::Camera* scene_get_camera(Scene* scene)
 {
-    return mCurrentCamera;
+    return scene->Camera;
 }
 
-void Scene::addMesh(Mesh* mesh)
+std::vector<SceneObject*>& scene_get_renderables(Scene* scene)
 {
-    mMeshs.push_back(mesh);
-    mDidUpdate = true;
+    return scene->Objects;
 }
 
-bool Scene::didUpdate()
+bool scene_did_update(Scene* scene)
 {
-	return mDidUpdate;
+    return scene->DidUpdate;
 }
 
-void Scene::newFrame()
+void scene_frame_tick(Scene* scene)
 {
-	mDidUpdate = false;
+    scene->DidUpdate = false;
 }
 
-const std::vector<Mesh*>& Scene::getRenderables()
+void scene_tick(Scene* scene)
 {
-    return mMeshs;
+    for (auto& object : scene->Objects) {
+        // Shit here like animation idk
+    }
+}
+
 }

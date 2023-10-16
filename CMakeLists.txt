@@ -10,7 +10,7 @@ target_include_directories(inferno PRIVATE "src/")
 target_include_directories(inferno PRIVATE "src/thirdparty")
 
 # Hardware Acceleration Modules (HART)
-add_subdirectory("hart/inferno-hart-cpu")
+#add_subdirectory("hart/inferno-hart-cpu")
 #add_subdirectory("hart/inferno-hart-opencl")
 
 # Compiler arguments
@@ -25,7 +25,8 @@ elseif (APPLE)
         target_compile_options(inferno PRIVATE -O1)
 endif()
 else()
-    target_compile_options(inferno PRIVATE -std=c++17)
+    target_compile_options(inferno PRIVATE -std=c++20)
+    target_compile_options(inferno PRIVATE -m64)
     if (CMAKE_BUILD_TYPE MATCHES "Debug")
         target_compile_options(inferno PRIVATE -O1)
         target_compile_options(inferno PRIVATE -Wall)
@@ -66,3 +67,4 @@ else()
         OpenGL::GL
     )
 endif()
+

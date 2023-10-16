@@ -1,37 +1,36 @@
 #pragma once
 
+#include "scene/object.hpp"
+
+#include <memory>
 #include <vector>
 
-namespace inferno {
+namespace inferno::graphics {
+class Camera;
+}
+
+namespace inferno::scene {
 
 class SceneObject;
-class Camera;
 class Mesh;
-class Sky;
 
-class Scene 
-{
-public:
-    Scene();
-    ~Scene();
+typedef struct Scene {
+    std::vector<SceneObject*> Objects;
+    graphics::Camera* Camera;
+    bool DidUpdate = false;
+} Scene;
 
-    void setCamera(Camera* camera);
-    Camera* getCamera();
-    void addMesh(Mesh* mesh);
+Scene* scene_create();
+void scene_cleanup(Scene* scene);
 
-	bool didUpdate();
-	void newFrame();
+void scene_add_object(Scene* scene, SceneObject* object);
 
-    const std::vector<Mesh*>& getRenderables();
+graphics::Camera* scene_get_camera(Scene* scene);
+std::vector<SceneObject*>& scene_get_renderables(Scene* scene);
 
-private:
-    std::vector<Mesh*> mMeshs;
+bool scene_did_update(Scene* scene);
 
-    Camera* mCurrentCamera;
-    Sky* mCurrentSky;
+void scene_frame_tick(Scene* scene);
+void scene_tick(Scene* scene);
 
-private:
-    bool mDidUpdate = false;
-};
-
-}
+} // namespace inferno::scene

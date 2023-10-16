@@ -6,7 +6,7 @@
 
 #include <iostream>
 
-using namespace inferno;
+namespace inferno::scene {
 
 Mesh::Mesh()
 {
@@ -27,7 +27,7 @@ void Mesh::loadOBJ(std::filesystem::path file)
     for (int i = 0; i < vertCount * 3; i += 3)
     {
         Vert vert;
-        vert.Position = { 
+        vert.Position = {
             mObjLoader->getPositions()[i],
             mObjLoader->getPositions()[i+1],
             mObjLoader->getPositions()[i+2],
@@ -53,17 +53,17 @@ void Mesh::ready()
     // load data into vertex buffers
 
     glBindBuffer(GL_ARRAY_BUFFER, mVBO);
-    glBufferData(GL_ARRAY_BUFFER, mVerticies.size() * sizeof(Vert), &mVerticies[0], GL_STATIC_DRAW);  
+    glBufferData(GL_ARRAY_BUFFER, mVerticies.size() * sizeof(Vert), &mVerticies[0], GL_STATIC_DRAW);
 
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, mEBO);
     glBufferData(GL_ELEMENT_ARRAY_BUFFER, mObjLoader->getIndexCount() * sizeof(uint32_t), &mObjLoader->getFaces()[0], GL_STATIC_DRAW);
 
     // set the vertex attribute pointers
     // vertex Positions
-    glEnableVertexAttribArray(0);	
+    glEnableVertexAttribArray(0);
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(Vert), (void*)0);
     // vertex normals
-    glEnableVertexAttribArray(1);	
+    glEnableVertexAttribArray(1);
     glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(Vert), (void*)offsetof(Vert, Normal));
     // vertex UV
     glEnableVertexAttribArray(2);
@@ -115,4 +115,6 @@ GLuint Mesh::getVBO()
 GLuint Mesh::getEBO()
 {
     return mEBO;
+}
+
 }

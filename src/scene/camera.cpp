@@ -1,205 +1,229 @@
 #include <scene/camera.hpp>
 
-using namespace inferno;
+namespace inferno::graphics {
 
-Camera::Camera()
+Camera* camera_create()
 {
-	mProjMatrix = glm::perspective( glm::radians(FOV), 1.0f, 0.1f, 1000.0f );
+    Camera* camera = new Camera;
+    camera->_impl = new _CameraImpl;
 
-	Roll = 0.0f;
-	Pitch = 0.0f;
-	Yaw = 0.0f;
+    camera->Views = Viewports();
+    camera->Views.Raster = glm::ivec2(800, 600);
+    camera->Views.Ray = glm::ivec2(800, 600);
 
-	Position = {};
-	LookDirection = {};
+    camera->ProjectionMatrix = glm::perspective(
+        glm::radians(camera->FOV),
+        1.0f,
+        0.1f,
+        1000.0f);
+    camera->ViewMatrix = {};
 
-	mViewMatrix = {};
+    camera->Roll = 0.0f;
+    camera->Pitch = 0.0f;
+    camera->Yaw = 0.0f;
 
-	update();
+    camera->Position = {};
+    camera->LookDirection = {};
+
+    camera_update(camera);
+    return camera;
 }
 
-Camera::Camera(int w, int h)
+void camera_cleanup(Camera* camera)
 {
-	mProjMatrix = glm::perspective(glm::radians(FOV), (float)w / (float)h, 0.1f, 1000.0f);
-
-	Roll = 0.0f;
-	Pitch = 0.0f;
-	Yaw = 0.0f;
-
-	Position = {};
-	LookDirection = {};
-
-	mViewMatrix = {};
-
-	update();
+    delete camera->_impl;
+    delete camera;
 }
 
-void Camera::update()
+void camera_update(Camera* camera)
 {
-	glm::mat4 matRoll = glm::mat4(1.0f); 
-	glm::mat4 matPitch = glm::mat4(1.0f);
-	glm::mat4 matYaw = glm::mat4(1.0f); 
+    glm::mat4 matRoll = glm::mat4(1.0f);
+    glm::mat4 matPitch = glm::mat4(1.0f);
+    glm::mat4 matYaw = glm::mat4(1.0f);
 
-	matRoll = glm::rotate(matRoll, Roll, glm::vec3(0.0f, 0.0f, 1.0f));
-	matPitch = glm::rotate(matPitch, Pitch, glm::vec3(1.0f, 0.0f, 0.0f));
-	matYaw = glm::rotate(matYaw, Yaw, glm::vec3( 0.0f, 1.0f, 0.0f));
+    matRoll = glm::rotate(matRoll, camera->Roll, glm::vec3(0.0f, 0.0f, 1.0f));
+    matPitch = glm::rotate(matPitch, camera->Pitch, glm::vec3(1.0f, 0.0f, 0.0f));
+    matYaw = glm::rotate(matYaw, camera->Yaw, glm::vec3(0.0f, 1.0f, 0.0f));
 
-	glm::mat4 rotate = matRoll * matPitch * matYaw;
-	mCameraLook = rotate;
+    glm::mat4 rotate = matRoll * matPitch * matYaw;
+    camera->LookMatrix = rotate;
 
-	glm::mat4 translate = glm::mat4(1.0f);
-	translate = glm::translate(translate, -Position);
+    glm::mat4 translate = glm::mat4(1.0f);
+    translate = glm::translate(translate, -camera->Position);
 
-	std::lock_guard<std::mutex> lock(this->_mCam);
+    std::lock_guard<std::mutex> lock(camera->_impl->CamMutex);
 
-	mViewMatrix = rotate * translate;
-	mProjMatrix = glm::perspective(glm::radians(FOV), mViewport.x / mViewport.y, 0.1f, 1000.0f);
+    camera->ViewMatrix = rotate * translate;
+    camera->ProjectionMatrix = glm::perspective(
+        glm::radians(camera->FOV),
+        static_cast<float>(camera->Views.Raster.x) / static_cast<float>(camera->Views.Raster.y),
+        0.1f,
+        1000.0f);
 
-	// Work out Look Vector
-	glm::mat4 inverseView = glm::inverse(mViewMatrix);
+    // Work out Look Vector
+    glm::mat4 inverseView = glm::inverse(camera->ViewMatrix);
 
-	LookDirection.x = inverseView[2][0];
-	LookDirection.y = inverseView[2][1];
-	LookDirection.z = inverseView[2][2];
+    camera->LookDirection.x = inverseView[2][0];
+    camera->LookDirection.y = inverseView[2][1];
+    camera->LookDirection.z = inverseView[2][2];
 
-	mDidUpdate = true;
+    camera->_impl->DidUpdate = true;
 }
 
-bool Camera::didUpdate()
+bool camera_did_update(Camera* camera)
 {
-	std::lock_guard<std::mutex> lock(this->_mCam);
-	return mDidUpdate;
+    std::lock_guard<std::mutex> lock(camera->_impl->CamMutex);
+    return camera->_impl->DidUpdate;
 }
 
-void Camera::newFrame()
+void camera_new_frame(Camera* camera)
 {
-	std::lock_guard<std::mutex> lock(this->_mCam);
-	mDidUpdate = false;
+    std::lock_guard<std::mutex> lock(camera->_impl->CamMutex);
+    camera->_impl->DidUpdate = false;
 }
 
-glm::mat4 Camera::getViewMatrix()
+glm::mat4 camera_get_view(Camera* camera)
 {
-	std::lock_guard<std::mutex> lock(this->_mCam);
-	return mViewMatrix;
+    std::lock_guard<std::mutex> lock(camera->_impl->CamMutex);
+    return camera->ViewMatrix;
 }
 
-glm::mat4 Camera::getProjectionMatrix()
+glm::mat4 camera_get_projection(Camera* camera)
 {
-	std::lock_guard<std::mutex> lock(this->_mCam);
-	return mProjMatrix;
+    std::lock_guard<std::mutex> lock(camera->_impl->CamMutex);
+    return camera->ProjectionMatrix;
 }
 
-glm::mat4 Camera::getCameraLook()
+glm::mat4 camera_get_look(Camera* camera)
 {
-	std::lock_guard<std::mutex> lock(this->_mCam);
-	return mCameraLook;
+    std::lock_guard<std::mutex> lock(camera->_impl->CamMutex);
+    return camera->LookMatrix;
 }
 
-void Camera::setRasterViewport(glm::vec2 viewport)
+void raster_set_viewport(Camera* camera, glm::ivec2 viewport)
 {
-	std::lock_guard<std::mutex> lock(this->_mCam);
-	mViewport =  viewport;
-	mProjMatrix = glm::perspective(glm::radians(FOV), (float)viewport.x / (float)viewport.y, 0.1f, 1000.0f);
+    std::lock_guard<std::mutex> lock(camera->_impl->CamMutex);
+    camera->Views.Raster = viewport;
+    camera->ProjectionMatrix = glm::perspective(
+        glm::radians(camera->FOV),
+        static_cast<float>(viewport.x) / static_cast<float>(viewport.y),
+        0.1f,
+        1000.0f);
 }
 
-void Camera::moveCamera(uint8_t posDelta)
+glm::ivec2 raster_get_viewport(Camera* camera)
 {
-	if (posDelta == 0) return;
-
-	// Rotate by camera direction
-	glm::vec3 delta(0.0f);
-	
-	glm::mat2 rotate {
-		cos(Yaw), -sin(Yaw),
-		sin(Yaw), cos(Yaw)
-	};
-
-	glm::vec2 f(0.0, 1.0);
-	f = f * rotate;
-
-	if (posDelta & 0x80) {
-		delta.z -= f.y;
-		delta.x -= f.x;
-	}
-	if (posDelta & 0x20) {
-		delta.z += f.y;
-		delta.x += f.x;
-	}
-	if (posDelta & 0x40) {
-		delta.z += f.x;
-		delta.x += -f.y;
-	}
-	if (posDelta & 0x10) {
-		delta.z -= f.x;
-		delta.x -= -f.y;
-	}
-	if (posDelta & 0x8) {
-		delta.y += 1;
-	}
-	if (posDelta & 0x4) {
-		delta.y -= 1;
-	}
-
-	// get current view matrix
-	glm::mat4 mat = getViewMatrix();
-	glm::vec3 forward(mat[0][2], mat[1][2], mat[2][2]);
-	glm::vec3 strafe(mat[0][0], mat[1][0], mat[2][0]);
-
-	// forward vector must be negative to look forward. 
-	// read :http://in2gpu.com/2015/05/17/view-matrix/
-	Position += delta * CameraSpeed;
-
-	// update the view matrix
-	update();
+    std::lock_guard<std::mutex> lock(camera->_impl->CamMutex);
+    return camera->Views.Raster;
 }
 
-void Camera::mouseMoved(glm::vec2 mouseDelta)
+void ray_set_viewport(Camera* camera, glm::ivec2 viewport)
 {
-	if (glm::length(mouseDelta) == 0) return;
-	// note that yaw and pitch must be converted to radians.
-	// this is done in update() by glm::rotate
-	Yaw += MouseSensitivity * (mouseDelta.x / 100);
-	Pitch += MouseSensitivity * (mouseDelta.y / 100);
-	Pitch = glm::clamp<float>(Pitch, -M_PI / 2, M_PI / 2);
-
-	update();
+    std::lock_guard<std::mutex> lock(camera->_impl->CamMutex);
+    camera->Views.Ray = viewport;
 }
 
-void Camera::setPosition(glm::vec3 position)
+glm::ivec2 ray_get_viewport(Camera* camera)
 {
-	Position = position;
-
-	update();
+    std::lock_guard<std::mutex> lock(camera->_impl->CamMutex);
+    return camera->Views.Ray;
 }
 
-void Camera::setEulerLook(float roll, float pitch, float yaw)
+void camera_move(Camera* camera, uint8_t movement_delta)
 {
-	Roll = roll; Pitch = pitch; Yaw = yaw;
-	LookDirection.x = cos(Yaw) * cos(Pitch);
-	LookDirection.y = sin(Yaw) * cos(Pitch);
-	LookDirection.z = sin(Pitch);
+    if (movement_delta == 0)
+        return;
 
-	update();
+    // Rotate by camera direction
+    glm::vec3 delta(0.0f);
+
+    glm::mat2 rotate {
+        cos(camera->Yaw), -sin(camera->Yaw),
+        sin(camera->Yaw), cos(camera->Yaw)
+    };
+
+    glm::vec2 f(0.0, 1.0);
+    f = f * rotate;
+
+    if (movement_delta & 0x80) {
+        delta.z -= f.y;
+        delta.x -= f.x;
+    }
+    if (movement_delta & 0x20) {
+        delta.z += f.y;
+        delta.x += f.x;
+    }
+    if (movement_delta & 0x40) {
+        delta.z += f.x;
+        delta.x += -f.y;
+    }
+    if (movement_delta & 0x10) {
+        delta.z -= f.x;
+        delta.x -= -f.y;
+    }
+    if (movement_delta & 0x8) {
+        delta.y += 1;
+    }
+    if (movement_delta & 0x4) {
+        delta.y -= 1;
+    }
+
+    // get current view matrix
+    glm::mat4 mat = camera_get_view(camera);
+    glm::vec3 forward(mat[0][2], mat[1][2], mat[2][2]);
+    glm::vec3 strafe(mat[0][0], mat[1][0], mat[2][0]);
+
+    // forward vector must be negative to look forward.
+    // read :http://in2gpu.com/2015/05/17/view-matrix/
+    camera->Position += delta * camera->Speed;
+
+    // update the view matrix
+    camera_update(camera);
 }
 
-void Camera::setLook(glm::vec3 lookDirection)
+void camera_mouse_move(Camera* camera, glm::vec2 mouse_delta)
 {
-	LookDirection = lookDirection;
-	Pitch = asin(-lookDirection.y);
-	Yaw = atan2(lookDirection.x, lookDirection.z);
+    if (glm::length(mouse_delta) == 0)
+        return;
+    // note that yaw and pitch must be converted to radians.
+    // this is done in update() by glm::rotate
+    camera->Yaw += camera->MouseSensitivity * (mouse_delta.x / 100);
+    camera->Pitch += camera->MouseSensitivity * (mouse_delta.y / 100);
+    camera->Pitch = glm::clamp<float>(camera->Pitch, -M_PI / 2, M_PI / 2);
 
-	update();
+    camera_update(camera);
 }
 
-void Camera::setRayViewport(glm::vec2 viewport)
+void camera_set_position(Camera* camera, glm::vec3 position)
 {
-	std::lock_guard<std::mutex> lock(this->_mCam);
-	mRayViewport = viewport;
+    camera->Position = position;
+    camera_update(camera);
 }
 
-glm::vec2 Camera::getRayViewport()
+void camera_set_euler_look(Camera* camera, float roll, float pitch, float yaw)
 {
-	std::lock_guard<std::mutex> lock(this->_mCam);
-	return mRayViewport;
+    camera->Roll = roll;
+    camera->Pitch = pitch;
+    camera->Yaw = yaw;
+    camera->LookDirection.x = cos(camera->Yaw) * cos(camera->Pitch);
+    camera->LookDirection.y = sin(camera->Yaw) * cos(camera->Pitch);
+    camera->LookDirection.z = sin(camera->Pitch);
+
+    camera_update(camera);
 }
 
+void camera_set_look(Camera* camera, glm::vec3 look_direction)
+{
+    camera->LookDirection = look_direction;
+    camera->Pitch = asin(-look_direction.y);
+    camera->Yaw = atan2(look_direction.x, look_direction.z);
+
+    camera_update(camera);
+}
+
+glm::vec3 camera_get_position(Camera* camera)
+{
+    return camera->Position;
+}
+
+}

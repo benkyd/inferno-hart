@@ -5,13 +5,6 @@
 
 int main(int argc, char** argv)
 {
-    try
-    {
-        return inferno::Inferno::GetInstance().run();
-    }
-    catch (std::exception e)
-    {
-        yolo::error(e.what());
-        return -1;
-    }
+    auto inferno = inferno::inferno_create();
+    return inferno::inferno_run(inferno);
 }

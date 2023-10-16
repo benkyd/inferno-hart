@@ -5,7 +5,7 @@
 
 #include <hart_graphics.hpp>
 
-namespace inferno {
+namespace inferno::scene {
 
 struct Face
 {

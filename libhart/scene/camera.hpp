@@ -3,56 +3,65 @@
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 
+#include <memory>
 #include <mutex>
 
-namespace inferno {
+namespace inferno::graphics {
 
-class Camera {
-public:
-	Camera();
-	Camera(int w, int h);
+typedef struct _CameraImpl {
+    bool DidUpdate;
+    std::mutex CamMutex;
+} _CameraImpl;
 
-	void update();
-	bool didUpdate();
-	void newFrame();
+typedef struct Viewport {
+    glm::ivec2 Raster;
+    glm::ivec2 Ray;
+} Viewports;
 
-	glm::mat4 getViewMatrix();
-	glm::mat4 getProjectionMatrix();
-	glm::mat4 getCameraLook();
+typedef struct Camera {
+    glm::mat4 ViewMatrix;
+    glm::mat4 ProjectionMatrix;
+    glm::mat4 LookMatrix;
 
-	void setRasterViewport(glm::vec2 viewport);
+    Viewport Views;
 
-	// Keyboard
-	void moveCamera(uint8_t posDelta);
-	// Mouse Delta
-	void mouseMoved(glm::vec2 mouseDelta);
+    float MouseSensitivity = 0.4f;
+    float Speed = 0.1f;
+    float Roll, Pitch, Yaw;
+    float FOV = 45.0f;
 
-	void setPosition(glm::vec3 position);
-	void setEulerLook(float roll, float pitch, float yaw);
-	void setLook(glm::vec3 lookDirection);
+    glm::vec3 Position = {};
+    glm::vec3 LookDirection = {};
 
-public:
-	void setRayViewport(glm::vec2 viewport);
-	glm::vec2 getRayViewport();
+    _CameraImpl* _impl;
+} Camera;
 
-public:
-	// necessary evil
-	float MouseSensitivity = 0.4f;
-	float CameraSpeed = 0.1f;
-	float Roll, Pitch, Yaw;
-	float FOV = 45.0f;
-	glm::vec3 Position = {};
-	glm::vec3 LookDirection = {};
+Camera* camera_create();
+void camera_cleanup(Camera* camera);
 
-private:
-	glm::vec2 mViewport = { 100.0f, 100.0f };
-	glm::vec2 mRayViewport = { 200.0f, 200.0f };
-	glm::mat4 mViewMatrix = {};
-	glm::mat4 mProjMatrix = {};
-	glm::mat4 mCameraLook = {};
-	bool mDidUpdate;
+void camera_update(Camera* camera);
+bool camera_did_update(Camera* camera);
+void camera_new_frame(Camera* camera);
 
-	std::mutex _mCam;
-};
+glm::mat4 camera_get_view(Camera* camera);
+glm::mat4 camera_get_projection(Camera* camera);
+glm::mat4 camera_get_look(Camera* camera);
 
-}
+void raster_set_viewport(Camera* camera, glm::ivec2 viewport);
+glm::ivec2 raster_get_viewport(Camera* camera);
+
+void ray_set_viewport(Camera* camera, glm::ivec2 viewport);
+glm::ivec2 ray_get_viewport(Camera* camera);
+
+void camera_move(Camera* camera, uint8_t movement_delta);
+void camera_mouse_move(Camera* camera, glm::vec2 mouse_delta);
+
+void camera_set_position(Camera* camera, glm::vec3 position);
+void camera_set_euler_look(Camera* camera, float roll,
+    float pitch, float yaw);
+void camera_set_look(Camera* camera,
+    glm::vec3 look_direction);
+
+glm::vec3 camera_get_position(Camera* camera);
+
+} // namespace inferno::graphics

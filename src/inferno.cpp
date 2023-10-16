@@ -1,54 +1,72 @@
 #include "inferno.hpp"
 
 #include <version.hpp>
-#include "gui/layout.hpp"
+// #include "gui/layout.hpp"
+#include "imgui/imgui.h"
+#include "scene/scene.hpp"
 #include "window.hpp"
-
-#include "hart_module.hpp"
-#include "hart_directory.hpp"
 
 #include "preview_renderer/renderer.hpp"
 #include "preview_renderer/shader.hpp"
-#include "renderer/dispatcher.hpp"
-#include "renderer/renderer.hpp"
 #include "scene/camera.hpp"
-#include "scene/scene.hpp"
 #include "scene/material.hpp"
 #include "scene/mesh.hpp"
+#include "scene/scene.hpp"
 
 #include <yolo/yolo.hpp>
 
+#include <chrono>
 #include <iostream>
 #include <memory>
-#include <chrono>
 #include <numeric>
 
-using namespace inferno;
+namespace inferno {
 
-Inferno::Inferno()
+InfernoApp* inferno_create()
 {
     // MOTD
     yolo::info("INFERNO HART v" INFERNO_VERSION);
 
+    InfernoApp* app = new InfernoApp;
+    app->Input = new InfernoInput;
+    app->Scene = scene::scene_create();
+
     // Create window
-    mWin = &Window::GetInstance();
-    mWin->init("Inferno v" INFERNO_VERSION, 1280, 720);
+    graphics::window_create("Inferno v" INFERNO_VERSION, 1280, 720);
 
-    mRasterRenderer = new RasterizeRenderer();
-    mRayRenderer = new RenderDispatcher();
-    mScene = new Scene();
+    // setup the scene
+    scene::Material* basicMaterial = new scene::Material("basic");
+    graphics::Shader* basicShader = graphics::shader_create();
+    graphics::shader_load(basicShader, "res/shaders/basic.glsl");
+    graphics::shader_link(basicShader);
+    basicMaterial->setGlShader(basicShader);
+
+    scene::Mesh* mesh = new scene::Mesh;
+    // mesh->loadOBJ("res/cornell-box.obj");
+    mesh->loadOBJ("res/sponza.obj");
+    mesh->ready();
+    mesh->setMaterial(basicMaterial);
+
+    scene::SceneObject* object = scene::scene_object_create();
+    scene::scene_object_add_mesh(object, mesh);
+
+    scene::scene_add_object(app->Scene, object);
+
+    app->PreviewRenderer = graphics::preview_create();
+
+    return app;
 }
 
-Inferno::~Inferno()
+void inferno_cleanup(InfernoApp* app)
 {
-
+    graphics::window_cleanup();
+    delete app;
 }
 
-static void HelpMarker(const char* desc)
+static void inferno_gui_help_marker(const char* desc)
 {
     ImGui::TextDisabled("(?)");
-    if (ImGui::IsItemHovered(ImGuiHoveredFlags_DelayShort))
-    {
+    if (ImGui::IsItemHovered(ImGuiHoveredFlags_DelayShort)) {
         ImGui::BeginTooltip();
         ImGui::PushTextWrapPos(ImGui::GetFontSize() * 35.0f);
         ImGui::TextUnformatted(desc);
@@ -57,15 +75,15 @@ static void HelpMarker(const char* desc)
     }
 }
 
-void Inferno::uiPreset()
+void inferno_preset_gui(InfernoApp* app)
 {
     ImGuiID dockspace_id = ImGui::GetID("main");
 
     ImGui::DockBuilderRemoveNode(dockspace_id); // Clear out existing layout
     ImGui::DockBuilderAddNode(dockspace_id, ImGuiDockNodeFlags_DockSpace); // Add empty node
-    ImGui::DockBuilderSetNodeSize(dockspace_id, {1000, 1000});
+    ImGui::DockBuilderSetNodeSize(dockspace_id, { 1000, 1000 });
 
-    ImGuiID dock_main_id = dockspace_id; // This variable will track the document node, however we are not using it here as we aren't docking anything into it.
+    ImGuiID dock_main_id = dockspace_id;
     ImGuiID dock_left = ImGui::DockBuilderSplitNode(dock_main_id, ImGuiDir_Left, 0.5f, NULL, &dock_main_id);
     ImGui::DockBuilderDockWindow("Preview", dock_left);
     ImGui::DockBuilderDockWindow("Render", dock_main_id);
@@ -74,107 +92,85 @@ void Inferno::uiPreset()
     yolo::info("LAYOUT SET TO DEFAULT");
 }
 
-void Inferno::moveInput()
+void inferno_move_input(InfernoApp* app)
 {
     static GLFWcursor* cursor = glfwCreateStandardCursor(GLFW_HAND_CURSOR);
-    glfwSetCursor(mWin->getGLFWWindow(), cursor);
+    glfwSetCursor(graphics::window_get_glfw_window(), cursor);
 
     // KBD & MOUSE
     // pan only get on hold
     static glm::dvec2 lastMousePos;
     static int firstClick = 0;
-    if (glfwGetMouseButton(mWin->getGLFWWindow(), GLFW_MOUSE_BUTTON_1) == GLFW_PRESS)
-    {
+    if (glfwGetMouseButton(graphics::window_get_glfw_window(), GLFW_MOUSE_BUTTON_1) == GLFW_PRESS) {
         firstClick++;
-        if (firstClick == 1)
-        {
-            glfwGetCursorPos(mWin->getGLFWWindow(), &lastMousePos.x, &lastMousePos.y);
+        if (firstClick == 1) {
+            glfwGetCursorPos(graphics::window_get_glfw_window(), &lastMousePos.x, &lastMousePos.y);
         }
         glm::dvec2 tempMousePos = { 0.0f, 0.0f };
-        glfwGetCursorPos(mWin->getGLFWWindow(), &tempMousePos.x, &tempMousePos.y);
-        mouseDelta = lastMousePos - tempMousePos;
+        glfwGetCursorPos(graphics::window_get_glfw_window(), &tempMousePos.x, &tempMousePos.y);
+        app->Input->MouseDelta = lastMousePos - tempMousePos;
         lastMousePos = tempMousePos;
-    } else
-    {
+    } else {
         firstClick = 0;
-        mouseDelta = { 0.0f, 0.0f };
+        app->Input->MouseDelta = { 0.0f, 0.0f };
         lastMousePos = { 0.0f, 0.0f };
     }
 
-    movementDelta = 0b00000000;
-    if (glfwGetKey(mWin->getGLFWWindow(), GLFW_KEY_W) == GLFW_PRESS)
-        movementDelta |= 0b10000000;
-    if (glfwGetKey(mWin->getGLFWWindow(), GLFW_KEY_A) == GLFW_PRESS)
-        movementDelta |= 0b01000000;
-    if (glfwGetKey(mWin->getGLFWWindow(), GLFW_KEY_S) == GLFW_PRESS)
-        movementDelta |= 0b00100000;
-    if (glfwGetKey(mWin->getGLFWWindow(), GLFW_KEY_D) == GLFW_PRESS)
-        movementDelta |= 0b00010000;
-    if (glfwGetKey(mWin->getGLFWWindow(), GLFW_KEY_SPACE) == GLFW_PRESS)
-        movementDelta |= 0b00001000;
-    if (glfwGetKey(mWin->getGLFWWindow(), GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS)
-        movementDelta |= 0b00000100;
+    app->Input->MovementDelta = 0b00000000;
+    if (glfwGetKey(graphics::window_get_glfw_window(), GLFW_KEY_W) == GLFW_PRESS)
+        app->Input->MovementDelta |= 0b10000000;
+    if (glfwGetKey(graphics::window_get_glfw_window(), GLFW_KEY_A) == GLFW_PRESS)
+        app->Input->MovementDelta |= 0b01000000;
+    if (glfwGetKey(graphics::window_get_glfw_window(), GLFW_KEY_S) == GLFW_PRESS)
+        app->Input->MovementDelta |= 0b00100000;
+    if (glfwGetKey(graphics::window_get_glfw_window(), GLFW_KEY_D) == GLFW_PRESS)
+        app->Input->MovementDelta |= 0b00010000;
+    if (glfwGetKey(graphics::window_get_glfw_window(), GLFW_KEY_SPACE) == GLFW_PRESS)
+        app->Input->MovementDelta |= 0b00001000;
+    if (glfwGetKey(graphics::window_get_glfw_window(), GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS)
+        app->Input->MovementDelta |= 0b00000100;
 }
 
-void Inferno::stopMoveInput()
+void inferno_stop_move_input(InfernoApp* app)
 {
-    movementDelta = 0x0;
-    mouseDelta = { 0.0f, 0.0f };
+    app->Input->MovementDelta = 0x0;
+    app->Input->MouseDelta = { 0.0f, 0.0f };
 }
 
-int Inferno::run()
+int inferno_run(InfernoApp* app)
 {
-    Material basicMaterial("basic");
-    Shader basicShader;
-    basicShader.load("res/shaders/basic.glsl")->link();
-    basicMaterial.setGlShader(&basicShader);
-
-    Mesh cornell;
-    cornell.loadOBJ("res/cornell-box.obj");
-    //cornell.loadOBJ("res/sponza.obj");
-    cornell.ready();
-    cornell.setMaterial(&basicMaterial);
-    mScene->addMesh(&cornell);
-
-    // Mesh dragon;
-    // dragon.loadOBJ("res/dragon-cornell-size.obj");
-    // dragon.ready();
-    // dragon.setMaterial(&basicMaterial);
-    // mScene->addMesh(&dragon);
-
-    Camera camera;
-    mScene->setCamera(&camera);
-
-    mRasterRenderer->setScene(mScene);
-    mRayRenderer->getRenderer()->setScene(mScene);
-
-    while (true)
-    {
-        if (!mWin->newFrame()) { break; }
-        camera.newFrame();
+    while (true) {
+        if (!graphics::window_new_frame())
+            break;
 
         // set the main window to the dockspace and then on the first launch set the preset
         ImGuiID dockspace_id = ImGui::GetID("main");
         static ImGuiDockNodeFlags dockspace_flags = ImGuiDockNodeFlags_PassthruCentralNode;
-        if (ImGui::DockBuilderGetNode(dockspace_id) == NULL) { this->uiPreset(); }
+        if (ImGui::DockBuilderGetNode(dockspace_id) == NULL) {
+            inferno_preset_gui(app);
+        }
         ImGui::DockSpace(dockspace_id, ImVec2(0.0f, 0.0f), dockspace_flags);
+
+        if (glm::length(app->Input->MouseDelta) > 0.0f)
+            graphics::camera_mouse_move(app->Scene->Camera, app->Input->MouseDelta);
+        if (app->Input->MovementDelta != 0b00000000)
+            graphics::camera_move(app->Scene->Camera, app->Input->MovementDelta);
 
         // Menu Bar
         static bool showPreview = true;
         static bool showRenderSettings = true;
         static bool showDemoWindow = false;
-        if (ImGui::BeginMenuBar())
-        {
-            if (ImGui::BeginMenu("Menu"))
-            {
+        if (ImGui::BeginMenuBar()) {
+            if (ImGui::BeginMenu("Menu")) {
                 ImGui::EndMenu();
             }
-            if (ImGui::BeginMenu("View"))
-            {
+            if (ImGui::BeginMenu("View")) {
                 ImGui::Checkbox("Show Preview", &showPreview);
-                ImGui::SameLine(); HelpMarker("Show the preview window");
+                ImGui::SameLine();
+                inferno_gui_help_marker("Show the preview window");
                 ImGui::Checkbox("Show Settings", &showRenderSettings);
-                ImGui::SameLine(); HelpMarker("Show the Inferno HART settings window");
+                ImGui::SameLine();
+                inferno_gui_help_marker("Show the Inferno HART settings window");
                 ImGui::Checkbox("Show Demo", &showDemoWindow);
 
                 ImGui::EndMenu();
@@ -182,118 +178,73 @@ int Inferno::run()
             ImGui::EndMenuBar();
         }
 
-        if (showPreview && ImGui::Begin("Preview", nullptr, ImGuiWindowFlags_NoScrollbar))
-        {
-            if (ImGui::IsWindowHovered())
-            {
-                this->moveInput();
-            } else
-            {
-                this->stopMoveInput();
+        if (showPreview && ImGui::Begin("Preview", nullptr, ImGuiWindowFlags_NoScrollbar)) {
+            if (ImGui::IsWindowHovered()) {
+                inferno_move_input(app);
+            } else {
+                inferno_stop_move_input(app);
             }
-            if (glm::length(mouseDelta) > 0.0f) camera.mouseMoved(mouseDelta);
-            if (movementDelta != 0b00000000) camera.moveCamera(movementDelta);
 
-            camera.setRasterViewport({ImGui::GetWindowSize().x, ImGui::GetWindowSize().y});
-            mRasterRenderer->setTargetSize({ImGui::GetWindowSize().x, ImGui::GetWindowSize().y});
-            mRasterRenderer->prepare();
-            mRasterRenderer->draw();
-            ImGui::Image((ImTextureID)mRasterRenderer->getRenderedTexture(),
-                { mRasterRenderer->getTargetSize().x, mRasterRenderer->getTargetSize().y },
-                ImVec2(0,1), ImVec2(1,0));
+            graphics::raster_set_viewport(scene::scene_get_camera(app->Scene),
+                { ImGui::GetWindowSize().x, ImGui::GetWindowSize().y });
+            graphics::preview_draw(app->PreviewRenderer, app->Scene);
+
+            ImTextureID texture = (ImTextureID)graphics::preview_get_rendered_texture(app->PreviewRenderer);
+            ImGui::Image(
+                texture,
+                { ImGui::GetWindowSize().x, ImGui::GetWindowSize().y },
+                ImVec2(0, 1), ImVec2(1, 0));
+
             glBindFramebuffer(GL_FRAMEBUFFER, 0);
             ImGui::End();
         }
 
-        if (ImGui::Begin("Render", nullptr, ImGuiWindowFlags_NoScrollbar))
-        {
-            ImGui::Image((ImTextureID)mRayRenderer->getLatestTexture(),
-                { mRayRenderer->getRenderer()->getTargetSize().x,
-                  mRayRenderer->getRenderer()->getTargetSize().y },
-                ImVec2(0,1), ImVec2(1,0));
-            glBindTexture(GL_TEXTURE_2D, 0);
-            ImGui::End();
-        }
-
-        if (showRenderSettings && ImGui::Begin("Inferno HART"))
-        {
-            // start/stop
-            bool isRenderRunning = mRayRenderer->progressionStatus();
-            if (isRenderRunning)
-            {
-                ImGui::PushItemFlag(ImGuiItemFlags_Disabled, true); ImGui::PushStyleVar(ImGuiStyleVar_Alpha, ImGui::GetStyle().Alpha * 0.5f);
-                ImGui::Button("Start Render"); ImGui::SameLine();
-                ImGui::PopItemFlag(); ImGui::PopStyleVar();
-                if (ImGui::Button("Stop Render"))
-                    mRayRenderer->stopProgression();
-            } else {
-                if (ImGui::Button("Start Render"))
-                    mRayRenderer->startProgression();
-                ImGui::SameLine();
-                ImGui::PushItemFlag(ImGuiItemFlags_Disabled, true); ImGui::PushStyleVar(ImGuiStyleVar_Alpha, ImGui::GetStyle().Alpha * 0.5f);
-                ImGui::Button("Stop Render");
-                ImGui::PopItemFlag(); ImGui::PopStyleVar();
-            }
-
-            if (ImGui::TreeNode("Render"))
-            {
-                // modules
-                HHM* hhm = mRayRenderer->getTopModule();
-                if (ImGui::TreeNode("Accelerator"))
-                {
-                    ImGui::Button("Find Accelerator...");
-                    ImGui::Text("Select Accelerator:");
-                    if (ImGui::BeginListBox("", ImVec2(-FLT_MIN, 3 * ImGui::GetTextLineHeightWithSpacing())))
-                    {
-                        std::vector<std::string> moduleNames = hhm->getModuleDirectory()->getModules();
-                        int active = hhm->getModuleDirectory()->getActiveIndex();
-                        for (int n = 0; n < moduleNames.size(); n++)
-                        {
-                            const bool isSelected = (active == n);
-                            if (ImGui::Selectable(moduleNames[n].c_str(), isSelected))
-                                 hhm->getModuleDirectory()->setActiveIndex(n);
-                            if (isSelected)
-                                ImGui::SetItemDefaultFocus();
-                        }
-                        ImGui::EndListBox();
-                    }
-                    auto* activeCredit = hhm->getModuleDirectory()->getActiveCredit();
-                    ImGui::Text(activeCredit->ModuleName.c_str());
-                    ImGui::SameLine();
-                    ImGui::Text("v%i.%i.%i", activeCredit->VersionMajor,
-                                             activeCredit->VersionMinor,
-                                             activeCredit->VersionBuild);
-                    ImGui::BulletText(activeCredit->ModuleDesc.c_str());
-                    ImGui::BulletText("Authored by %s", activeCredit->AuthorName.c_str());
-
-                    ImGui::TreePop();
-                }
-                ImGui::TreePop();
-            }
-
-            if (ImGui::TreeNode("Camera"))
-            {
+        if (showRenderSettings && ImGui::Begin("Inferno HART")) {
+            if (ImGui::TreeNode("Camera")) {
                 ImGui::PushItemWidth(100);
                 ImGui::Text("Camera Position X,Y,Z");
 
+                graphics::Camera* camera = scene::scene_get_camera(app->Scene);
+
                 bool positionUpdated = false;
-                ImGui::DragFloat("X", &camera.Position.x, 0.01f, -FLT_MAX, FLT_MAX, "%.2f", ImGuiSliderFlags_None); ImGui::SameLine(); if (ImGui::IsItemEdited()) positionUpdated = true;
-                ImGui::DragFloat("Y", &camera.Position.y, 0.01f, -FLT_MAX, FLT_MAX, "%.2f", ImGuiSliderFlags_None); ImGui::SameLine(); if (ImGui::IsItemEdited()) positionUpdated = true;
-                ImGui::DragFloat("Z", &camera.Position.z, 0.01f, -FLT_MAX, FLT_MAX, "%.2f", ImGuiSliderFlags_None); if (ImGui::IsItemEdited()) positionUpdated = true;
-                if (positionUpdated) camera.setPosition(camera.Position);
+                ImGui::DragFloat("X", &camera->Position.x, 0.01f, -FLT_MAX, FLT_MAX, "%.2f", ImGuiSliderFlags_None);
+                ImGui::SameLine();
+                if (ImGui::IsItemEdited())
+                    positionUpdated = true;
+                ImGui::DragFloat("Y", &camera->Position.y, 0.01f, -FLT_MAX, FLT_MAX, "%.2f", ImGuiSliderFlags_None);
+                ImGui::SameLine();
+                if (ImGui::IsItemEdited())
+                    positionUpdated = true;
+                ImGui::DragFloat("Z", &camera->Position.z, 0.01f, -FLT_MAX, FLT_MAX, "%.2f", ImGuiSliderFlags_None);
+                if (ImGui::IsItemEdited())
+                    positionUpdated = true;
+                if (positionUpdated)
+                    graphics::camera_set_position(camera, graphics::camera_get_position(camera));
 
                 bool viewUpdated = false;
                 ImGui::Text("Camera Look Yaw, Pitch, Roll");
-                ImGui::DragFloat("Yaw", &camera.Yaw, 0.01f, -FLT_MAX, FLT_MAX, "%.2f", ImGuiSliderFlags_None); ImGui::SameLine(); if (ImGui::IsItemEdited()) viewUpdated = true;
-                ImGui::DragFloat("Pitch", &camera.Pitch, 0.01f, -FLT_MAX, FLT_MAX, "%.2f", ImGuiSliderFlags_None); ImGui::SameLine(); if (ImGui::IsItemEdited()) viewUpdated = true;
-                ImGui::DragFloat("Roll", &camera.Roll, 0.01f, -FLT_MAX, FLT_MAX, "%.2f", ImGuiSliderFlags_None); if (ImGui::IsItemEdited()) viewUpdated = true;
+                ImGui::DragFloat("Yaw", &camera->Yaw, 0.01f, -FLT_MAX, FLT_MAX, "%.2f", ImGuiSliderFlags_None);
+                ImGui::SameLine();
+                if (ImGui::IsItemEdited())
+                    viewUpdated = true;
+                ImGui::DragFloat("Pitch", &camera->Pitch, 0.01f, -FLT_MAX, FLT_MAX, "%.2f", ImGuiSliderFlags_None);
+                ImGui::SameLine();
+                if (ImGui::IsItemEdited())
+                    viewUpdated = true;
+                ImGui::DragFloat("Roll", &camera->Roll, 0.01f, -FLT_MAX, FLT_MAX, "%.2f", ImGuiSliderFlags_None);
+                if (ImGui::IsItemEdited())
+                    viewUpdated = true;
 
                 ImGui::PopItemWidth();
                 ImGui::PushItemWidth(300);
 
                 ImGui::Text("Camera Zoom");
-                ImGui::DragFloat("Zoom", &camera.FOV, -0.1f, 0.01f, 180.0f, "%.2f", ImGuiSliderFlags_None); ImGui::SameLine(); if (ImGui::IsItemEdited()) viewUpdated = true;
-                if (viewUpdated) camera.update();
+                ImGui::DragFloat("Zoom", &camera->FOV, -0.1f, 0.01f, 180.0f, "%.2f", ImGuiSliderFlags_None);
+                ImGui::SameLine();
+                if (ImGui::IsItemEdited())
+                    viewUpdated = true;
+                if (viewUpdated)
+                    graphics::camera_update(camera);
 
                 ImGui::PopItemWidth();
                 ImGui::TreePop();
@@ -301,11 +252,11 @@ int Inferno::run()
             ImGui::End();
         }
 
-        if (showDemoWindow)
-        {
+        if (showDemoWindow) {
             ImGui::ShowDemoWindow();
         }
 
+        // clang-format off
         GLenum err;
         while((err = glGetError()) != GL_NO_ERROR) {
             std::string error;
@@ -322,8 +273,10 @@ int Inferno::run()
             yolo::error("[GL]: {} {}", err, error);
         }
 
-        mWin->render();
+        graphics::window_render();
     }
 
-    return 0;
+    return 1;
 }
+
+} // namespace inferno
