@@ -104,11 +104,9 @@ void rayr_draw(RayRenderer* renderer)
     // ray data and nothing else being reallocated every frame for no reason
     // ReferencedRayField startRays = mRaySource->getInitialRays(true);
 
-    // for (int x = 0; x < renderer->Viewport->x; x++)
-    //     for (int y = 0; y < renderer->Viewport->y; y++)
-    //         renderer->RenderData[y * renderer->Viewport->x + x] = { 0.1f, 0.1f, 0.1f, 1.0f };
-    //
-    // before we start we now want to check that it hasn't been force-stopped
+    for (int x = 0; x < renderer->Viewport->x; x++)
+        for (int y = 0; y < renderer->Viewport->y; y++)
+            renderer->RenderData[y * renderer->Viewport->x + x] = { 0.1f, 0.1f, 0.1f, 1.0f };
 }
 //
 // void RayRenderer::computeHit(HitInfo* info)
