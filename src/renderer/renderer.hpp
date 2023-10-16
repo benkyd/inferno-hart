@@ -8,13 +8,12 @@
 #include <unordered_map>
 
 namespace inferno::scene {
-struct Scene;
+    struct Scene;
 }
 
 namespace inferno::graphics {
 
-class HHM;
-
+class Camera;
 class HitInfo;
 class RaySource;
 class RenderDispatcher;
@@ -22,17 +21,22 @@ class RenderDispatcher;
 typedef struct RayRenderer {
     glm::ivec2* Viewport;
 
-    // TODO: Can this be direct 2 GPU?
+    // TODO: Can this be direct to GPU?
+    // NOTE: Probably not
     glm::fvec4* RenderData = nullptr;
     GLuint RenderTargetTexture = 0;
 
     // Internal stuffs
-    RaySource* RaySource = nullptr;
+    // RaySource* RaySource = nullptr;
+
+    scene::Scene* Scene = nullptr;
 } RayRenderer;
 
-RayRenderer* rayr_create(glm::ivec2 viewport, HHM* accelIface);
+// Expects complete scene
+RayRenderer* rayr_create(scene::Scene* scene);
 void rayr_cleanup(RayRenderer* renderer);
 
+void rayr_draw_ui(RayRenderer* renderer);
 void rayr_set_viewport(RayRenderer* renderer, glm::ivec2 size);
 
 GLuint rayr_get_rendered_texture(RayRenderer* renderer);

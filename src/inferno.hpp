@@ -3,7 +3,7 @@
 #include "graphics.hpp"
 #include "scene/scene.hpp"
 #include "scene/camera.hpp"
-// #include "renderer/renderer.hpp"
+#include "renderer/renderer.hpp"
 #include "preview_renderer/renderer.hpp"
 
 #include <memory>
@@ -27,7 +27,7 @@ typedef struct InfernoApp {
     InfernoInput* Input;
     scene::Scene* Scene;
     graphics::PreviewRenderer* PreviewRenderer;
-    // graphics::RayRenderer* RayRenderer;
+    graphics::RayRenderer* RayRenderer;
 } InfernoApp;
 
 InfernoApp* inferno_create();

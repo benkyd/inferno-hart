@@ -42,8 +42,7 @@ InfernoApp* inferno_create()
     basicMaterial->setGlShader(basicShader);
 
     scene::Mesh* mesh = new scene::Mesh;
-    // mesh->loadOBJ("res/cornell-box.obj");
-    mesh->loadOBJ("res/sponza.obj");
+    mesh->loadOBJ("res/cornell-box.obj");
     mesh->ready();
     mesh->setMaterial(basicMaterial);
 
@@ -53,6 +52,7 @@ InfernoApp* inferno_create()
     scene::scene_add_object(app->Scene, object);
 
     app->PreviewRenderer = graphics::preview_create();
+    app->RayRenderer = graphics::rayr_create(app->Scene);
 
     return app;
 }
@@ -185,8 +185,9 @@ int inferno_run(InfernoApp* app)
                 inferno_stop_move_input(app);
             }
 
-            graphics::raster_set_viewport(scene::scene_get_camera(app->Scene),
+            graphics::camera_raster_set_viewport(scene::scene_get_camera(app->Scene),
                 { ImGui::GetWindowSize().x, ImGui::GetWindowSize().y });
+            graphics::preview_set_viewport(app->PreviewRenderer, app->Scene->Camera);
             graphics::preview_draw(app->PreviewRenderer, app->Scene);
 
             ImTextureID texture = (ImTextureID)graphics::preview_get_rendered_texture(app->PreviewRenderer);
@@ -201,54 +202,25 @@ int inferno_run(InfernoApp* app)
 
         if (showRenderSettings && ImGui::Begin("Inferno HART")) {
             if (ImGui::TreeNode("Camera")) {
-                ImGui::PushItemWidth(100);
-                ImGui::Text("Camera Position X,Y,Z");
-
                 graphics::Camera* camera = scene::scene_get_camera(app->Scene);
-
-                bool positionUpdated = false;
-                ImGui::DragFloat("X", &camera->Position.x, 0.01f, -FLT_MAX, FLT_MAX, "%.2f", ImGuiSliderFlags_None);
-                ImGui::SameLine();
-                if (ImGui::IsItemEdited())
-                    positionUpdated = true;
-                ImGui::DragFloat("Y", &camera->Position.y, 0.01f, -FLT_MAX, FLT_MAX, "%.2f", ImGuiSliderFlags_None);
-                ImGui::SameLine();
-                if (ImGui::IsItemEdited())
-                    positionUpdated = true;
-                ImGui::DragFloat("Z", &camera->Position.z, 0.01f, -FLT_MAX, FLT_MAX, "%.2f", ImGuiSliderFlags_None);
-                if (ImGui::IsItemEdited())
-                    positionUpdated = true;
-                if (positionUpdated)
-                    graphics::camera_set_position(camera, graphics::camera_get_position(camera));
-
-                bool viewUpdated = false;
-                ImGui::Text("Camera Look Yaw, Pitch, Roll");
-                ImGui::DragFloat("Yaw", &camera->Yaw, 0.01f, -FLT_MAX, FLT_MAX, "%.2f", ImGuiSliderFlags_None);
-                ImGui::SameLine();
-                if (ImGui::IsItemEdited())
-                    viewUpdated = true;
-                ImGui::DragFloat("Pitch", &camera->Pitch, 0.01f, -FLT_MAX, FLT_MAX, "%.2f", ImGuiSliderFlags_None);
-                ImGui::SameLine();
-                if (ImGui::IsItemEdited())
-                    viewUpdated = true;
-                ImGui::DragFloat("Roll", &camera->Roll, 0.01f, -FLT_MAX, FLT_MAX, "%.2f", ImGuiSliderFlags_None);
-                if (ImGui::IsItemEdited())
-                    viewUpdated = true;
-
-                ImGui::PopItemWidth();
-                ImGui::PushItemWidth(300);
-
-                ImGui::Text("Camera Zoom");
-                ImGui::DragFloat("Zoom", &camera->FOV, -0.1f, 0.01f, 180.0f, "%.2f", ImGuiSliderFlags_None);
-                ImGui::SameLine();
-                if (ImGui::IsItemEdited())
-                    viewUpdated = true;
-                if (viewUpdated)
-                    graphics::camera_update(camera);
-
-                ImGui::PopItemWidth();
+                graphics::camera_draw_ui(camera);
                 ImGui::TreePop();
             }
+            if (ImGui::TreeNode("Preview Render")) {
+                ImGui::Checkbox("Show Preview", &showPreview);
+                ImGui::TreePop();
+            }
+
+            if (ImGui::TreeNode("RayTraced Render")) {
+                ImGui::Text("Lol");
+                graphics::rayr_draw_ui(app->RayRenderer);
+                ImGui::TreePop();
+            }
+            ImGui::End();
+        }
+
+        if (ImGui::Begin("Render")) {
+
             ImGui::End();
         }
 

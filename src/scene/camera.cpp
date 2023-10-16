@@ -1,5 +1,7 @@
 #include <scene/camera.hpp>
 
+#include <graphics.hpp>
+
 namespace inferno::graphics {
 
 Camera* camera_create()
@@ -33,6 +35,54 @@ void camera_cleanup(Camera* camera)
 {
     delete camera->_impl;
     delete camera;
+}
+
+void camera_draw_ui(Camera* camera)
+{
+    ImGui::PushItemWidth(100);
+    ImGui::Text("Camera Position X,Y,Z");
+
+    bool positionUpdated = false;
+    ImGui::DragFloat("X", &camera->Position.x, 0.01f, -FLT_MAX, FLT_MAX, "%.2f", ImGuiSliderFlags_None);
+    ImGui::SameLine();
+    if (ImGui::IsItemEdited())
+        positionUpdated = true;
+    ImGui::DragFloat("Y", &camera->Position.y, 0.01f, -FLT_MAX, FLT_MAX, "%.2f", ImGuiSliderFlags_None);
+    ImGui::SameLine();
+    if (ImGui::IsItemEdited())
+        positionUpdated = true;
+    ImGui::DragFloat("Z", &camera->Position.z, 0.01f, -FLT_MAX, FLT_MAX, "%.2f", ImGuiSliderFlags_None);
+    if (ImGui::IsItemEdited())
+        positionUpdated = true;
+    if (positionUpdated)
+        graphics::camera_set_position(camera, graphics::camera_get_position(camera));
+
+    bool viewUpdated = false;
+    ImGui::Text("Camera Look Yaw, Pitch, Roll");
+    ImGui::DragFloat("Yaw", &camera->Yaw, 0.01f, -FLT_MAX, FLT_MAX, "%.2f", ImGuiSliderFlags_None);
+    ImGui::SameLine();
+    if (ImGui::IsItemEdited())
+        viewUpdated = true;
+    ImGui::DragFloat("Pitch", &camera->Pitch, 0.01f, -FLT_MAX, FLT_MAX, "%.2f", ImGuiSliderFlags_None);
+    ImGui::SameLine();
+    if (ImGui::IsItemEdited())
+        viewUpdated = true;
+    ImGui::DragFloat("Roll", &camera->Roll, 0.01f, -FLT_MAX, FLT_MAX, "%.2f", ImGuiSliderFlags_None);
+    if (ImGui::IsItemEdited())
+        viewUpdated = true;
+
+    ImGui::PopItemWidth();
+    ImGui::PushItemWidth(300);
+
+    ImGui::Text("Camera Zoom");
+    ImGui::DragFloat("Zoom", &camera->FOV, -0.1f, 0.01f, 180.0f, "%.2f", ImGuiSliderFlags_None);
+    ImGui::SameLine();
+    if (ImGui::IsItemEdited())
+        viewUpdated = true;
+    if (viewUpdated)
+        graphics::camera_update(camera);
+
+    ImGui::PopItemWidth();
 }
 
 void camera_update(Camera* camera)
@@ -100,7 +150,7 @@ glm::mat4 camera_get_look(Camera* camera)
     return camera->LookMatrix;
 }
 
-void raster_set_viewport(Camera* camera, glm::ivec2 viewport)
+void camera_raster_set_viewport(Camera* camera, glm::ivec2 viewport)
 {
     std::lock_guard<std::mutex> lock(camera->_impl->CamMutex);
     camera->Views.Raster = viewport;
@@ -111,19 +161,19 @@ void raster_set_viewport(Camera* camera, glm::ivec2 viewport)
         1000.0f);
 }
 
-glm::ivec2 raster_get_viewport(Camera* camera)
+glm::ivec2 camera_raster_get_viewport(Camera* camera)
 {
     std::lock_guard<std::mutex> lock(camera->_impl->CamMutex);
     return camera->Views.Raster;
 }
 
-void ray_set_viewport(Camera* camera, glm::ivec2 viewport)
+void camera_ray_set_viewport(Camera* camera, glm::ivec2 viewport)
 {
     std::lock_guard<std::mutex> lock(camera->_impl->CamMutex);
     camera->Views.Ray = viewport;
 }
 
-glm::ivec2 ray_get_viewport(Camera* camera)
+glm::ivec2 camera_ray_get_viewport(Camera* camera)
 {
     std::lock_guard<std::mutex> lock(camera->_impl->CamMutex);
     return camera->Views.Ray;

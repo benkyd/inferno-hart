@@ -39,6 +39,8 @@ typedef struct Camera {
 Camera* camera_create();
 void camera_cleanup(Camera* camera);
 
+void camera_draw_ui(Camera* camera);
+
 void camera_update(Camera* camera);
 bool camera_did_update(Camera* camera);
 void camera_new_frame(Camera* camera);
@@ -47,11 +49,11 @@ glm::mat4 camera_get_view(Camera* camera);
 glm::mat4 camera_get_projection(Camera* camera);
 glm::mat4 camera_get_look(Camera* camera);
 
-void raster_set_viewport(Camera* camera, glm::ivec2 viewport);
-glm::ivec2 raster_get_viewport(Camera* camera);
+void camera_raster_set_viewport(Camera* camera, glm::ivec2 viewport);
+glm::ivec2 camera_raster_get_viewport(Camera* camera);
 
-void ray_set_viewport(Camera* camera, glm::ivec2 viewport);
-glm::ivec2 ray_get_viewport(Camera* camera);
+void camera_ray_set_viewport(Camera* camera, glm::ivec2 viewport);
+glm::ivec2 camera_ray_get_viewport(Camera* camera);
 
 void camera_move(Camera* camera, uint8_t movement_delta);
 void camera_mouse_move(Camera* camera, glm::vec2 mouse_delta);
