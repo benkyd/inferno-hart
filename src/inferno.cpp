@@ -42,7 +42,7 @@ InfernoApp* inferno_create()
     basicMaterial->setGlShader(basicShader);
 
     scene::Mesh* mesh = new scene::Mesh;
-    mesh->loadOBJ("res/cornell-box.obj");
+    mesh->loadOBJ("res/lucy.obj");
     mesh->ready();
     mesh->setMaterial(basicMaterial);
 
@@ -178,6 +178,26 @@ int inferno_run(InfernoApp* app)
             ImGui::EndMenuBar();
         }
 
+        if (showRenderSettings && ImGui::Begin("Inferno HART")) {
+            if (ImGui::TreeNode("Camera")) {
+                graphics::Camera* camera = scene::scene_get_camera(app->Scene);
+                graphics::camera_draw_ui(camera);
+                ImGui::TreePop();
+            }
+            if (ImGui::TreeNode("Preview Render")) {
+                ImGui::Checkbox("Show Preview", &showPreview);
+                graphics::preview_draw_ui(app->PreviewRenderer);
+                ImGui::TreePop();
+            }
+
+            if (ImGui::TreeNode("RayTraced Render")) {
+                ImGui::Text("Lol");
+                graphics::rayr_draw_ui(app->RayRenderer);
+                ImGui::TreePop();
+            }
+            ImGui::End();
+        }
+
         if (showPreview && ImGui::Begin("Preview", nullptr, ImGuiWindowFlags_NoScrollbar)) {
             if (ImGui::IsWindowHovered()) {
                 inferno_move_input(app);
@@ -200,27 +220,8 @@ int inferno_run(InfernoApp* app)
             ImGui::End();
         }
 
-        if (showRenderSettings && ImGui::Begin("Inferno HART")) {
-            if (ImGui::TreeNode("Camera")) {
-                graphics::Camera* camera = scene::scene_get_camera(app->Scene);
-                graphics::camera_draw_ui(camera);
-                ImGui::TreePop();
-            }
-            if (ImGui::TreeNode("Preview Render")) {
-                ImGui::Checkbox("Show Preview", &showPreview);
-                ImGui::TreePop();
-            }
-
-            if (ImGui::TreeNode("RayTraced Render")) {
-                ImGui::Text("Lol");
-                graphics::rayr_draw_ui(app->RayRenderer);
-                ImGui::TreePop();
-            }
-            ImGui::End();
-        }
-
         if (ImGui::Begin("Render")) {
-
+            graphics::rayr_draw(app->RayRenderer);
             ImGui::End();
         }
 

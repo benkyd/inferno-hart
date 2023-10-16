@@ -42,7 +42,7 @@ void rayr_set_viewport(RayRenderer* renderer, glm::ivec2 size);
 GLuint rayr_get_rendered_texture(RayRenderer* renderer);
 glm::fvec4* rayr_get_render_data(RayRenderer* renderer);
 
-void rayr_draw(RayRenderer* renderer, scene::Scene* scene);
+void rayr_draw(RayRenderer* renderer);
 
 void raryr_compute_hit(HitInfo* info);
 
