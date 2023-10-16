@@ -1,19 +1,20 @@
 #pragma once
 
+#include <memory>
 #include <vector>
 
-namespace inferno {
+namespace inferno::scene {
 
 class Mesh;
 
-class Object 
-{
-public:
-    Object();
-    ~Object();
+typedef struct SceneObject {
+    std::vector<Mesh*> Meshs;
+} SceneObject;
 
-private:
-    std::vector<Mesh*> mMeshs;
-};
+SceneObject* scene_object_create();
+void scene_object_cleanup(SceneObject* object);
 
-}
+void scene_object_add_mesh(SceneObject* object, Mesh* mesh);
+std::vector<Mesh*>& scene_object_get_meshs(SceneObject* object);
+
+} // namespace inferno::scene

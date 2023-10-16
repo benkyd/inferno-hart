@@ -2,19 +2,16 @@
 
 #include <version.hpp>
 // #include "gui/layout.hpp"
+#include "imgui/imgui.h"
+#include "scene/scene.hpp"
 #include "window.hpp"
 
-// #include "hart_module.hpp"
-// #include "hart_directory.hpp"
-
-// #include "preview_renderer/renderer.hpp"
-// #include "preview_renderer/shader.hpp"
-// #include "renderer/dispatcher.hpp"
-// #include "renderer/renderer.hpp"
+#include "preview_renderer/renderer.hpp"
+#include "preview_renderer/shader.hpp"
 #include "scene/camera.hpp"
-// #include "scene/scene.hpp"
-// #include "scene/material.hpp"
-// #include "scene/mesh.hpp"
+#include "scene/material.hpp"
+#include "scene/mesh.hpp"
+#include "scene/scene.hpp"
 
 #include <yolo/yolo.hpp>
 
@@ -25,24 +22,45 @@
 
 namespace inferno {
 
-std::unique_ptr<InfernoApp> inferno_create()
+InfernoApp* inferno_create()
 {
     // MOTD
     yolo::info("INFERNO HART v" INFERNO_VERSION);
 
-    std::unique_ptr<InfernoApp> app = std::make_unique<InfernoApp>();
-    app->Input = std::make_unique<InfernoInput>();
+    InfernoApp* app = new InfernoApp;
+    app->Input = new InfernoInput;
+    app->Scene = scene::scene_create();
 
     // Create window
     graphics::window_create("Inferno v" INFERNO_VERSION, 1280, 720);
 
+    // setup the scene
+    scene::Material* basicMaterial = new scene::Material("basic");
+    graphics::Shader* basicShader = graphics::shader_create();
+    graphics::shader_load(basicShader, "res/shaders/basic.glsl");
+    graphics::shader_link(basicShader);
+    basicMaterial->setGlShader(basicShader);
+
+    scene::Mesh* mesh = new scene::Mesh;
+    // mesh->loadOBJ("res/cornell-box.obj");
+    mesh->loadOBJ("res/sponza.obj");
+    mesh->ready();
+    mesh->setMaterial(basicMaterial);
+
+    scene::SceneObject* object = scene::scene_object_create();
+    scene::scene_object_add_mesh(object, mesh);
+
+    scene::scene_add_object(app->Scene, object);
+
+    app->PreviewRenderer = graphics::preview_create();
+
     return app;
 }
 
-void inferno_cleanup(std::unique_ptr<InfernoApp>& app)
+void inferno_cleanup(InfernoApp* app)
 {
     graphics::window_cleanup();
-    app.reset();
+    delete app;
 }
 
 static void inferno_gui_help_marker(const char* desc)
@@ -57,7 +75,7 @@ static void inferno_gui_help_marker(const char* desc)
     }
 }
 
-void inferno_preset_gui(std::unique_ptr<InfernoApp>& app)
+void inferno_preset_gui(InfernoApp* app)
 {
     ImGuiID dockspace_id = ImGui::GetID("main");
 
@@ -65,7 +83,7 @@ void inferno_preset_gui(std::unique_ptr<InfernoApp>& app)
     ImGui::DockBuilderAddNode(dockspace_id, ImGuiDockNodeFlags_DockSpace); // Add empty node
     ImGui::DockBuilderSetNodeSize(dockspace_id, { 1000, 1000 });
 
-    ImGuiID dock_main_id = dockspace_id; // This variable will track the document node, however we are not using it here as we aren't docking anything into it.
+    ImGuiID dock_main_id = dockspace_id;
     ImGuiID dock_left = ImGui::DockBuilderSplitNode(dock_main_id, ImGuiDir_Left, 0.5f, NULL, &dock_main_id);
     ImGui::DockBuilderDockWindow("Preview", dock_left);
     ImGui::DockBuilderDockWindow("Render", dock_main_id);
@@ -74,7 +92,7 @@ void inferno_preset_gui(std::unique_ptr<InfernoApp>& app)
     yolo::info("LAYOUT SET TO DEFAULT");
 }
 
-void inferno_move_input(std::unique_ptr<InfernoApp>& app)
+void inferno_move_input(InfernoApp* app)
 {
     static GLFWcursor* cursor = glfwCreateStandardCursor(GLFW_HAND_CURSOR);
     glfwSetCursor(graphics::window_get_glfw_window(), cursor);
@@ -113,15 +131,14 @@ void inferno_move_input(std::unique_ptr<InfernoApp>& app)
         app->Input->MovementDelta |= 0b00000100;
 }
 
-void inferno_stop_move_input(std::unique_ptr<InfernoApp>& app)
+void inferno_stop_move_input(InfernoApp* app)
 {
     app->Input->MovementDelta = 0x0;
     app->Input->MouseDelta = { 0.0f, 0.0f };
 }
 
-int inferno_run(std::unique_ptr<InfernoApp>& app)
+int inferno_run(InfernoApp* app)
 {
-
     while (true) {
         if (!graphics::window_new_frame())
             break;
@@ -133,6 +150,11 @@ int inferno_run(std::unique_ptr<InfernoApp>& app)
             inferno_preset_gui(app);
         }
         ImGui::DockSpace(dockspace_id, ImVec2(0.0f, 0.0f), dockspace_flags);
+
+        if (glm::length(app->Input->MouseDelta) > 0.0f)
+            graphics::camera_mouse_move(app->Scene->Camera, app->Input->MouseDelta);
+        if (app->Input->MovementDelta != 0b00000000)
+            graphics::camera_move(app->Scene->Camera, app->Input->MovementDelta);
 
         // Menu Bar
         static bool showPreview = true;
@@ -162,20 +184,76 @@ int inferno_run(std::unique_ptr<InfernoApp>& app)
             } else {
                 inferno_stop_move_input(app);
             }
-            if (glm::length(app->Input->MouseDelta) > 0.0f)
-                graphics::camera_mouse_move(app->Camera, app->Input->MouseDelta);
-            if (app->Input->MovementDelta != 0b00000000)
-                graphics::camera_move(app->Camera, app->Input->MovementDelta);
 
-            graphics::raster_set_viewport(app->Camera, { ImGui::GetWindowSize().x, ImGui::GetWindowSize().y });
-            mRasterRenderer->setTargetSize({ ImGui::GetWindowSize().x, ImGui::GetWindowSize().y });
-            mRasterRenderer->prepare();
-            mRasterRenderer->draw();
+            graphics::raster_set_viewport(scene::scene_get_camera(app->Scene),
+                { ImGui::GetWindowSize().x, ImGui::GetWindowSize().y });
+            graphics::preview_draw(app->PreviewRenderer, app->Scene);
 
-            ImGui::Image((ImTextureID)mRasterRenderer->getRenderedTexture(), inderno { mRasterRenderer->getTargetSize().x, mRasterRenderer->getTargetSize().y },
+            ImTextureID texture = (ImTextureID)graphics::preview_get_rendered_texture(app->PreviewRenderer);
+            ImGui::Image(
+                texture,
+                { ImGui::GetWindowSize().x, ImGui::GetWindowSize().y },
                 ImVec2(0, 1), ImVec2(1, 0));
+
             glBindFramebuffer(GL_FRAMEBUFFER, 0);
             ImGui::End();
+        }
+
+        if (showRenderSettings && ImGui::Begin("Inferno HART")) {
+            if (ImGui::TreeNode("Camera")) {
+                ImGui::PushItemWidth(100);
+                ImGui::Text("Camera Position X,Y,Z");
+
+                graphics::Camera* camera = scene::scene_get_camera(app->Scene);
+
+                bool positionUpdated = false;
+                ImGui::DragFloat("X", &camera->Position.x, 0.01f, -FLT_MAX, FLT_MAX, "%.2f", ImGuiSliderFlags_None);
+                ImGui::SameLine();
+                if (ImGui::IsItemEdited())
+                    positionUpdated = true;
+                ImGui::DragFloat("Y", &camera->Position.y, 0.01f, -FLT_MAX, FLT_MAX, "%.2f", ImGuiSliderFlags_None);
+                ImGui::SameLine();
+                if (ImGui::IsItemEdited())
+                    positionUpdated = true;
+                ImGui::DragFloat("Z", &camera->Position.z, 0.01f, -FLT_MAX, FLT_MAX, "%.2f", ImGuiSliderFlags_None);
+                if (ImGui::IsItemEdited())
+                    positionUpdated = true;
+                if (positionUpdated)
+                    graphics::camera_set_position(camera, graphics::camera_get_position(camera));
+
+                bool viewUpdated = false;
+                ImGui::Text("Camera Look Yaw, Pitch, Roll");
+                ImGui::DragFloat("Yaw", &camera->Yaw, 0.01f, -FLT_MAX, FLT_MAX, "%.2f", ImGuiSliderFlags_None);
+                ImGui::SameLine();
+                if (ImGui::IsItemEdited())
+                    viewUpdated = true;
+                ImGui::DragFloat("Pitch", &camera->Pitch, 0.01f, -FLT_MAX, FLT_MAX, "%.2f", ImGuiSliderFlags_None);
+                ImGui::SameLine();
+                if (ImGui::IsItemEdited())
+                    viewUpdated = true;
+                ImGui::DragFloat("Roll", &camera->Roll, 0.01f, -FLT_MAX, FLT_MAX, "%.2f", ImGuiSliderFlags_None);
+                if (ImGui::IsItemEdited())
+                    viewUpdated = true;
+
+                ImGui::PopItemWidth();
+                ImGui::PushItemWidth(300);
+
+                ImGui::Text("Camera Zoom");
+                ImGui::DragFloat("Zoom", &camera->FOV, -0.1f, 0.01f, 180.0f, "%.2f", ImGuiSliderFlags_None);
+                ImGui::SameLine();
+                if (ImGui::IsItemEdited())
+                    viewUpdated = true;
+                if (viewUpdated)
+                    graphics::camera_update(camera);
+
+                ImGui::PopItemWidth();
+                ImGui::TreePop();
+            }
+            ImGui::End();
+        }
+
+        if (showDemoWindow) {
+            ImGui::ShowDemoWindow();
         }
 
         // clang-format off

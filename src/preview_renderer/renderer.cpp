@@ -1,19 +1,24 @@
 #include "renderer.hpp"
 
+#include "scene/object.hpp"
 #include "shader.hpp"
 
+#include <yolo/yolo.hpp>
+
+#include <algorithm>
 #include <scene/camera.hpp>
 #include <scene/material.hpp>
 #include <scene/mesh.hpp>
+#include <scene/object.hpp>
 #include <scene/scene.hpp>
 
 #include <iostream>
 
 namespace inferno::graphics {
 
-std::unique_ptr<PreviewRenderer> preview_create()
+PreviewRenderer* preview_create()
 {
-    std::unique_ptr<PreviewRenderer> renderer = std::make_unique<PreviewRenderer>();
+    PreviewRenderer* renderer = new PreviewRenderer;
 
     glGenFramebuffers(1, &renderer->RenderTarget);
     glBindFramebuffer(GL_FRAMEBUFFER, renderer->RenderTarget);
@@ -44,18 +49,23 @@ std::unique_ptr<PreviewRenderer> preview_create()
     return renderer;
 }
 
-void preview_cleanup(std::unique_ptr<PreviewRenderer>& renderer)
+void preview_cleanup(PreviewRenderer* renderer)
 {
 }
 
-void preview_set_scene(std::unique_ptr<PreviewRenderer>& renderer, std::shared_ptr<Scene> scene)
+void preview_set_viewport(PreviewRenderer* renderer, Viewport* viewport)
 {
-    renderer->CurrentScene = scene;
 }
 
-void preview_set_viewport(std::unique_ptr<PreviewRenderer>& renderer, std::shared_ptr<const Viewport> viewport)
+GLuint preview_get_rendered_texture(PreviewRenderer* renderer)
 {
-    renderer->RenderTargetSize = viewport;
+    glBindFramebuffer(GL_FRAMEBUFFER, renderer->RenderTarget);
+    return renderer->RenderTargetTexture;
+}
+
+void preview_draw(PreviewRenderer* renderer, scene::Scene* scene)
+{
+    const glm::ivec2& viewport = graphics::raster_get_viewport(scene::scene_get_camera(scene));
     glBindFramebuffer(GL_FRAMEBUFFER, renderer->RenderTarget);
 
     glBindTexture(GL_TEXTURE_2D, renderer->RenderTargetTexture);
@@ -63,8 +73,8 @@ void preview_set_viewport(std::unique_ptr<PreviewRenderer>& renderer, std::share
         GL_TEXTURE_2D,
         0,
         GL_RGB,
-        viewport->Raster.x,
-        viewport->Raster.y,
+        viewport.x,
+        viewport.y,
         0,
         GL_RGB,
         GL_UNSIGNED_BYTE,
@@ -74,60 +84,54 @@ void preview_set_viewport(std::unique_ptr<PreviewRenderer>& renderer, std::share
     glTexImage2D(GL_TEXTURE_2D,
         0,
         GL_DEPTH24_STENCIL8,
-        viewport->Raster.x,
-        viewport->Raster.y,
+        viewport.x,
+        viewport.y,
         0,
         GL_DEPTH_COMPONENT,
         GL_FLOAT,
         NULL);
 
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
-}
 
-const glm::ivec2& preview_get_viewport(std::unique_ptr<PreviewRenderer>& renderer)
-{
-    return renderer->RenderTargetSize->Raster;
-}
+    // clear
 
-GLuint preview_get_rendered_texture(std::unique_ptr<PreviewRenderer>& renderer)
-{
-    glBindFramebuffer(GL_FRAMEBUFFER, renderer->RenderTarget);
-    return renderer->RenderTargetTexture;
-}
-
-void preview_prepare(std::unique_ptr<PreviewRenderer>& renderer)
-{
     glBindFramebuffer(GL_FRAMEBUFFER, renderer->RenderTarget);
     glClearColor(0.1, 0.1, 0.1, 1.0);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
-}
 
-void preview_draw(std::unique_ptr<PreviewRenderer>& renderer)
-{
+    // draw
+
     glBindFramebuffer(GL_FRAMEBUFFER, renderer->RenderTarget);
     glViewport(0,
         0,
-        renderer->RenderTargetSize->Raster.x,
-        renderer->RenderTargetSize->Raster.y);
+        renderer->Viewport.x,
+        renderer->Viewport.y);
 
     glEnable(GL_DEPTH_TEST);
 
-    for (Mesh* m : renderer->CurrentScene->getRenderables()) {
-        // m->getMaterial()->getGlShader()->use();
-        // GLint uniTrans = glGetUniformLocation(m->getMaterial()->getGlShader()->getProgram(), "model");
-        // glUniformMatrix4fv(uniTrans, 1, GL_FALSE, glm::value_ptr(glm::mat4(1.0f)));
+    for (scene::SceneObject* o : scene::scene_get_renderables(scene)) {
+        for (scene::Mesh* m : scene::scene_object_get_meshs(o)) {
+            graphics::Shader* shader = m->getMaterial()->getGlShader();
+            graphics::shader_use(shader);
 
-        // GLint uniView = glGetUniformLocation(m->getMaterial()->getGlShader()->getProgram(), "view");
-        // glUniformMatrix4fv(uniView, 1, GL_FALSE, glm::value_ptr(renderer->CurrentScene->getCamera()->getViewMatrix()));
+            auto viewMatrix = graphics::camera_get_view(scene::scene_get_camera(scene));
+            auto projMatrix = graphics::camera_get_projection(scene::scene_get_camera(scene));
 
-        // GLint uniProj = glGetUniformLocation(m->getMaterial()->getGlShader()->getProgram(), "proj");
-        // glUniformMatrix4fv(uniProj, 1, GL_FALSE, glm::value_ptr(renderer->CurrentScene->getCamera()->getProjectionMatrix()));
+            GLint uniTrans = glGetUniformLocation(graphics::shader_get_program(shader), "model");
+            glUniformMatrix4fv(uniTrans, 1, GL_FALSE, glm::value_ptr(glm::mat4(1.0f)));
 
-        glBindVertexArray(m->getVAO());
-        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m->getEBO());
+            GLint uniView = glGetUniformLocation(graphics::shader_get_program(shader), "view");
+            glUniformMatrix4fv(uniView, 1, GL_FALSE, glm::value_ptr(viewMatrix));
 
-        glDrawElements(GL_TRIANGLES, m->getIndexCount() * sizeof(uint32_t), GL_UNSIGNED_INT, 0);
+            GLint uniProj = glGetUniformLocation(graphics::shader_get_program(shader), "proj");
+            glUniformMatrix4fv(uniProj, 1, GL_FALSE, glm::value_ptr(projMatrix));
+
+            glBindVertexArray(m->getVAO());
+            glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m->getEBO());
+
+            glDrawElements(GL_TRIANGLES, m->getIndexCount() * sizeof(uint32_t), GL_UNSIGNED_INT, 0);
+        }
     }
 
     glBindFramebuffer(GL_FRAMEBUFFER, 0);

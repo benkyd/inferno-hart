@@ -20,33 +20,26 @@ class RaySource;
 class RenderDispatcher;
 
 typedef struct RayRenderer {
+    glm::ivec2* Viewport;
+
+    // TODO: Can this be direct 2 GPU?
     glm::fvec4* RenderData = nullptr;
     GLuint RenderTargetTexture = 0;
 
-    // TODO: Put this inside an internal struct
-    std::mutex RenderDataMutex;
-    std::condition_variable RenderPause;
-    // TODO: End
-
-    std::unique_ptr<scene::Scene> CurrentScene;
-    // std::shared_ptr<const Viewport> RenderTargetSize;
-    glm::ivec2 RenderTargetSize;
-
-    HHM* AccelerationInterface = nullptr;
-    RenderDispatcher* Dispatcher = nullptr;
+    // Internal stuffs
     RaySource* RaySource = nullptr;
 } RayRenderer;
 
-std::unique_ptr<RayRenderer> rayr_create(glm::ivec2 viewport, HHM* accelIface);
-void rayr_cleanup(std::unique_ptr<RayRenderer>& renderer);
-void rayr_set_scene(std::unique_ptr<RayRenderer>& renderer, std::unique_ptr<scene::Scene> scene);
-void rayr_set_viewport(std::unique_ptr<RayRenderer>& renderer, glm::ivec2 size);
-glm::ivec2 rayr_get_viewport(std::unique_ptr<RayRenderer>& renderer);
-GLuint rayr_get_rendered_texture(std::unique_ptr<RayRenderer>& renderer);
-glm::fvec4* rayr_get_render_data(std::unique_ptr<RayRenderer>& renderer);
-void rayr_prepare(std::unique_ptr<RayRenderer>& renderer);
-void rayr_draw(std::unique_ptr<RayRenderer>& renderer);
+RayRenderer* rayr_create(glm::ivec2 viewport, HHM* accelIface);
+void rayr_cleanup(RayRenderer* renderer);
+
+void rayr_set_viewport(RayRenderer* renderer, glm::ivec2 size);
+
+GLuint rayr_get_rendered_texture(RayRenderer* renderer);
+glm::fvec4* rayr_get_render_data(RayRenderer* renderer);
+
+void rayr_draw(RayRenderer* renderer, scene::Scene* scene);
 
 void raryr_compute_hit(HitInfo* info);
 
-}
+} // namespace inferno::graphics

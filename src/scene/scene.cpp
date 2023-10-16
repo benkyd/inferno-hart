@@ -1,55 +1,61 @@
 #include "scene.hpp"
 
+#include <yolo/yolo.hpp>
+
+#include <memory>
 #include <scene/camera.hpp>
 #include <scene/mesh.hpp>
 #include <scene/object.hpp>
 
 namespace inferno::scene {
 
-std::unique_ptr<Scene> scene_create()
+Scene* scene_create()
 {
-    std::unique_ptr<Scene> scene = std::make_unique<Scene>();
-    scene->Camera = std::make_shared<graphics::Camera>();
+    Scene* scene = new Scene;
+    scene->Objects = std::vector<SceneObject*>();
+    scene->Camera = graphics::camera_create();
+    yolo::debug("Created scene {} and camera {}", scene, scene->Camera);
     return scene;
 }
 
-void scene_cleanup(std::unique_ptr<Scene>& scene)
+void scene_cleanup(Scene* scene)
 {
 }
 
-void scene_set_camera(std::unique_ptr<Scene>& scene, std::shared_ptr<graphics::Camera> camera)
+void scene_add_object(Scene* scene, SceneObject* object)
 {
-    scene->Camera = camera;
+    yolo::debug("Using scene {}", scene);
+    yolo::debug("Adding object to scene, no Objects: {}, adding to pool of: {}", object->Meshs.size(), scene->Objects.size());
+    yolo::debug("Object Mesh 0 is {}", object->Meshs[0]);
+    scene->Objects.push_back(object);
     scene->DidUpdate = true;
 }
 
-void scene_add_object(std::unique_ptr<Scene>& scene, std::unique_ptr<SceneObject> object)
+graphics::Camera* scene_get_camera(Scene* scene)
 {
-    scene->Objects.push_back(std::move(object));
-    scene->DidUpdate = true;
+    return scene->Camera;
 }
 
-std::vector<std::unique_ptr<SceneObject>>& scene_get_renderables(std::unique_ptr<Scene>& scene)
+std::vector<SceneObject*>& scene_get_renderables(Scene* scene)
 {
     return scene->Objects;
 }
 
-bool scene_did_update(std::unique_ptr<Scene>& scene)
+bool scene_did_update(Scene* scene)
 {
     return scene->DidUpdate;
 }
 
-void scene_frame_tick(std::unique_ptr<Scene>& scene)
+void scene_frame_tick(Scene* scene)
 {
     scene->DidUpdate = false;
 }
 
-void scene_tick(std::unique_ptr<Scene>& scene)
+void scene_tick(Scene* scene)
 {
     for (auto& object : scene->Objects) {
-        // object->tick();
+        // Shit here like animation idk
     }
 }
 
 }
-

@@ -2,19 +2,14 @@
 
 namespace inferno::graphics {
 
-typedef struct _CameraImpl {
-
-    bool DidUpdate;
-    std::mutex CamMutex;
-} _CameraImpl;
-
-std::unique_ptr<Camera> camera_create()
+Camera* camera_create()
 {
-    std::unique_ptr<Camera> camera = std::make_unique<Camera>();
-    camera->_impl = std::make_unique<_CameraImpl>();
-    camera->Views = std::make_shared<Viewports>();
-    camera->Views->Raster = glm::ivec2(800, 600);
-    camera->Views->Ray = glm::ivec2(800, 600);
+    Camera* camera = new Camera;
+    camera->_impl = new _CameraImpl;
+
+    camera->Views = Viewports();
+    camera->Views.Raster = glm::ivec2(800, 600);
+    camera->Views.Ray = glm::ivec2(800, 600);
 
     camera->ProjectionMatrix = glm::perspective(
         glm::radians(camera->FOV),
@@ -34,13 +29,13 @@ std::unique_ptr<Camera> camera_create()
     return camera;
 }
 
-void camera_cleanup(std::unique_ptr<Camera>& camera)
+void camera_cleanup(Camera* camera)
 {
-    camera->_impl.reset();
-    camera.reset();
+    delete camera->_impl;
+    delete camera;
 }
 
-void camera_update(std::unique_ptr<Camera>& camera)
+void camera_update(Camera* camera)
 {
     glm::mat4 matRoll = glm::mat4(1.0f);
     glm::mat4 matPitch = glm::mat4(1.0f);
@@ -61,7 +56,7 @@ void camera_update(std::unique_ptr<Camera>& camera)
     camera->ViewMatrix = rotate * translate;
     camera->ProjectionMatrix = glm::perspective(
         glm::radians(camera->FOV),
-        static_cast<float>(camera->Views->Raster.x) / static_cast<float>(camera->Views->Raster.y),
+        static_cast<float>(camera->Views.Raster.x) / static_cast<float>(camera->Views.Raster.y),
         0.1f,
         1000.0f);
 
@@ -75,40 +70,40 @@ void camera_update(std::unique_ptr<Camera>& camera)
     camera->_impl->DidUpdate = true;
 }
 
-bool camera_did_update(std::unique_ptr<Camera>& camera)
+bool camera_did_update(Camera* camera)
 {
     std::lock_guard<std::mutex> lock(camera->_impl->CamMutex);
     return camera->_impl->DidUpdate;
 }
 
-void camera_new_frame(std::unique_ptr<Camera>& camera)
+void camera_new_frame(Camera* camera)
 {
     std::lock_guard<std::mutex> lock(camera->_impl->CamMutex);
     camera->_impl->DidUpdate = false;
 }
 
-glm::mat4 camera_get_view(std::unique_ptr<Camera>& camera)
+glm::mat4 camera_get_view(Camera* camera)
 {
     std::lock_guard<std::mutex> lock(camera->_impl->CamMutex);
     return camera->ViewMatrix;
 }
 
-glm::mat4 camera_get_projection(std::unique_ptr<Camera>& camera)
+glm::mat4 camera_get_projection(Camera* camera)
 {
     std::lock_guard<std::mutex> lock(camera->_impl->CamMutex);
     return camera->ProjectionMatrix;
 }
 
-glm::mat4 camera_get_look(std::unique_ptr<Camera>& camera)
+glm::mat4 camera_get_look(Camera* camera)
 {
     std::lock_guard<std::mutex> lock(camera->_impl->CamMutex);
     return camera->LookMatrix;
 }
 
-void raster_set_viewport(std::unique_ptr<Camera>& camera, glm::ivec2 viewport)
+void raster_set_viewport(Camera* camera, glm::ivec2 viewport)
 {
     std::lock_guard<std::mutex> lock(camera->_impl->CamMutex);
-    camera->Views->Raster = viewport;
+    camera->Views.Raster = viewport;
     camera->ProjectionMatrix = glm::perspective(
         glm::radians(camera->FOV),
         static_cast<float>(viewport.x) / static_cast<float>(viewport.y),
@@ -116,25 +111,25 @@ void raster_set_viewport(std::unique_ptr<Camera>& camera, glm::ivec2 viewport)
         1000.0f);
 }
 
-glm::ivec2 raster_get_viewport(std::unique_ptr<Camera>& camera)
+glm::ivec2 raster_get_viewport(Camera* camera)
 {
     std::lock_guard<std::mutex> lock(camera->_impl->CamMutex);
-    return camera->Views->Raster;
+    return camera->Views.Raster;
 }
 
-void ray_set_viewport(std::unique_ptr<Camera>& camera, glm::ivec2 viewport)
+void ray_set_viewport(Camera* camera, glm::ivec2 viewport)
 {
     std::lock_guard<std::mutex> lock(camera->_impl->CamMutex);
-    camera->Views->Ray = viewport;
+    camera->Views.Ray = viewport;
 }
 
-glm::ivec2 ray_get_viewport(std::unique_ptr<Camera>& camera)
+glm::ivec2 ray_get_viewport(Camera* camera)
 {
     std::lock_guard<std::mutex> lock(camera->_impl->CamMutex);
-    return camera->Views->Ray;
+    return camera->Views.Ray;
 }
 
-void camera_move(std::unique_ptr<Camera>& camera, uint8_t movement_delta)
+void camera_move(Camera* camera, uint8_t movement_delta)
 {
     if (movement_delta == 0)
         return;
@@ -186,7 +181,7 @@ void camera_move(std::unique_ptr<Camera>& camera, uint8_t movement_delta)
     camera_update(camera);
 }
 
-void camera_mouse_move(std::unique_ptr<Camera>& camera, glm::vec2 mouse_delta)
+void camera_mouse_move(Camera* camera, glm::vec2 mouse_delta)
 {
     if (glm::length(mouse_delta) == 0)
         return;
@@ -199,13 +194,13 @@ void camera_mouse_move(std::unique_ptr<Camera>& camera, glm::vec2 mouse_delta)
     camera_update(camera);
 }
 
-void camera_set_position(std::unique_ptr<Camera>& camera, glm::vec3 position)
+void camera_set_position(Camera* camera, glm::vec3 position)
 {
     camera->Position = position;
     camera_update(camera);
 }
 
-void camera_set_euler_look(std::unique_ptr<Camera>& camera, float roll, float pitch, float yaw)
+void camera_set_euler_look(Camera* camera, float roll, float pitch, float yaw)
 {
     camera->Roll = roll;
     camera->Pitch = pitch;
@@ -217,13 +212,18 @@ void camera_set_euler_look(std::unique_ptr<Camera>& camera, float roll, float pi
     camera_update(camera);
 }
 
-void camera_set_look(std::unique_ptr<Camera>& camera, glm::vec3 look_direction)
+void camera_set_look(Camera* camera, glm::vec3 look_direction)
 {
     camera->LookDirection = look_direction;
     camera->Pitch = asin(-look_direction.y);
     camera->Yaw = atan2(look_direction.x, look_direction.z);
 
     camera_update(camera);
+}
+
+glm::vec3 camera_get_position(Camera* camera)
+{
+    return camera->Position;
 }
 
 }

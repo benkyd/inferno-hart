@@ -2,7 +2,7 @@
 
 #include "preview_renderer/shader.hpp"
 
-using namespace inferno;
+namespace inferno::scene {
 
 Material::Material(std::string name)
     : mName(name)
@@ -15,12 +15,13 @@ Material::~Material()
 
 }
 
-//void Material::setGlShader(Shader* shader)
-//{
-    //mGlShader = shader;
-//}
+void Material::setGlShader(graphics::Shader* shader)
+{
+    mGlShader = shader;
+}
 
-//Shader* Material::getGlShader()
-//{
-    //return mGlShader;
-//}
+graphics::Shader* Material::getGlShader()
+{
+    return mGlShader;
+}
+}

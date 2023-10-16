@@ -1,5 +1,7 @@
 #pragma once
 
+#include "scene/object.hpp"
+
 #include <memory>
 #include <vector>
 
@@ -13,19 +15,22 @@ class SceneObject;
 class Mesh;
 
 typedef struct Scene {
-    std::shared_ptr<graphics::Camera> Camera;
-    std::vector<std::unique_ptr<SceneObject>> Objects;
+    std::vector<SceneObject*> Objects;
+    graphics::Camera* Camera;
     bool DidUpdate = false;
 } Scene;
 
-std::unique_ptr<Scene> scene_create();
-void scene_cleanup(std::unique_ptr<Scene>& scene);
-void scene_set_camera(std::unique_ptr<Scene>& scene, std::shared_ptr<graphics::Camera> camera);
-void scene_add_object(std::unique_ptr<Scene>& scene, std::unique_ptr<SceneObject> object);
-std::unique_ptr<graphics::Camera>& scene_get_camera(std::unique_ptr<Scene>& scene);
-std::vector<std::unique_ptr<SceneObject>>& scene_get_renderables(std::unique_ptr<Scene>& scene);
-bool scene_did_update(std::unique_ptr<Scene>& scene);
-void scene_frame_tick(std::unique_ptr<Scene>& scene);
-void scene_tick(std::unique_ptr<Scene>& scene);
+Scene* scene_create();
+void scene_cleanup(Scene* scene);
 
-}
+void scene_add_object(Scene* scene, SceneObject* object);
+
+graphics::Camera* scene_get_camera(Scene* scene);
+std::vector<SceneObject*>& scene_get_renderables(Scene* scene);
+
+bool scene_did_update(Scene* scene);
+
+void scene_frame_tick(Scene* scene);
+void scene_tick(Scene* scene);
+
+} // namespace inferno::scene

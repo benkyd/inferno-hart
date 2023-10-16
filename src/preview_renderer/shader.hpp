@@ -24,18 +24,21 @@ typedef struct Shader {
     std::vector<ShaderPreprocessorDefinition> PreprocessorDefinitions;
 } Shader;
 
-std::unique_ptr<Shader> shader_create();
-void shader_cleanup(std::unique_ptr<Shader>& shader);
+Shader* shader_create();
+void shader_cleanup(Shader* shader);
 
-void shader_load(std::unique_ptr<Shader>& shader, std::filesystem::path path);
-void shader_link(std::unique_ptr<Shader>& shader);
+void shader_load(Shader* shader, std::filesystem::path path);
+void shader_link(Shader* shader);
+
+GLuint shader_get_program(Shader* shader);
+
 // TODO: Implement shader_reload
-void shader_add_attribute(std::unique_ptr<Shader>& shader, const std::string& attribute);
-void shader_add_uniform(std::unique_ptr<Shader>& shader, const std::string& uniform);
-GLuint shader_get_attribute(std::unique_ptr<Shader>& shader, const std::string& attribute);
-GLuint shader_get_uniform(std::unique_ptr<Shader>& shader, const std::string& uniform);
+void shader_add_attribute(Shader* shader, const std::string& attribute);
+void shader_add_uniform(Shader* shader, const std::string& uniform);
+GLuint shader_get_attribute(Shader* shader, const std::string& attribute);
+GLuint shader_get_uniform(Shader* shader, const std::string& uniform);
 
-void shader_use(std::unique_ptr<Shader>& shader);
-void shader_unuse(std::unique_ptr<Shader>& shader);
+void shader_use(Shader* shader);
+void shader_unuse(Shader* shader);
 
 }

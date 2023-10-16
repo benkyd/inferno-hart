@@ -3,7 +3,7 @@
 #include <fstream>
 #include <iostream>
 
-using namespace inferno::graphics;
+namespace inferno::graphics {
 
 static std::unordered_map<GLuint, int> shader2Index = {
     { GL_VERTEX_SHADER, 0 },
@@ -25,7 +25,7 @@ std::string textFromFile(const std::filesystem::path& path)
         std::istreambuf_iterator<char>());
 }
 
-std::vector<const ShaderPreprocessorDefinition*> getKeys(std::unique_ptr<Shader>& shader, std::string key)
+std::vector<const ShaderPreprocessorDefinition*> getKeys(Shader* shader, std::string key)
 {
     std::vector<const ShaderPreprocessorDefinition*> ret;
     for (const auto& p : shader->PreprocessorDefinitions)
@@ -56,9 +56,9 @@ bool checkShader(GLuint uid)
     return true;
 }
 
-std::unique_ptr<Shader> shader_create()
+Shader* shader_create()
 {
-    std::unique_ptr<Shader> shader = std::make_unique<Shader>();
+    Shader* shader = new Shader;
 
     shader->Program = 0;
     shader->Shaders[0] = GL_NONE;
@@ -68,7 +68,7 @@ std::unique_ptr<Shader> shader_create()
     return shader;
 }
 
-void shader_cleanup(std::unique_ptr<Shader>& shader)
+void shader_cleanup(Shader* shader)
 {
     for (int i = 0; i < 3; i++) {
         if (shader->Shaders[i] == GL_NONE)
@@ -79,7 +79,7 @@ void shader_cleanup(std::unique_ptr<Shader>& shader)
     glDeleteProgram(shader->Program);
 }
 
-void shader_load(std::unique_ptr<Shader>& shader, std::filesystem::path path)
+void shader_load(Shader* shader, std::filesystem::path path)
 {
 
     assert(std::filesystem::exists(path));
@@ -132,7 +132,7 @@ void shader_load(std::unique_ptr<Shader>& shader, std::filesystem::path path)
     }
 }
 
-void shader_link(std::unique_ptr<Shader>& shader)
+void shader_link(Shader* shader)
 {
     shader->Program = glCreateProgram();
 
@@ -150,32 +150,39 @@ void shader_link(std::unique_ptr<Shader>& shader)
     glLinkProgram(shader->Program);
 }
 
-void shader_add_attribute(std::unique_ptr<Shader>& shader, const std::string& attribute)
+GLuint shader_get_program(Shader* shader)
+{
+    return shader->Program;
+}
+
+void shader_add_attribute(Shader* shader, const std::string& attribute)
 {
     shader->Attributes[attribute] = glGetAttribLocation(shader->Program, attribute.c_str());
 }
 
-void shader_add_uniform(std::unique_ptr<Shader>& shader, const std::string& uniform)
+void shader_add_uniform(Shader* shader, const std::string& uniform)
 {
     shader->Uniforms[uniform] = glGetUniformLocation(shader->Program, uniform.c_str());
 }
 
-GLuint shader_get_attribute(std::unique_ptr<Shader>& shader, const std::string& attribute)
+GLuint shader_get_attribute(Shader* shader, const std::string& attribute)
 {
     return shader->Attributes[attribute];
 }
 
-GLuint shader_get_uniform(std::unique_ptr<Shader>& shader, const std::string& uniform)
+GLuint shader_get_uniform(Shader* shader, const std::string& uniform)
 {
     return shader->Uniforms[uniform];
 }
 
-void shader_use(std::unique_ptr<Shader>& shader)
+void shader_use(Shader* shader)
 {
     glUseProgram(shader->Program);
 }
 
-void shader_unuse(std::unique_ptr<Shader>& shader)
+void shader_unuse(Shader* shader)
 {
     glUseProgram(0);
+}
+
 }
