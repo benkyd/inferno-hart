@@ -29,6 +29,9 @@ void shader_cleanup(Shader* shader);
 
 void shader_load(Shader* shader, std::filesystem::path path);
 void shader_link(Shader* shader);
+
+GLuint shader_get_program(Shader* shader);
+
 // TODO: Implement shader_reload
 void shader_add_attribute(Shader* shader, const std::string& attribute);
 void shader_add_uniform(Shader* shader, const std::string& uniform);

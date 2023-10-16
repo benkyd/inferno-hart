@@ -230,7 +230,6 @@ void ObjLoader::load(std::filesystem::path file)
 
 int ObjLoader::getIndexCount()
 {
-    yolo::debug("Face count: {}", mFaces.size());
     return (int)mFaces.size() * 3;
 }
 

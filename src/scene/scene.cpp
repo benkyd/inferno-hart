@@ -26,6 +26,7 @@ void scene_add_object(Scene* scene, SceneObject* object)
 {
     yolo::debug("Using scene {}", scene);
     yolo::debug("Adding object to scene, no Objects: {}, adding to pool of: {}", object->Meshs.size(), scene->Objects.size());
+    yolo::debug("Object Mesh 0 is {}", object->Meshs[0]);
     scene->Objects.push_back(object);
     scene->DidUpdate = true;
 }

@@ -62,4 +62,6 @@ void camera_set_euler_look(Camera* camera, float roll,
 void camera_set_look(Camera* camera,
     glm::vec3 look_direction);
 
+glm::vec3 camera_get_position(Camera* camera);
+
 } // namespace inferno::graphics

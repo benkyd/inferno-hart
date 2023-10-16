@@ -8,9 +8,9 @@
 #include <algorithm>
 #include <scene/camera.hpp>
 #include <scene/material.hpp>
-#include <scene/scene.hpp>
-#include <scene/object.hpp>
 #include <scene/mesh.hpp>
+#include <scene/object.hpp>
+#include <scene/scene.hpp>
 
 #include <iostream>
 
@@ -111,10 +111,21 @@ void preview_draw(PreviewRenderer* renderer, scene::Scene* scene)
     glEnable(GL_DEPTH_TEST);
 
     for (scene::SceneObject* o : scene::scene_get_renderables(scene)) {
-        yolo::info("Rendering object: {}", o);
         for (scene::Mesh* m : scene::scene_object_get_meshs(o)) {
-            yolo::info("Rendering mesh: {}", m);
-            yolo::debug("Mesh VAO: {}, EBO: {}, Indicies: {}", m->getVAO(), m->getEBO(), m->getIndexCount());
+            graphics::Shader* shader = m->getMaterial()->getGlShader();
+            graphics::shader_use(shader);
+
+            auto viewMatrix = graphics::camera_get_view(scene::scene_get_camera(scene));
+            auto projMatrix = graphics::camera_get_projection(scene::scene_get_camera(scene));
+
+            GLint uniTrans = glGetUniformLocation(graphics::shader_get_program(shader), "model");
+            glUniformMatrix4fv(uniTrans, 1, GL_FALSE, glm::value_ptr(glm::mat4(1.0f)));
+
+            GLint uniView = glGetUniformLocation(graphics::shader_get_program(shader), "view");
+            glUniformMatrix4fv(uniView, 1, GL_FALSE, glm::value_ptr(viewMatrix));
+
+            GLint uniProj = glGetUniformLocation(graphics::shader_get_program(shader), "proj");
+            glUniformMatrix4fv(uniProj, 1, GL_FALSE, glm::value_ptr(projMatrix));
 
             glBindVertexArray(m->getVAO());
             glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m->getEBO());

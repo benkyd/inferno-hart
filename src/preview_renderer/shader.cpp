@@ -150,6 +150,11 @@ void shader_link(Shader* shader)
     glLinkProgram(shader->Program);
 }
 
+GLuint shader_get_program(Shader* shader)
+{
+    return shader->Program;
+}
+
 void shader_add_attribute(Shader* shader, const std::string& attribute)
 {
     shader->Attributes[attribute] = glGetAttribLocation(shader->Program, attribute.c_str());

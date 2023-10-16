@@ -35,19 +35,20 @@ InfernoApp* inferno_create()
     graphics::window_create("Inferno v" INFERNO_VERSION, 1280, 720);
 
     // setup the scene
-    scene::Material basicMaterial("basic");
+    scene::Material* basicMaterial = new scene::Material("basic");
     graphics::Shader* basicShader = graphics::shader_create();
     graphics::shader_load(basicShader, "res/shaders/basic.glsl");
     graphics::shader_link(basicShader);
+    basicMaterial->setGlShader(basicShader);
 
-    scene::Mesh mesh;
-    mesh.loadOBJ("res/cornell-box.obj");
-    // mesh.loadOBJ("res/sponza.obj");
-    mesh.ready();
-    mesh.setMaterial(&basicMaterial);
+    scene::Mesh* mesh = new scene::Mesh;
+    // mesh->loadOBJ("res/cornell-box.obj");
+    mesh->loadOBJ("res/sponza.obj");
+    mesh->ready();
+    mesh->setMaterial(basicMaterial);
 
     scene::SceneObject* object = scene::scene_object_create();
-    scene::scene_object_add_mesh(object, &mesh);
+    scene::scene_object_add_mesh(object, mesh);
 
     scene::scene_add_object(app->Scene, object);
 
@@ -196,6 +197,63 @@ int inferno_run(InfernoApp* app)
 
             glBindFramebuffer(GL_FRAMEBUFFER, 0);
             ImGui::End();
+        }
+
+        if (showRenderSettings && ImGui::Begin("Inferno HART")) {
+            if (ImGui::TreeNode("Camera")) {
+                ImGui::PushItemWidth(100);
+                ImGui::Text("Camera Position X,Y,Z");
+
+                graphics::Camera* camera = scene::scene_get_camera(app->Scene);
+
+                bool positionUpdated = false;
+                ImGui::DragFloat("X", &camera->Position.x, 0.01f, -FLT_MAX, FLT_MAX, "%.2f", ImGuiSliderFlags_None);
+                ImGui::SameLine();
+                if (ImGui::IsItemEdited())
+                    positionUpdated = true;
+                ImGui::DragFloat("Y", &camera->Position.y, 0.01f, -FLT_MAX, FLT_MAX, "%.2f", ImGuiSliderFlags_None);
+                ImGui::SameLine();
+                if (ImGui::IsItemEdited())
+                    positionUpdated = true;
+                ImGui::DragFloat("Z", &camera->Position.z, 0.01f, -FLT_MAX, FLT_MAX, "%.2f", ImGuiSliderFlags_None);
+                if (ImGui::IsItemEdited())
+                    positionUpdated = true;
+                if (positionUpdated)
+                    graphics::camera_set_position(camera, graphics::camera_get_position(camera));
+
+                bool viewUpdated = false;
+                ImGui::Text("Camera Look Yaw, Pitch, Roll");
+                ImGui::DragFloat("Yaw", &camera->Yaw, 0.01f, -FLT_MAX, FLT_MAX, "%.2f", ImGuiSliderFlags_None);
+                ImGui::SameLine();
+                if (ImGui::IsItemEdited())
+                    viewUpdated = true;
+                ImGui::DragFloat("Pitch", &camera->Pitch, 0.01f, -FLT_MAX, FLT_MAX, "%.2f", ImGuiSliderFlags_None);
+                ImGui::SameLine();
+                if (ImGui::IsItemEdited())
+                    viewUpdated = true;
+                ImGui::DragFloat("Roll", &camera->Roll, 0.01f, -FLT_MAX, FLT_MAX, "%.2f", ImGuiSliderFlags_None);
+                if (ImGui::IsItemEdited())
+                    viewUpdated = true;
+
+                ImGui::PopItemWidth();
+                ImGui::PushItemWidth(300);
+
+                ImGui::Text("Camera Zoom");
+                ImGui::DragFloat("Zoom", &camera->FOV, -0.1f, 0.01f, 180.0f, "%.2f", ImGuiSliderFlags_None);
+                ImGui::SameLine();
+                if (ImGui::IsItemEdited())
+                    viewUpdated = true;
+                if (viewUpdated)
+                    graphics::camera_update(camera);
+
+                ImGui::PopItemWidth();
+                ImGui::TreePop();
+            }
+            ImGui::End();
+        }
+
+        if (showDemoWindow) {
+            ImGui::ShowDemoWindow();
         }
 
         // clang-format off

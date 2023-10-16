@@ -221,4 +221,9 @@ void camera_set_look(Camera* camera, glm::vec3 look_direction)
     camera_update(camera);
 }
 
+glm::vec3 camera_get_position(Camera* camera)
+{
+    return camera->Position;
+}
+
 }
