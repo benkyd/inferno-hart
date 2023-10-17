@@ -37,7 +37,7 @@ RayRenderer* rayr_create(scene::Scene* scene);
 void rayr_cleanup(RayRenderer* renderer);
 
 void rayr_draw_ui(RayRenderer* renderer);
-void rayr_set_viewport(RayRenderer* renderer, glm::ivec2 size);
+void rayr_set_viewport(RayRenderer* renderer, Camera* camera);
 
 GLuint rayr_get_rendered_texture(RayRenderer* renderer);
 glm::fvec4* rayr_get_render_data(RayRenderer* renderer);

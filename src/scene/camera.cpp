@@ -10,8 +10,6 @@ Camera* camera_create()
     camera->_impl = new _CameraImpl;
 
     camera->Views = Viewports();
-    camera->Views.Raster = glm::ivec2(800, 600);
-    camera->Views.Ray = glm::ivec2(800, 600);
 
     camera->ProjectionMatrix = glm::perspective(
         glm::radians(camera->FOV),

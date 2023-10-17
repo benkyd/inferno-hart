@@ -28,6 +28,7 @@ RayRenderer* rayr_create(scene::Scene* scene)
     auto viewport = camera_ray_get_viewport(camera);
     renderer->Viewport = &viewport;
 
+    yolo::debug("Raytracing Rendering {}x{} viewport", renderer->Viewport->x, renderer->Viewport->y);
     renderer->RenderData = new glm::fvec4[renderer->Viewport->x * renderer->Viewport->y];
 
     glGenTextures(1, &renderer->RenderTargetTexture);
@@ -55,9 +56,10 @@ void rayr_draw_ui(RayRenderer* renderer)
 {
 }
 
-void rayr_set_viewport(RayRenderer* renderer, glm::ivec2 size)
+void rayr_set_viewport(RayRenderer* renderer, Camera* camera)
 {
-    renderer->Viewport = &size;
+    auto viewport = camera_ray_get_viewport(camera);
+    renderer->Viewport = &viewport;
 
     delete renderer->RenderData;
     renderer->RenderData = new glm::fvec4[renderer->Viewport->x * renderer->Viewport->y];
@@ -76,19 +78,20 @@ void rayr_set_viewport(RayRenderer* renderer, glm::ivec2 size)
     glBindTexture(GL_TEXTURE_2D, 0);
 }
 
-GLuint rayr_get_rendered_texture(RayRenderer*& renderer)
+GLuint rayr_get_rendered_texture(RayRenderer* renderer)
 {
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
+    yolo::debug("Getting rendered texture {}", renderer->RenderTargetTexture);
     glBindTexture(GL_TEXTURE_2D, renderer->RenderTargetTexture);
     return renderer->RenderTargetTexture;
 }
 
-glm::fvec4* rayr_get_render_data(RayRenderer*& renderer)
+glm::fvec4* rayr_get_render_data(RayRenderer* renderer)
 {
     return renderer->RenderData;
 }
 
-void rayr_prepare(RayRenderer*& renderer)
+void rayr_prepare(RayRenderer* renderer)
 {
     assert(renderer->Scene != nullptr);
     if (scene::scene_did_update(renderer->Scene)) {
@@ -104,9 +107,14 @@ void rayr_draw(RayRenderer* renderer)
     // ray data and nothing else being reallocated every frame for no reason
     // ReferencedRayField startRays = mRaySource->getInitialRays(true);
 
-    // for (int x = 0; x < renderer->Viewport->x; x++)
-    //     for (int y = 0; y < renderer->Viewport->y; y++)
-    //         renderer->RenderData[y * renderer->Viewport->x + x] = { 0.1f, 0.1f, 0.1f, 1.0f };
+    yolo::debug("Rendering {}x{} viewport", renderer->Viewport->x, renderer->Viewport->y);
+    for (int x = 0; x < renderer->Viewport->x; x++) {
+        yolo::debug("Rendering column {}", x);
+        for (int y = 0; y < renderer->Viewport->y; y++) {
+            yolo::debug("Rendering row {}", y);
+            renderer->RenderData[y * renderer->Viewport->x + x] = { 0.1f, 1.0f, 0.1f, 1.0f };
+        }
+    }
 }
 //
 // void RayRenderer::computeHit(HitInfo* info)

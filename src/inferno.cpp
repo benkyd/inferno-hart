@@ -3,6 +3,7 @@
 #include <version.hpp>
 // #include "gui/layout.hpp"
 #include "imgui/imgui.h"
+#include "renderer/renderer.hpp"
 #include "scene/scene.hpp"
 #include "window.hpp"
 
@@ -104,7 +105,12 @@ InfernoApp* inferno_create()
     scene::scene_add_object(app->Scene, object);
 
     app->PreviewRenderer = graphics::preview_create();
+    graphics::preview_set_viewport(app->PreviewRenderer, app->Scene->Camera);
     app->RayRenderer = graphics::rayr_create(app->Scene);
+    graphics::rayr_set_viewport(app->RayRenderer, app->Scene->Camera);
+
+    yolo::info("Preview viewport size: {}x{}", app->PreviewRenderer->Viewport->x, app->PreviewRenderer->Viewport->y);
+    yolo::info("Rayr viewport size: {}x{}", app->RayRenderer->Viewport->x, app->RayRenderer->Viewport->y);
 
     return app;
 }
@@ -278,7 +284,6 @@ int inferno_run(InfernoApp* app)
             }
 
             if (ImGui::TreeNode("RayTraced Render")) {
-                ImGui::Text("Lol");
                 graphics::rayr_draw_ui(app->RayRenderer);
                 ImGui::TreePop();
             }
@@ -303,12 +308,17 @@ int inferno_run(InfernoApp* app)
                 { ImGui::GetWindowSize().x, ImGui::GetWindowSize().y },
                 ImVec2(0, 1), ImVec2(1, 0));
 
-            glBindFramebuffer(GL_FRAMEBUFFER, 0);
             ImGui::End();
         }
 
         if (ImGui::Begin("Render")) {
             graphics::rayr_draw(app->RayRenderer);
+
+            ImTextureID texture = (ImTextureID)graphics::rayr_get_rendered_texture(app->RayRenderer);
+            ImGui::Image(
+                texture,
+                { ImGui::GetWindowSize().x, ImGui::GetWindowSize().y },
+                ImVec2(0, 1), ImVec2(1, 0));
             ImGui::End();
         }
 
