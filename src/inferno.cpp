@@ -94,21 +94,27 @@ InfernoApp* inferno_create()
     graphics::shader_link(basicShader);
     basicMaterial->setGlShader(basicShader);
 
-    scene::Mesh* mesh = new scene::Mesh;
-    mesh->loadOBJ("res/lucy.obj");
-    mesh->ready();
-    mesh->setMaterial(basicMaterial);
+    // scene::Mesh* mesh = new scene::Mesh;
+    // mesh->loadOBJ("res/dragon-cornell-size.obj");
+    // mesh->ready();
+    // mesh->setMaterial(basicMaterial);
+    // scene::SceneObject* object = scene::scene_object_create();
+    // scene::scene_object_add_mesh(object, mesh);
+    // scene::scene_add_object(app->Scene, object);
 
-    scene::SceneObject* object = scene::scene_object_create();
-    scene::scene_object_add_mesh(object, mesh);
+    scene::Mesh* box = new scene::Mesh;
+    box->loadOBJ("res/cornell-box.obj");
+    box->ready();
+    box->setMaterial(basicMaterial);
+    scene::SceneObject* box_object = scene::scene_object_create();
+    scene::scene_object_add_mesh(box_object, box);
+    scene::scene_add_object(app->Scene, box_object);
 
-    scene::scene_add_object(app->Scene, object);
 
     app->PreviewRenderer = graphics::preview_create();
     graphics::preview_set_viewport(app->PreviewRenderer, app->Scene->Camera);
     app->RayRenderer = graphics::rayr_create(app->Scene);
     graphics::rayr_set_viewport(app->RayRenderer, app->Scene->Camera);
-
 
     return app;
 }
