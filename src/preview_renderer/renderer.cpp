@@ -60,7 +60,7 @@ void preview_draw_ui(PreviewRenderer* renderer)
 void preview_set_viewport(PreviewRenderer* renderer, Camera* camera)
 {
     auto viewport = camera_raster_get_viewport(camera);
-    renderer->Viewport = &viewport;
+    renderer->Viewport = viewport;
 
     glBindFramebuffer(GL_FRAMEBUFFER, renderer->RenderTarget);
 
@@ -69,8 +69,8 @@ void preview_set_viewport(PreviewRenderer* renderer, Camera* camera)
         GL_TEXTURE_2D,
         0,
         GL_RGB,
-        renderer->Viewport->x,
-        renderer->Viewport->y,
+        renderer->Viewport.x,
+        renderer->Viewport.y,
         0,
         GL_RGB,
         GL_UNSIGNED_BYTE,
@@ -80,8 +80,8 @@ void preview_set_viewport(PreviewRenderer* renderer, Camera* camera)
     glTexImage2D(GL_TEXTURE_2D,
         0,
         GL_DEPTH24_STENCIL8,
-        renderer->Viewport->x,
-        renderer->Viewport->y,
+        renderer->Viewport.x,
+        renderer->Viewport.y,
         0,
         GL_DEPTH_COMPONENT,
         GL_FLOAT,
@@ -108,8 +108,8 @@ void preview_draw(PreviewRenderer* renderer, scene::Scene* scene)
     glBindFramebuffer(GL_FRAMEBUFFER, renderer->RenderTarget);
     glViewport(0,
         0,
-        renderer->Viewport->x,
-        renderer->Viewport->y);
+        renderer->Viewport.x,
+        renderer->Viewport.y);
 
     glEnable(GL_DEPTH_TEST);
 

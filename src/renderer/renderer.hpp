@@ -19,7 +19,7 @@ class RaySource;
 class RenderDispatcher;
 
 typedef struct RayRenderer {
-    glm::ivec2* Viewport;
+    glm::ivec2 Viewport;
 
     // TODO: Can this be direct to GPU?
     // NOTE: Probably not

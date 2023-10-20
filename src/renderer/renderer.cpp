@@ -26,10 +26,10 @@ RayRenderer* rayr_create(scene::Scene* scene)
 
     auto camera = scene::scene_get_camera(scene);
     auto viewport = camera_ray_get_viewport(camera);
-    renderer->Viewport = &viewport;
+    renderer->Viewport = viewport;
 
-    yolo::debug("Raytracing Rendering {}x{} viewport", renderer->Viewport->x, renderer->Viewport->y);
-    renderer->RenderData = new glm::fvec4[renderer->Viewport->x * renderer->Viewport->y];
+    yolo::debug("Raytracing Rendering {}x{} viewport", renderer->Viewport.x, renderer->Viewport.y);
+    renderer->RenderData = new glm::fvec4[renderer->Viewport.x * renderer->Viewport.y];
 
     glGenTextures(1, &renderer->RenderTargetTexture);
     glBindTexture(GL_TEXTURE_2D, renderer->RenderTargetTexture);
@@ -40,7 +40,7 @@ RayRenderer* rayr_create(scene::Scene* scene)
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 
     glPixelStorei(GL_UNPACK_ROW_LENGTH, 0);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, renderer->Viewport->x, renderer->Viewport->y, 0, GL_RGBA, GL_FLOAT, renderer->RenderData);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, renderer->Viewport.x, renderer->Viewport.y, 0, GL_RGBA, GL_FLOAT, renderer->RenderData);
 
     glBindTexture(GL_TEXTURE_2D, 0);
 
@@ -59,10 +59,10 @@ void rayr_draw_ui(RayRenderer* renderer)
 void rayr_set_viewport(RayRenderer* renderer, Camera* camera)
 {
     auto viewport = camera_ray_get_viewport(camera);
-    renderer->Viewport = &viewport;
+    renderer->Viewport = viewport;
 
     delete renderer->RenderData;
-    renderer->RenderData = new glm::fvec4[renderer->Viewport->x * renderer->Viewport->y];
+    renderer->RenderData = new glm::fvec4[renderer->Viewport.x * renderer->Viewport.y];
 
     glGenTextures(1, &renderer->RenderTargetTexture);
     glBindTexture(GL_TEXTURE_2D, renderer->RenderTargetTexture);
@@ -73,7 +73,7 @@ void rayr_set_viewport(RayRenderer* renderer, Camera* camera)
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 
     glPixelStorei(GL_UNPACK_ROW_LENGTH, 0);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, renderer->Viewport->x, renderer->Viewport->y, 0, GL_RGBA, GL_FLOAT, renderer->RenderData);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, renderer->Viewport.x, renderer->Viewport.y, 0, GL_RGBA, GL_FLOAT, renderer->RenderData);
 
     glBindTexture(GL_TEXTURE_2D, 0);
 }
@@ -81,8 +81,8 @@ void rayr_set_viewport(RayRenderer* renderer, Camera* camera)
 GLuint rayr_get_rendered_texture(RayRenderer* renderer)
 {
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
-    yolo::debug("Getting rendered texture {}", renderer->RenderTargetTexture);
     glBindTexture(GL_TEXTURE_2D, renderer->RenderTargetTexture);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, renderer->Viewport.x, renderer->Viewport.y, 0, GL_RGBA, GL_FLOAT, renderer->RenderData);
     return renderer->RenderTargetTexture;
 }
 
@@ -107,12 +107,9 @@ void rayr_draw(RayRenderer* renderer)
     // ray data and nothing else being reallocated every frame for no reason
     // ReferencedRayField startRays = mRaySource->getInitialRays(true);
 
-    yolo::debug("Rendering {}x{} viewport", renderer->Viewport->x, renderer->Viewport->y);
-    for (int x = 0; x < renderer->Viewport->x; x++) {
-        yolo::debug("Rendering column {}", x);
-        for (int y = 0; y < renderer->Viewport->y; y++) {
-            yolo::debug("Rendering row {}", y);
-            renderer->RenderData[y * renderer->Viewport->x + x] = { 0.1f, 1.0f, 0.1f, 1.0f };
+    for (int x = 0; x < renderer->Viewport.x; x++) {
+        for (int y = 0; y < renderer->Viewport.y; y++) {
+            renderer->RenderData[y * renderer->Viewport.x + x] = { 0.1f, 1.0f, 0.1f, 1.0f };
         }
     }
 }

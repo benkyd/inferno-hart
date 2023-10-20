@@ -109,8 +109,6 @@ InfernoApp* inferno_create()
     app->RayRenderer = graphics::rayr_create(app->Scene);
     graphics::rayr_set_viewport(app->RayRenderer, app->Scene->Camera);
 
-    yolo::info("Preview viewport size: {}x{}", app->PreviewRenderer->Viewport->x, app->PreviewRenderer->Viewport->y);
-    yolo::info("Rayr viewport size: {}x{}", app->RayRenderer->Viewport->x, app->RayRenderer->Viewport->y);
 
     return app;
 }

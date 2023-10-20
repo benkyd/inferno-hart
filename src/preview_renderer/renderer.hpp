@@ -14,7 +14,7 @@ struct Viewport;
 struct Camera;
 
 typedef struct PreviewRenderer {
-    glm::ivec2* Viewport;
+    glm::ivec2 Viewport;
 
     GLuint RenderTarget = 0;
     GLuint RenderTargetTexture = 0;
