@@ -3,6 +3,7 @@
 #include <version.hpp>
 // #include "gui/layout.hpp"
 #include "imgui/imgui.h"
+#include "renderer/renderer.hpp"
 #include "scene/scene.hpp"
 #include "window.hpp"
 
@@ -22,6 +23,57 @@
 
 namespace inferno {
 
+InfernoTimer* inferno_timer_create()
+{
+    InfernoTimer* timer = new InfernoTimer;
+    // lazy init
+    inferno_timer_start(timer);
+    inferno_timer_end(timer);
+    return timer;
+}
+
+void inferno_timer_cleanup(InfernoTimer* timer)
+{
+    delete timer;
+}
+
+void inferno_timer_rolling_average(InfernoTimer* timer, int count)
+{
+    if (timer->Times.size() > count)
+        timer->Times.erase(timer->Times.begin());
+    timer->RollingAverage = std::accumulate(timer->Times.begin(), timer->Times.end(), std::chrono::duration<double>(0.0)) / count;
+}
+
+void inferno_timer_start(InfernoTimer* timer)
+{
+    timer->StartTime = std::chrono::high_resolution_clock::now();
+}
+
+void inferno_timer_end(InfernoTimer* timer)
+{
+    timer->EndTime = std::chrono::high_resolution_clock::now();
+    timer->Time = timer->EndTime - timer->StartTime;
+    timer->Times.push_back(timer->Time);
+    inferno_timer_rolling_average(timer, 100);
+}
+
+void inferno_timer_print(InfernoTimer* timer, bool time)
+{
+    if (time)
+        yolo::info("Time: {}s", timer->Time.count());
+    yolo::info("Average time: {}ms", timer->RollingAverage.count() * 1000.0);
+}
+
+std::chrono::duration<double> inferno_timer_get_time(InfernoTimer* timer)
+{
+    return timer->Time;
+}
+
+std::chrono::duration<double> inferno_timer_get_average(InfernoTimer* timer)
+{
+    return timer->RollingAverage;
+}
+
 InfernoApp* inferno_create()
 {
     // MOTD
@@ -30,6 +82,7 @@ InfernoApp* inferno_create()
     InfernoApp* app = new InfernoApp;
     app->Input = new InfernoInput;
     app->Scene = scene::scene_create();
+    app->MainTimer = inferno_timer_create();
 
     // Create window
     graphics::window_create("Inferno v" INFERNO_VERSION, 1280, 720);
@@ -42,8 +95,7 @@ InfernoApp* inferno_create()
     basicMaterial->setGlShader(basicShader);
 
     scene::Mesh* mesh = new scene::Mesh;
-    // mesh->loadOBJ("res/cornell-box.obj");
-    mesh->loadOBJ("res/sponza.obj");
+    mesh->loadOBJ("res/lucy.obj");
     mesh->ready();
     mesh->setMaterial(basicMaterial);
 
@@ -53,6 +105,10 @@ InfernoApp* inferno_create()
     scene::scene_add_object(app->Scene, object);
 
     app->PreviewRenderer = graphics::preview_create();
+    graphics::preview_set_viewport(app->PreviewRenderer, app->Scene->Camera);
+    app->RayRenderer = graphics::rayr_create(app->Scene);
+    graphics::rayr_set_viewport(app->RayRenderer, app->Scene->Camera);
+
 
     return app;
 }
@@ -92,7 +148,7 @@ void inferno_preset_gui(InfernoApp* app)
     yolo::info("LAYOUT SET TO DEFAULT");
 }
 
-void inferno_move_input(InfernoApp* app)
+void inferno_move_input(InfernoApp* app, std::chrono::duration<double> deltaTime)
 {
     static GLFWcursor* cursor = glfwCreateStandardCursor(GLFW_HAND_CURSOR);
     glfwSetCursor(graphics::window_get_glfw_window(), cursor);
@@ -137,19 +193,54 @@ void inferno_stop_move_input(InfernoApp* app)
     app->Input->MouseDelta = { 0.0f, 0.0f };
 }
 
+bool inferno_pre(InfernoApp* app)
+{
+    app->FrameCount++;
+    if (app->FrameCount % 100 == 0) {
+        yolo::info("Average FPS: {}", 1.0 / inferno_timer_get_time(app->MainTimer).count());
+        inferno_timer_print(app->MainTimer, false);
+    }
+
+    if (!graphics::window_new_frame())
+        return false;
+
+    // set the main window to the dockspace and then on the first launch set the preset
+    ImGuiID dockspace_id = ImGui::GetID("main");
+    static ImGuiDockNodeFlags dockspace_flags = ImGuiDockNodeFlags_PassthruCentralNode;
+    if (ImGui::DockBuilderGetNode(dockspace_id) == NULL) {
+        inferno_preset_gui(app);
+    }
+    ImGui::DockSpace(dockspace_id, ImVec2(0.0f, 0.0f), dockspace_flags);
+
+    return true;
+}
+
+void inferno_end(InfernoApp* app)
+{
+    // clang-format off
+        GLenum err;
+        while((err = glGetError()) != GL_NO_ERROR) {
+            std::string error;
+            switch (err) {
+                case GL_INVALID_ENUM:                  error = "INVALID_ENUM"; break;
+                case GL_INVALID_VALUE:                 error = "INVALID_VALUE"; break;
+                case GL_INVALID_OPERATION:             error = "INVALID_OPERATION"; break;
+                case GL_STACK_OVERFLOW:                error = "STACK_OVERFLOW"; break;
+                case GL_STACK_UNDERFLOW:               error = "STACK_UNDERFLOW"; break;
+                case GL_OUT_OF_MEMORY:                 error = "OUT_OF_MEMORY"; break;
+                case GL_INVALID_FRAMEBUFFER_OPERATION: error = "INVALID_FRAMEBUFFER_OPERATION"; break;
+                default:                               error = std::to_string((uint32_t)err); break;
+            }
+            yolo::error("[GL]: {} {}", err, error);
+        }
+}
+
 int inferno_run(InfernoApp* app)
 {
     while (true) {
-        if (!graphics::window_new_frame())
+        inferno_timer_start(app->MainTimer);
+        if (!inferno_pre(app))
             break;
-
-        // set the main window to the dockspace and then on the first launch set the preset
-        ImGuiID dockspace_id = ImGui::GetID("main");
-        static ImGuiDockNodeFlags dockspace_flags = ImGuiDockNodeFlags_PassthruCentralNode;
-        if (ImGui::DockBuilderGetNode(dockspace_id) == NULL) {
-            inferno_preset_gui(app);
-        }
-        ImGui::DockSpace(dockspace_id, ImVec2(0.0f, 0.0f), dockspace_flags);
 
         if (glm::length(app->Input->MouseDelta) > 0.0f)
             graphics::camera_mouse_move(app->Scene->Camera, app->Input->MouseDelta);
@@ -178,15 +269,35 @@ int inferno_run(InfernoApp* app)
             ImGui::EndMenuBar();
         }
 
+        if (showRenderSettings && ImGui::Begin("Inferno HART")) {
+            if (ImGui::TreeNode("Camera")) {
+                graphics::Camera* camera = scene::scene_get_camera(app->Scene);
+                graphics::camera_draw_ui(camera);
+                ImGui::TreePop();
+            }
+            if (ImGui::TreeNode("Preview Render")) {
+                ImGui::Checkbox("Show Preview", &showPreview);
+                graphics::preview_draw_ui(app->PreviewRenderer);
+                ImGui::TreePop();
+            }
+
+            if (ImGui::TreeNode("RayTraced Render")) {
+                graphics::rayr_draw_ui(app->RayRenderer);
+                ImGui::TreePop();
+            }
+            ImGui::End();
+        }
+
         if (showPreview && ImGui::Begin("Preview", nullptr, ImGuiWindowFlags_NoScrollbar)) {
             if (ImGui::IsWindowHovered()) {
-                inferno_move_input(app);
+                inferno_move_input(app, inferno_timer_get_time(app->MainTimer));
             } else {
                 inferno_stop_move_input(app);
             }
 
-            graphics::raster_set_viewport(scene::scene_get_camera(app->Scene),
+            graphics::camera_raster_set_viewport(scene::scene_get_camera(app->Scene),
                 { ImGui::GetWindowSize().x, ImGui::GetWindowSize().y });
+            graphics::preview_set_viewport(app->PreviewRenderer, app->Scene->Camera);
             graphics::preview_draw(app->PreviewRenderer, app->Scene);
 
             ImTextureID texture = (ImTextureID)graphics::preview_get_rendered_texture(app->PreviewRenderer);
@@ -195,60 +306,17 @@ int inferno_run(InfernoApp* app)
                 { ImGui::GetWindowSize().x, ImGui::GetWindowSize().y },
                 ImVec2(0, 1), ImVec2(1, 0));
 
-            glBindFramebuffer(GL_FRAMEBUFFER, 0);
             ImGui::End();
         }
 
-        if (showRenderSettings && ImGui::Begin("Inferno HART")) {
-            if (ImGui::TreeNode("Camera")) {
-                ImGui::PushItemWidth(100);
-                ImGui::Text("Camera Position X,Y,Z");
+        if (ImGui::Begin("Render")) {
+            graphics::rayr_draw(app->RayRenderer);
 
-                graphics::Camera* camera = scene::scene_get_camera(app->Scene);
-
-                bool positionUpdated = false;
-                ImGui::DragFloat("X", &camera->Position.x, 0.01f, -FLT_MAX, FLT_MAX, "%.2f", ImGuiSliderFlags_None);
-                ImGui::SameLine();
-                if (ImGui::IsItemEdited())
-                    positionUpdated = true;
-                ImGui::DragFloat("Y", &camera->Position.y, 0.01f, -FLT_MAX, FLT_MAX, "%.2f", ImGuiSliderFlags_None);
-                ImGui::SameLine();
-                if (ImGui::IsItemEdited())
-                    positionUpdated = true;
-                ImGui::DragFloat("Z", &camera->Position.z, 0.01f, -FLT_MAX, FLT_MAX, "%.2f", ImGuiSliderFlags_None);
-                if (ImGui::IsItemEdited())
-                    positionUpdated = true;
-                if (positionUpdated)
-                    graphics::camera_set_position(camera, graphics::camera_get_position(camera));
-
-                bool viewUpdated = false;
-                ImGui::Text("Camera Look Yaw, Pitch, Roll");
-                ImGui::DragFloat("Yaw", &camera->Yaw, 0.01f, -FLT_MAX, FLT_MAX, "%.2f", ImGuiSliderFlags_None);
-                ImGui::SameLine();
-                if (ImGui::IsItemEdited())
-                    viewUpdated = true;
-                ImGui::DragFloat("Pitch", &camera->Pitch, 0.01f, -FLT_MAX, FLT_MAX, "%.2f", ImGuiSliderFlags_None);
-                ImGui::SameLine();
-                if (ImGui::IsItemEdited())
-                    viewUpdated = true;
-                ImGui::DragFloat("Roll", &camera->Roll, 0.01f, -FLT_MAX, FLT_MAX, "%.2f", ImGuiSliderFlags_None);
-                if (ImGui::IsItemEdited())
-                    viewUpdated = true;
-
-                ImGui::PopItemWidth();
-                ImGui::PushItemWidth(300);
-
-                ImGui::Text("Camera Zoom");
-                ImGui::DragFloat("Zoom", &camera->FOV, -0.1f, 0.01f, 180.0f, "%.2f", ImGuiSliderFlags_None);
-                ImGui::SameLine();
-                if (ImGui::IsItemEdited())
-                    viewUpdated = true;
-                if (viewUpdated)
-                    graphics::camera_update(camera);
-
-                ImGui::PopItemWidth();
-                ImGui::TreePop();
-            }
+            ImTextureID texture = (ImTextureID)graphics::rayr_get_rendered_texture(app->RayRenderer);
+            ImGui::Image(
+                texture,
+                { ImGui::GetWindowSize().x, ImGui::GetWindowSize().y },
+                ImVec2(0, 1), ImVec2(1, 0));
             ImGui::End();
         }
 
@@ -256,24 +324,9 @@ int inferno_run(InfernoApp* app)
             ImGui::ShowDemoWindow();
         }
 
-        // clang-format off
-        GLenum err;
-        while((err = glGetError()) != GL_NO_ERROR) {
-            std::string error;
-            switch (err) {
-                case GL_INVALID_ENUM:                  error = "INVALID_ENUM"; break;
-                case GL_INVALID_VALUE:                 error = "INVALID_VALUE"; break;
-                case GL_INVALID_OPERATION:             error = "INVALID_OPERATION"; break;
-                case GL_STACK_OVERFLOW:                error = "STACK_OVERFLOW"; break;
-                case GL_STACK_UNDERFLOW:               error = "STACK_UNDERFLOW"; break;
-                case GL_OUT_OF_MEMORY:                 error = "OUT_OF_MEMORY"; break;
-                case GL_INVALID_FRAMEBUFFER_OPERATION: error = "INVALID_FRAMEBUFFER_OPERATION"; break;
-                default:                               error = std::to_string((uint32_t)err); break;
-            }
-            yolo::error("[GL]: {} {}", err, error);
-        }
-
         graphics::window_render();
+        inferno_end(app);
+        inferno_timer_end(app->MainTimer);
     }
 
     return 1;

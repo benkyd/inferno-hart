@@ -11,6 +11,7 @@ struct Scene;
 namespace inferno::graphics {
 
 struct Viewport;
+struct Camera;
 
 typedef struct PreviewRenderer {
     glm::ivec2 Viewport;
@@ -22,6 +23,9 @@ typedef struct PreviewRenderer {
 
 PreviewRenderer* preview_create();
 void preview_cleanup(PreviewRenderer* renderer);
+
+void preview_draw_ui(PreviewRenderer* renderer);
+void preview_set_viewport(PreviewRenderer* renderer, Camera* camera);
 
 GLuint preview_get_rendered_texture(PreviewRenderer* renderer);
 

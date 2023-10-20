@@ -78,10 +78,10 @@ void setupImGui()
     ImGuiIO& io = ImGui::GetIO();
     (void)io;
     io.ConfigFlags |= ImGuiConfigFlags_DockingEnable; // Enable Docking
-    io.ConfigFlags |= ImGuiConfigFlags_DpiEnableScaleFonts; // FIXME-DPI: THIS CURRENTLY DOESN'T
+    io.ConfigFlags |= ImGuiConfigFlags_DpiEnableScaleFonts; // FIXME: THIS CURRENTLY DOESN'T
                                                             // WORK AS EXPECTED. DON'T USE IN
                                                             // USER APP!
-    io.ConfigFlags |= ImGuiConfigFlags_DpiEnableScaleViewports; // FIXME-DPI
+    io.ConfigFlags |= ImGuiConfigFlags_DpiEnableScaleViewports; // FIXME:
                                                                 // io.ConfigDockingWithShift
                                                                 // = true;
 

@@ -53,8 +53,41 @@ void preview_cleanup(PreviewRenderer* renderer)
 {
 }
 
-void preview_set_viewport(PreviewRenderer* renderer, Viewport* viewport)
+void preview_draw_ui(PreviewRenderer* renderer)
 {
+}
+
+void preview_set_viewport(PreviewRenderer* renderer, Camera* camera)
+{
+    auto viewport = camera_raster_get_viewport(camera);
+    renderer->Viewport = viewport;
+
+    glBindFramebuffer(GL_FRAMEBUFFER, renderer->RenderTarget);
+
+    glBindTexture(GL_TEXTURE_2D, renderer->RenderTargetTexture);
+    glTexImage2D(
+        GL_TEXTURE_2D,
+        0,
+        GL_RGB,
+        renderer->Viewport.x,
+        renderer->Viewport.y,
+        0,
+        GL_RGB,
+        GL_UNSIGNED_BYTE,
+        NULL);
+
+    glBindTexture(GL_TEXTURE_2D, renderer->RenderTargetDepthTexture);
+    glTexImage2D(GL_TEXTURE_2D,
+        0,
+        GL_DEPTH24_STENCIL8,
+        renderer->Viewport.x,
+        renderer->Viewport.y,
+        0,
+        GL_DEPTH_COMPONENT,
+        GL_FLOAT,
+        NULL);
+
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
 
 GLuint preview_get_rendered_texture(PreviewRenderer* renderer)
@@ -65,43 +98,13 @@ GLuint preview_get_rendered_texture(PreviewRenderer* renderer)
 
 void preview_draw(PreviewRenderer* renderer, scene::Scene* scene)
 {
-    const glm::ivec2& viewport = graphics::raster_get_viewport(scene::scene_get_camera(scene));
-    glBindFramebuffer(GL_FRAMEBUFFER, renderer->RenderTarget);
-
-    glBindTexture(GL_TEXTURE_2D, renderer->RenderTargetTexture);
-    glTexImage2D(
-        GL_TEXTURE_2D,
-        0,
-        GL_RGB,
-        viewport.x,
-        viewport.y,
-        0,
-        GL_RGB,
-        GL_UNSIGNED_BYTE,
-        NULL);
-
-    glBindTexture(GL_TEXTURE_2D, renderer->RenderTargetDepthTexture);
-    glTexImage2D(GL_TEXTURE_2D,
-        0,
-        GL_DEPTH24_STENCIL8,
-        viewport.x,
-        viewport.y,
-        0,
-        GL_DEPTH_COMPONENT,
-        GL_FLOAT,
-        NULL);
-
-    glBindFramebuffer(GL_FRAMEBUFFER, 0);
-
     // clear
-
     glBindFramebuffer(GL_FRAMEBUFFER, renderer->RenderTarget);
     glClearColor(0.1, 0.1, 0.1, 1.0);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
     // draw
-
     glBindFramebuffer(GL_FRAMEBUFFER, renderer->RenderTarget);
     glViewport(0,
         0,
