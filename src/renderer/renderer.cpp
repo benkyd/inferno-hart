@@ -113,7 +113,7 @@ void rayr_draw(RayRenderer* renderer)
     for (int x = 0; x < renderer->Viewport.x; x++) {
         for (int y = 0; y < renderer->Viewport.y; y++) {
             rays::Ray* ray = startRays.Field[x * renderer->Viewport.y + y];
-            renderer->RenderData[y * renderer->Viewport.x + x] = { ray->Direction.x, ray->Direction.y, ray->Direction.z, 1.0f };
+            renderer->RenderData[y * renderer->Viewport.x + x] = { ray->Direction.x + 0.5, ray->Direction.y + 0.5, ray->Direction.z + 0.5, 1.0f };
 
             // we want to iterate over every object in the scene and then ask that object for an intersection
             for (auto& obj : scene::scene_get_renderables(renderer->Scene)) {
