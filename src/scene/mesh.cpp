@@ -84,7 +84,6 @@ int Mesh::getVerticies(const float** v, const float** n)
 int Mesh::getIndicies(const uint32_t** i)
 {
     *i = &mObjLoader->getFaces()[0];
-    yolo::debug("{}", &mObjLoader->getFaces()[0]);
     return mObjLoader->getIndexCount();
 }
 

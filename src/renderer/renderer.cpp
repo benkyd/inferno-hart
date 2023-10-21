@@ -16,6 +16,7 @@
 #include <scene/camera.hpp>
 
 #include <iostream>
+#include <cstring>
 
 namespace inferno::graphics {
 
@@ -31,6 +32,7 @@ RayRenderer* rayr_create(scene::Scene* scene)
 
     yolo::debug("Raytracing Rendering {}x{} viewport", renderer->Viewport.x, renderer->Viewport.y);
     renderer->RenderData = new glm::fvec4[renderer->Viewport.x * renderer->Viewport.y];
+    memset(renderer->RenderData, 0, renderer->Viewport.x * renderer->Viewport.y * sizeof(glm::fvec4));
 
     glGenTextures(1, &renderer->RenderTargetTexture);
     glBindTexture(GL_TEXTURE_2D, renderer->RenderTargetTexture);
@@ -94,6 +96,9 @@ glm::fvec4* rayr_get_render_data(RayRenderer* renderer)
 
 void rayr_prepare(RayRenderer* renderer)
 {
+    // TODO: This is TEMP
+    memset(renderer->RenderData, 0, renderer->Viewport.x * renderer->Viewport.y * sizeof(glm::fvec4));
+
     assert(renderer->Scene != nullptr);
     if (scene::scene_did_update(renderer->Scene)) {
         yolo::debug("Scene updated, rebuilding acceleration structure");
@@ -113,11 +118,16 @@ void rayr_draw(RayRenderer* renderer)
     for (int x = 0; x < renderer->Viewport.x; x++) {
         for (int y = 0; y < renderer->Viewport.y; y++) {
             rays::Ray* ray = startRays.Field[x * renderer->Viewport.y + y];
-            renderer->RenderData[y * renderer->Viewport.x + x] = { ray->Direction.x + 0.5, ray->Direction.y + 0.5, ray->Direction.z + 0.5, 1.0f };
 
             // we want to iterate over every object in the scene and then ask that object for an intersection
             for (auto& obj : scene::scene_get_renderables(renderer->Scene)) {
-                rays::object_ray_collide(obj, ray);
+                rays::HitInfo* hit = rays::object_ray_collide(obj, ray);
+                if (hit->Did) {
+                    glm::vec3 hit_distance = glm::vec3{ hit->Distance };
+                    hit_distance /= 10;
+                    renderer->RenderData[y * renderer->Viewport.x + x] = { hit_distance, 1.0 };
+                }
+                delete hit;
             }
         }
     }

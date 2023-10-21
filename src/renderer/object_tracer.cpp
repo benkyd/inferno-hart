@@ -36,7 +36,9 @@ bool triangle_ray_collide(Ray* ray, float* t, glm::vec3 vertex0, glm::vec3 verte
 
 HitInfo* object_ray_collide(scene::SceneObject* object, Ray* ray)
 {
-    HitInfo* info = nullptr;
+    HitInfo* info = new HitInfo;
+    info->Distance = INFINITY;
+    info->Did = false;
     for (auto* mesh : scene::scene_object_get_meshs(object)) {
         // extract triangles and loop over them, if there is a hit - we return
         const uint32_t* ind;
@@ -46,11 +48,21 @@ HitInfo* object_ray_collide(scene::SceneObject* object, Ray* ray)
         mesh->getVerticies(&verts, &norms);
 
         float t = INFINITY;
-        for (int i = 0; i < mesh->getIndexCount(); i += 3) {
+        for (int i = 0; i < mesh->getIndexCount(); i++) {
             uint32_t index = ind[i];
-            glm::vec3 a = {  };
-            glm::vec3 b = {  };
-            glm::vec3 c = {  };
+            glm::vec3 a = { verts[3 * index + 0], verts[3 * index + 1], verts[3 * index + 2] };
+            glm::vec3 b = { verts[3 * index + 3], verts[3 * index + 4], verts[3 * index + 5] };
+            glm::vec3 c = { verts[3 * index + 6], verts[3 * index + 7], verts[3 * index + 8] };
+
+            float temp_t;
+            if (!triangle_ray_collide(ray, &temp_t, a, b, c))
+                continue;
+
+            info->Did = true;
+            if (temp_t < t) {
+                t = temp_t;
+                info->Distance = t;
+            }
         }
     }
     return info;

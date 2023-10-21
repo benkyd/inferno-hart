@@ -15,7 +15,7 @@ typedef struct _CameraImpl {
 
 typedef struct Viewport {
     glm::ivec2 Raster = {1920, 1080};
-    glm::ivec2 Ray = {200, 200};
+    glm::ivec2 Ray = {50, 50};
 } Viewports;
 
 typedef struct Camera {
