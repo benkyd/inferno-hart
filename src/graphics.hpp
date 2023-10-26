@@ -21,6 +21,8 @@ extern "C"
 
 #include <vector>
 namespace inferno {
+namespace graphics::rays {
 class Ray;
-using RayField = std::vector<Ray*>;
+}
+using RayField = std::vector<graphics::rays::Ray*>;
 }

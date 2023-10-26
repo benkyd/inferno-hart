@@ -2,11 +2,12 @@
 
 #include <graphics.hpp>
 
+#include <renderer/hit.hpp>
+#include <renderer/object_tracer.hpp>
+#include <renderer/ray.hpp>
 #include <scene/camera.hpp>
 #include <scene/mesh.hpp>
 #include <scene/scene.hpp>
-#include <tracing/hit.hpp>
-#include <tracing/ray.hpp>
 
 #include "ray_source.hpp"
 
@@ -15,6 +16,7 @@
 #include <scene/camera.hpp>
 
 #include <iostream>
+#include <cstring>
 
 namespace inferno::graphics {
 
@@ -30,6 +32,7 @@ RayRenderer* rayr_create(scene::Scene* scene)
 
     yolo::debug("Raytracing Rendering {}x{} viewport", renderer->Viewport.x, renderer->Viewport.y);
     renderer->RenderData = new glm::fvec4[renderer->Viewport.x * renderer->Viewport.y];
+    memset(renderer->RenderData, 0, renderer->Viewport.x * renderer->Viewport.y * sizeof(glm::fvec4));
 
     glGenTextures(1, &renderer->RenderTargetTexture);
     glBindTexture(GL_TEXTURE_2D, renderer->RenderTargetTexture);
@@ -93,6 +96,9 @@ glm::fvec4* rayr_get_render_data(RayRenderer* renderer)
 
 void rayr_prepare(RayRenderer* renderer)
 {
+    // TODO: This is TEMP
+    memset(renderer->RenderData, 0, renderer->Viewport.x * renderer->Viewport.y * sizeof(glm::fvec4));
+
     assert(renderer->Scene != nullptr);
     if (scene::scene_did_update(renderer->Scene)) {
         yolo::debug("Scene updated, rebuilding acceleration structure");
@@ -102,14 +108,27 @@ void rayr_prepare(RayRenderer* renderer)
 
 void rayr_draw(RayRenderer* renderer)
 {
+    rayr_prepare(renderer);
+
     scene::scene_frame_tick(renderer->Scene);
     // TODO: Rays should definately be bump allocated if possible, this is KBs of
     // ray data and nothing else being reallocated every frame for no reason
-    // ReferencedRayField startRays = mRaySource->getInitialRays(true);
+    rays::ReferencedRayField startRays = rays::generate_initial_rays(scene::scene_get_camera(renderer->Scene), true);
 
     for (int x = 0; x < renderer->Viewport.x; x++) {
         for (int y = 0; y < renderer->Viewport.y; y++) {
-            renderer->RenderData[y * renderer->Viewport.x + x] = { 0.1f, 1.0f, 0.1f, 1.0f };
+            rays::Ray* ray = startRays.Field[x * renderer->Viewport.y + y];
+
+            // we want to iterate over every object in the scene and then ask that object for an intersection
+            for (auto& obj : scene::scene_get_renderables(renderer->Scene)) {
+                rays::HitInfo* hit = rays::object_ray_collide(obj, ray);
+                if (hit->Did) {
+                    glm::vec3 hit_distance = glm::vec3{ hit->Distance };
+                    hit_distance /= 10;
+                    renderer->RenderData[y * renderer->Viewport.x + x] = { hit_distance, 1.0 };
+                }
+                delete hit;
+            }
         }
     }
 }

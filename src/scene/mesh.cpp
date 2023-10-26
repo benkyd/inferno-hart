@@ -74,16 +74,16 @@ void Mesh::ready()
     yolo::debug("Mesh for preview ready...");
 }
 
-int Mesh::getVerticies(void** v, void** n)
+int Mesh::getVerticies(const float** v, const float** n)
 {
-    *v = (void*)&mObjLoader->getPositions()[0];
-    *n = (void*)&mObjLoader->getNormals()[0];
+    *v = &mObjLoader->getPositions()[0];
+    *n = &mObjLoader->getNormals()[0];
     return mObjLoader->getVertCount();
 }
 
-int Mesh::getIndicies(void** i)
+int Mesh::getIndicies(const uint32_t** i)
 {
-    *i = (void*)&mObjLoader->getFaces()[0];
+    *i = &mObjLoader->getFaces()[0];
     return mObjLoader->getIndexCount();
 }
 

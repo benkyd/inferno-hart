@@ -2,15 +2,14 @@
 
 #include <hart_graphics.hpp>
 
-namespace inferno {
+namespace inferno::graphics::rays {
 
 class Ray;
 
 struct HitInfo
 {
     Ray* Caller;
-    // indicie of hit ^ mesh idx of hit
-    int Identifier;
+    bool Did;
     glm::vec2 UV;
     glm::vec3 SurfaceNormal;
     float Distance;
