@@ -48,11 +48,13 @@ HitInfo* object_ray_collide(scene::SceneObject* object, Ray* ray)
         mesh->getVerticies(&verts, &norms);
 
         float t = INFINITY;
-        for (int i = 0; i < mesh->getIndexCount(); i++) {
-            uint32_t index = ind[i];
-            glm::vec3 a = { verts[3 * index + 0], verts[3 * index + 1], verts[3 * index + 2] };
-            glm::vec3 b = { verts[3 * index + 3], verts[3 * index + 4], verts[3 * index + 5] };
-            glm::vec3 c = { verts[3 * index + 6], verts[3 * index + 7], verts[3 * index + 8] };
+        for (int i = 0; i < mesh->getIndexCount(); i+= 3) {
+            uint32_t indexa = ind[i + 0];
+            uint32_t indexb = ind[i + 1];
+            uint32_t indexc = ind[i + 2];
+            glm::vec3 a = { verts[3 * indexa + 0], verts[3 * indexa + 1], verts[3 * indexa + 2] };
+            glm::vec3 b = { verts[3 * indexb + 0], verts[3 * indexb + 1], verts[3 * indexb + 2] };
+            glm::vec3 c = { verts[3 * indexc + 0], verts[3 * indexc + 1], verts[3 * indexc + 2] };
 
             float temp_t;
             if (!triangle_ray_collide(ray, &temp_t, a, b, c))
