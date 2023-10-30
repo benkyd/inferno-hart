@@ -14,6 +14,7 @@ struct Viewport;
 struct Camera;
 
 typedef struct PreviewRenderer {
+    bool DoShowDebug = true;
     glm::ivec2 Viewport;
 
     GLuint RenderTarget = 0;
@@ -23,6 +24,8 @@ typedef struct PreviewRenderer {
 
 PreviewRenderer* preview_create();
 void preview_cleanup(PreviewRenderer* renderer);
+
+void preview_draw_debug_ui(PreviewRenderer* renderer);
 
 void preview_draw_ui(PreviewRenderer* renderer);
 void preview_set_viewport(PreviewRenderer* renderer, Camera* camera);

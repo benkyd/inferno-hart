@@ -15,8 +15,8 @@
 
 #include <scene/camera.hpp>
 
-#include <iostream>
 #include <cstring>
+#include <iostream>
 
 namespace inferno::graphics {
 
@@ -115,15 +115,29 @@ void rayr_draw(RayRenderer* renderer)
     // ray data and nothing else being reallocated every frame for no reason
     rays::ReferencedRayField startRays = rays::generate_initial_rays(scene::scene_get_camera(renderer->Scene), true);
 
+#pragma omp parallel for
     for (int x = 0; x < renderer->Viewport.x; x++) {
         for (int y = 0; y < renderer->Viewport.y; y++) {
             rays::Ray* ray = startRays.Field[x * renderer->Viewport.y + y];
+            rays::HitInfo* closest_hit = nullptr;
 
-            // we want to iterate over every object in the scene and then ask that object for an intersection
             for (auto& obj : scene::scene_get_renderables(renderer->Scene)) {
                 rays::HitInfo* hit = rays::object_ray_collide(obj, ray);
                 if (hit->Did) {
-                    glm::vec3 hit_distance = glm::vec3{ hit->Distance };
+                    if (closest_hit == nullptr) {
+                        closest_hit = hit;
+                    } else {
+                        bool is_closer = hit->Distance < closest_hit->Distance;
+                        if (is_closer) {
+                            delete closest_hit;
+                            closest_hit = hit;
+                        } else {
+                            delete hit;
+                        }
+                    }
+                }
+                if (hit->Did) {
+                    glm::vec3 hit_distance = glm::vec3 { hit->Distance };
                     hit_distance /= 10;
                     renderer->RenderData[y * renderer->Viewport.x + x] = { hit_distance, 1.0 };
                 }

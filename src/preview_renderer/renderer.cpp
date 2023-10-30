@@ -1,5 +1,7 @@
 #include "renderer.hpp"
 
+#include <graphics.hpp>
+
 #include "scene/object.hpp"
 #include "shader.hpp"
 
@@ -55,6 +57,7 @@ void preview_cleanup(PreviewRenderer* renderer)
 
 void preview_draw_ui(PreviewRenderer* renderer)
 {
+    ImGui::Checkbox("Debug", &renderer->DoShowDebug);
 }
 
 void preview_set_viewport(PreviewRenderer* renderer, Camera* camera)

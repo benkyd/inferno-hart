@@ -41,6 +41,8 @@ find_package(Threads REQUIRED)
 set(OpenGL_GL_PREFERENCE GLVND)
 find_package(OpenGL REQUIRED)
 
+find_package(OpenMP REQUIRED)
+
 # Libraries
 if (WIN32)
     # cmake .. "-DCMAKE_TOOLCHAIN_FILE=C:/dev/vcpkg/scripts/buildsystems/vcpkg.cmake"
@@ -65,6 +67,7 @@ else()
     target_link_libraries(inferno PRIVATE
         ${GLFW3_LIBRARIES}
         OpenGL::GL
+        OpenMP::OpenMP_CXX
     )
 endif()
 

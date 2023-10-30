@@ -84,6 +84,8 @@ InfernoApp* inferno_create()
     app->Scene = scene::scene_create();
     app->MainTimer = inferno_timer_create();
 
+    graphics::camera_set_position(app->Scene->Camera, { 0.0f, 1.0f, 3.1f });
+
     // Create window
     graphics::window_create("Inferno v" INFERNO_VERSION, 1280, 720);
 
@@ -94,13 +96,13 @@ InfernoApp* inferno_create()
     graphics::shader_link(basicShader);
     basicMaterial->setGlShader(basicShader);
 
-    // scene::Mesh* mesh = new scene::Mesh;
-    // mesh->loadOBJ("res/dragon-cornell-size.obj");
-    // mesh->ready();
-    // mesh->setMaterial(basicMaterial);
-    // scene::SceneObject* object = scene::scene_object_create();
-    // scene::scene_object_add_mesh(object, mesh);
-    // scene::scene_add_object(app->Scene, object);
+    scene::Mesh* mesh = new scene::Mesh;
+    mesh->loadOBJ("res/lucy.obj");
+    mesh->ready();
+    mesh->setMaterial(basicMaterial);
+    scene::SceneObject* object = scene::scene_object_create();
+    scene::scene_object_add_mesh(object, mesh);
+    scene::scene_add_object(app->Scene, object);
 
     scene::Mesh* box = new scene::Mesh;
     box->loadOBJ("res/cornell-box.obj");
@@ -109,7 +111,6 @@ InfernoApp* inferno_create()
     scene::SceneObject* box_object = scene::scene_object_create();
     scene::scene_object_add_mesh(box_object, box);
     scene::scene_add_object(app->Scene, box_object);
-
 
     app->PreviewRenderer = graphics::preview_create();
     graphics::preview_set_viewport(app->PreviewRenderer, app->Scene->Camera);

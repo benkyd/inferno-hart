@@ -26,9 +26,6 @@ typedef struct RayRenderer {
     glm::fvec4* RenderData = nullptr;
     GLuint RenderTargetTexture = 0;
 
-    // Internal stuffs
-    // RaySource* RaySource = nullptr;
-
     scene::Scene* Scene = nullptr;
 } RayRenderer;
 
