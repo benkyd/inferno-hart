@@ -12,9 +12,9 @@ namespace inferno::graphics {
 
 struct Viewport;
 struct Camera;
+struct DebugDraw;
 
 typedef struct PreviewRenderer {
-    bool DoShowDebug = true;
     glm::ivec2 Viewport;
 
     GLuint RenderTarget = 0;

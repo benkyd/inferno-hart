@@ -7,6 +7,7 @@
 #include "scene/scene.hpp"
 #include "window.hpp"
 
+#include "preview_renderer/debug.hpp"
 #include "preview_renderer/renderer.hpp"
 #include "preview_renderer/shader.hpp"
 #include "scene/camera.hpp"
@@ -97,20 +98,20 @@ InfernoApp* inferno_create()
     basicMaterial->setGlShader(basicShader);
 
     scene::Mesh* mesh = new scene::Mesh;
-    mesh->loadOBJ("res/lucy.obj");
+    mesh->loadOBJ("res/cornell.obj");
     mesh->ready();
     mesh->setMaterial(basicMaterial);
     scene::SceneObject* object = scene::scene_object_create();
     scene::scene_object_add_mesh(object, mesh);
     scene::scene_add_object(app->Scene, object);
 
-    scene::Mesh* box = new scene::Mesh;
-    box->loadOBJ("res/cornell-box.obj");
-    box->ready();
-    box->setMaterial(basicMaterial);
-    scene::SceneObject* box_object = scene::scene_object_create();
-    scene::scene_object_add_mesh(box_object, box);
-    scene::scene_add_object(app->Scene, box_object);
+    // scene::Mesh* box = new scene::Mesh;
+    // box->loadOBJ("res/cornell.obj");
+    // box->ready();
+    // box->setMaterial(basicMaterial);
+    // scene::SceneObject* box_object = scene::scene_object_create();
+    // scene::scene_object_add_mesh(box_object, box);
+    // scene::scene_add_object(app->Scene, box_object);
 
     app->PreviewRenderer = graphics::preview_create();
     graphics::preview_set_viewport(app->PreviewRenderer, app->Scene->Camera);
@@ -285,9 +286,12 @@ int inferno_run(InfernoApp* app)
             if (ImGui::TreeNode("Preview Render")) {
                 ImGui::Checkbox("Show Preview", &showPreview);
                 graphics::preview_draw_ui(app->PreviewRenderer);
+                if (ImGui::TreeNode("Debug Overlay")) {
+                    graphics::debug_draw_ui();
+                    ImGui::TreePop();
+                }
                 ImGui::TreePop();
             }
-
             if (ImGui::TreeNode("RayTraced Render")) {
                 graphics::rayr_draw_ui(app->RayRenderer);
                 ImGui::TreePop();
@@ -305,7 +309,9 @@ int inferno_run(InfernoApp* app)
             graphics::camera_raster_set_viewport(scene::scene_get_camera(app->Scene),
                 { ImGui::GetWindowSize().x, ImGui::GetWindowSize().y });
             graphics::preview_set_viewport(app->PreviewRenderer, app->Scene->Camera);
+
             graphics::preview_draw(app->PreviewRenderer, app->Scene);
+            graphics::debug_draw_to_target(app->Scene);
 
             ImTextureID texture = (ImTextureID)graphics::preview_get_rendered_texture(app->PreviewRenderer);
             ImGui::Image(

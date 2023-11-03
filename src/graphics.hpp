@@ -16,6 +16,7 @@ extern "C"
 #include "imgui/imgui_impl_glfw.h"
 
 // glm
+#define GLM_FORCE_SWIZZLE
 #include <glm/glm.hpp>
 #include <glm/gtc/type_ptr.hpp>
 

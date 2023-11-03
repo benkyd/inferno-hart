@@ -2,6 +2,7 @@
 
 #include <graphics.hpp>
 
+#include "preview_renderer/debug.hpp"
 #include "scene/object.hpp"
 #include "shader.hpp"
 
@@ -48,6 +49,10 @@ PreviewRenderer* preview_create()
     assert(glCheckFramebufferStatus(GL_FRAMEBUFFER) == GL_FRAMEBUFFER_COMPLETE);
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
+    // bind preview renderer to debugdraw
+    debug_init();
+    debug_attach_renderer(renderer);
+
     return renderer;
 }
 
@@ -57,7 +62,6 @@ void preview_cleanup(PreviewRenderer* renderer)
 
 void preview_draw_ui(PreviewRenderer* renderer)
 {
-    ImGui::Checkbox("Debug", &renderer->DoShowDebug);
 }
 
 void preview_set_viewport(PreviewRenderer* renderer, Camera* camera)

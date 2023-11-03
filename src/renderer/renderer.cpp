@@ -9,6 +9,7 @@
 #include <scene/mesh.hpp>
 #include <scene/scene.hpp>
 
+#include "preview_renderer/debug.hpp"
 #include "ray_source.hpp"
 
 #include <yolo/yolo.hpp>
@@ -114,6 +115,8 @@ void rayr_draw(RayRenderer* renderer)
     // TODO: Rays should definately be bump allocated if possible, this is KBs of
     // ray data and nothing else being reallocated every frame for no reason
     rays::ReferencedRayField startRays = rays::generate_initial_rays(scene::scene_get_camera(renderer->Scene), true);
+
+    // debug_draw_line({ 0, 0, 0 }, { 0, 0, 1 }, { 1, 0, 0 });
 
 #pragma omp parallel for
     for (int x = 0; x < renderer->Viewport.x; x++) {

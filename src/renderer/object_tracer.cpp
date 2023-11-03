@@ -1,4 +1,6 @@
 #include "object_tracer.hpp"
+
+#include "preview_renderer/debug.hpp"
 #include "scene/object.hpp"
 
 #include <cmath>
@@ -9,6 +11,10 @@ namespace inferno::graphics::rays {
 
 bool triangle_ray_collide(Ray* ray, float* t, glm::vec3 vertex0, glm::vec3 vertex1, glm::vec3 vertex2)
 {
+    debug_draw_line(vertex0, vertex1, { 1, 0, 0 });
+    debug_draw_line(vertex1, vertex2, { 1, 0, 0 });
+    debug_draw_line(vertex2, vertex0, { 1, 0, 0 });
+
     glm::vec3 edge1, edge2, h, s, q;
     float a, f, u, v;
     edge1 = vertex1 - vertex0;
@@ -48,7 +54,7 @@ HitInfo* object_ray_collide(scene::SceneObject* object, Ray* ray)
         mesh->getVerticies(&verts, &norms);
 
         float t = INFINITY;
-        for (int i = 0; i < mesh->getIndexCount(); i+= 3) {
+        for (int i = 0; i < mesh->getIndexCount(); i += 3) {
             uint32_t indexa = ind[i + 0];
             uint32_t indexb = ind[i + 1];
             uint32_t indexc = ind[i + 2];

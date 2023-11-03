@@ -31,6 +31,7 @@ else()
         target_compile_options(inferno PRIVATE -O1)
         target_compile_options(inferno PRIVATE -Wall)
         target_compile_options(inferno PRIVATE -g)
+        target_compile_options(inferno PRIVATE -D_GLIBCXX_DEBUG)
     endif()
 endif()
 
