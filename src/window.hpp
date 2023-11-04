@@ -11,6 +11,8 @@ namespace inferno::graphics {
 typedef void (*KeyCallback)(int key, int scan, int action, int mod);
 typedef void (*MouseCallback)(double x, double y);
 
+static VkDevice VulkanDevice;
+
 enum WINDOW_MODE {
     WIN_MODE_DEFAULT,
     WIN_MODE_FPS,

@@ -1,16 +1,24 @@
-
 #include "window.hpp"
+
 #include "gui/style.hpp"
+
+#include <version.hpp>
+#include <graphics.hpp>
+
 #include "yolo/yolo.hpp"
-#include <GLFW/glfw3.h>
+
+#include <optional>
+#include <vector>
 
 namespace inferno::graphics {
 
 static WINDOW_MODE WinMode = WINDOW_MODE::WIN_MODE_DEFAULT;
 static KeyCallback UserKeyCallback = nullptr;
 static int Width, Height;
-static const char* GlslVersion;
 static GLFWwindow* Window;
+
+static VkInstance VulkanInstance;
+static VkPhysicalDevice VulkanPhysicalDevice = VK_NULL_HANDLE;
 
 void glfwKeyCallback(GLFWwindow* window, int key, int scancode,
     int action, int mods)
@@ -23,6 +31,40 @@ void glfwKeyCallback(GLFWwindow* window, int key, int scancode,
 void glfwErrorCallback(int error, const char* description)
 {
     yolo::error("[GLFW {}] {}", error, description);
+}
+
+struct QueueFamilyIndices {
+    std::optional<uint32_t> graphicsFamily;
+
+    bool isComplete() {
+        return graphicsFamily.has_value();
+    }
+};
+
+QueueFamilyIndices findQueueFamilies(VkPhysicalDevice device)
+{
+    QueueFamilyIndices indices;
+
+    uint32_t queueFamilyCount = 0;
+    vkGetPhysicalDeviceQueueFamilyProperties(device, &queueFamilyCount, nullptr);
+
+    std::vector<VkQueueFamilyProperties> queueFamilies(queueFamilyCount);
+    vkGetPhysicalDeviceQueueFamilyProperties(device, &queueFamilyCount, queueFamilies.data());
+
+    int i = 0;
+    for (const auto& queueFamily : queueFamilies) {
+        if (queueFamily.queueFlags & VK_QUEUE_GRAPHICS_BIT) {
+            indices.graphicsFamily = i;
+        }
+
+        if (indices.isComplete()) {
+            break;
+        }
+
+        i++;
+    }
+
+    return indices;
 }
 
 void setupGLFW(std::string title)
@@ -41,46 +83,150 @@ void setupGLFW(std::string title)
     Window = glfwCreateWindow(1280, 720, title.c_str(), NULL, NULL);
     if (Window == NULL)
         throw std::runtime_error("Could not create window");
-    glfwMakeContextCurrent(Window);
-    gladLoadGLLoader((GLADloadproc)glfwGetProcAddress);
-    glfwSwapInterval(1); // Enable vsync
-    yolo::info("GLFW {} initialized", glfwGetVersionString());
-    yolo::info("OpenGL {} initialized", glGetString(GL_VERSION));
-    yolo::info("GLSL {} initialized", glGetString(GL_SHADING_LANGUAGE_VERSION));
-    yolo::info("INFERNO HART Running on ", glGetString(GL_RENDERER));
+
+    // Vulkan Init
+    VkApplicationInfo appInfo {};
+    appInfo.sType = VK_STRUCTURE_TYPE_APPLICATION_INFO;
+    appInfo.pApplicationName = INFERNO_VERSION;
+    appInfo.applicationVersion = VK_MAKE_VERSION(1, 0, 0);
+    appInfo.pEngineName = "Inferno";
+    appInfo.engineVersion = VK_MAKE_VERSION(1, 0, 0);
+    appInfo.apiVersion = VK_API_VERSION_1_0;
+
+    VkInstanceCreateInfo instInfo {};
+    instInfo.sType = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO;
+    instInfo.pApplicationInfo = &appInfo;
+
+    uint32_t glfwExtCount = 0;
+    const char** exts = glfwGetRequiredInstanceExtensions(&ext);
+    instInfo.enabledExtensionCount = glfwExtCount;
+    instInfo.ppEnabledExtensionNames = exts;
+    instInfo.enabledLayerCount = 0;
+    yolo::info("GLFW requested {} extensions: {}", glfwExtCount, exts);
+
+    if (vkCreateInstance(&instInfo, nullptr, &VulkanInstance) != VK_SUCCESS) {
+        yolo::error("Could not create Vulkan instance");
+        exit(1);
+    }
+
+    // Physical Device
+    uint32_t deviceCount = 0;
+    vkEnumeratePhysicalDevices(VulkanInstance, &deviceCount, nullptr);
+    if (deviceCount == 0) {
+        yolo::error("No Vulkan devices found");
+        exit(1);
+    }
+
+    std::vector<VkPhysicalDevice> devices(deviceCount);
+    vkEnumeratePhysicalDevices(VulkanInstance, &deviceCount, devices.data());
+
+    for (const auto& device : devices) {
+        VkPhysicalDeviceProperties deviceProperties;
+        vkGetPhysicalDeviceProperties(device, &deviceProperties);
+        VkPhysicalDeviceFeatures deviceFeatures;
+        vkGetPhysicalDeviceFeatures(device, &deviceFeatures);
+        yolo::info("Found Vulkan device: {}", deviceProperties.deviceName);
+        if (deviceProperties.deviceType == VK_PHYSICAL_DEVICE_TYPE_DISCRETE_GPU
+            && deviceFeatures.geometryShader) {
+            VulkanPhysicalDevice = device;
+            break;
+        }
+    }
+
+    if (VulkanPhysicalDevice == VK_NULL_HANDLE) {
+        yolo::error("No discrete Vulkan devices found");
+        exit(1);
+    }
+
+    // Logical Device
+    QueueFamilyIndices indices = findQueueFamilies(VulkanPhysicalDevice);
+    VkDeviceQueueCreateInfo queueCreateInfo {};
+    queueCreateInfo.sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO;
+    queueCreateInfo.queueFamilyIndex = indices.graphicsFamily.value();
+    queueCreateInfo.queueCount = 1;
+    float queuePriority = 1.0f;
+    queueCreateInfo.pQueuePriorities = &queuePriority;
+
+    VkPhysicalDeviceFeatures deviceFeatures {};
+    VkDeviceCreateInfo createInfo {};
+    createInfo.sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO;
+    createInfo.pQueueCreateInfos = &queueCreateInfo;
+    createInfo.queueCreateInfoCount = 1;
+    createInfo.pEnabledFeatures = &deviceFeatures;
+    createInfo.enabledExtensionCount = 0;
+    createInfo.enabledLayerCount = 0;
+
+    if (vkCreateDevice(VulkanPhysicalDevice, &createInfo, nullptr, &VulkanDevice) != VK_SUCCESS) {
+        yolo::error("Could not create Vulkan logical device");
+        exit(1);
+    }
+
+    VkPhysicalDeviceProperties deviceProperties;
+    vkGetPhysicalDeviceProperties(VulkanPhysicalDevice, &deviceProperties);
+    yolo::info("Vulkan running on ", deviceProperties.deviceName);
 }
 
 void setupImGui()
 {
-    // Setup Dear ImGui context
-    IMGUI_CHECKVERSION();
-    ImGui::CreateContext();
-
-    // Setup Dear ImGui style
-    ImGui::StyleColorsDark();
-
-    ImGuiIO& io = ImGui::GetIO();
-    (void)io;
-    io.ConfigFlags |= ImGuiConfigFlags_DockingEnable; // Enable Docking
-    io.ConfigFlags |= ImGuiConfigFlags_DpiEnableScaleFonts; // FIXME: THIS CURRENTLY DOESN'T
-                                                            // WORK AS EXPECTED. DON'T USE IN
-                                                            // USER APP!
-    io.ConfigFlags |= ImGuiConfigFlags_DpiEnableScaleViewports; // FIXME:
-                                                                // io.ConfigDockingWithShift
-                                                                // = true;
-
-    // Setup Platform/Renderer backends
-    ImGui_ImplGlfw_InitForOpenGL(Window, true);
-    ImGui_ImplOpenGL3_Init(GlslVersion);
-
-    inferno::SetupImGuiStyle2();
-}
-
-void shutdownImGui()
-{
-    ImGui_ImplOpenGL3_Shutdown();
-    ImGui_ImplGlfw_Shutdown();
-    ImGui::DestroyContext();
+    // // 1: create descriptor pool for IMGUI
+    // //  the size of the pool is very oversize, but it's copied from imgui demo itself.
+    // VkDescriptorPoolSize pool_sizes[] = {
+    //     { VK_DESCRIPTOR_TYPE_SAMPLER, 1000 },
+    //     { VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, 1000 },
+    //     { VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE, 1000 },
+    //     { VK_DESCRIPTOR_TYPE_STORAGE_IMAGE, 1000 },
+    //     { VK_DESCRIPTOR_TYPE_UNIFORM_TEXEL_BUFFER, 1000 },
+    //     { VK_DESCRIPTOR_TYPE_STORAGE_TEXEL_BUFFER, 1000 },
+    //     { VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, 1000 },
+    //     { VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, 1000 },
+    //     { VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC, 1000 },
+    //     { VK_DESCRIPTOR_TYPE_STORAGE_BUFFER_DYNAMIC, 1000 },
+    //     { VK_DESCRIPTOR_TYPE_INPUT_ATTACHMENT, 1000 }
+    // };
+    //
+    // VkDescriptorPoolCreateInfo pool_info = {};
+    // pool_info.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
+    // pool_info.flags = VK_DESCRIPTOR_POOL_CREATE_FREE_DESCRIPTOR_SET_BIT;
+    // pool_info.maxSets = 1000;
+    // pool_info.poolSizeCount = std::size(pool_sizes);
+    // pool_info.pPoolSizes = pool_sizes;
+    //
+    // VkDescriptorPool imguiPool;
+    // VK_CHECK(vkCreateDescriptorPool(_device, &pool_info, nullptr, &imguiPool));
+    // // 2: initialize imgui library
+    //
+    // // this initializes the core structures of imgui
+    // ImGui::CreateContext();
+    //
+    // // this initializes imgui for SDL
+    // ImGui_ImplSDL2_InitForVulkan(_window);
+    //
+    // // this initializes imgui for Vulkan
+    // ImGui_ImplVulkan_InitInfo init_info = {};
+    // init_info.Instance = _instance;
+    // init_info.PhysicalDevice = _chosenGPU;
+    // init_info.Device = _device;
+    // init_info.Queue = _graphicsQueue;
+    // init_info.DescriptorPool = imguiPool;
+    // init_info.MinImageCount = 3;
+    // init_info.ImageCount = 3;
+    // init_info.MSAASamples = VK_SAMPLE_COUNT_1_BIT;
+    //
+    // ImGui_ImplVulkan_Init(&init_info, _renderPass);
+    //
+    // // execute a gpu command to upload imgui font textures
+    // immediate_submit([&](VkCommandBuffer cmd) {
+    //     ImGui_ImplVulkan_CreateFontsTexture(cmd);
+    // });
+    //
+    // // clear font textures from cpu data
+    // ImGui_ImplVulkan_DestroyFontUploadObjects();
+    //
+    // // add the destroy the imgui created structures
+    // _mainDeletionQueue.push_function([=]() {
+    //     vkDestroyDescriptorPool(_device, imguiPool, nullptr);
+    //     ImGui_ImplVulkan_Shutdown();
+    // });
 }
 
 void shutdownGLFW()
@@ -95,12 +241,12 @@ void window_create(std::string title, int width, int height)
     Height = height;
     setupGLFW(title);
     glfwSetKeyCallback(Window, glfwKeyCallback);
-    setupImGui();
+    // setupImGui();
 }
 
 void window_cleanup()
 {
-    shutdownImGui();
+    vkDestroyDevice(VulkanDevice, nullptr);
     shutdownGLFW();
 }
 
@@ -149,29 +295,24 @@ bool window_new_frame()
 
     glfwGetWindowSize(Window, &Width, &Height);
 
-    glClearColor(0.1, 0.1, 0.1, 1.0);
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-    ImGui_ImplOpenGL3_NewFrame();
-    ImGui_ImplGlfw_NewFrame();
-    ImGui::NewFrame();
-
-    ImGui::Begin("main", nullptr, WINDOW_FLAGS);
-    ImGui::SetWindowPos(ImVec2(0, 0));
-    ImGui::SetWindowSize(ImVec2(Width, Height));
+    // ImGui_ImplVulkan_NewFrame();
+    // ImGui_ImplGlfw_NewFrame();
+    // ImGui::NewFrame();
+    //
+    // ImGui::Begin("main", nullptr, WINDOW_FLAGS);
+    // ImGui::SetWindowPos(ImVec2(0, 0));
+    // ImGui::SetWindowSize(ImVec2(Width, Height));
 
     return true;
 }
 
 void window_render()
 {
-    ImGui::End();
-    ImGui::Render();
-    auto io = ImGui::GetIO();
-    glViewport(0, 0, (int)io.DisplaySize.x, (int)io.DisplaySize.y);
-    ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
-    glfwSwapBuffers(Window);
-    ImGui::UpdatePlatformWindows();
+    // ImGui::End();
+    // ImGui::Render();
+    // auto io = ImGui::GetIO();
+    // ImGui_ImplVulkan_RenderDrawData(ImGui::GetDrawData());
+    // glfwSwapBuffers(Window);
+    // ImGui::UpdatePlatformWindows();
 }
-
 }
