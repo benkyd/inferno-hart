@@ -39,10 +39,9 @@ endif()
 set(THREADS_PREFER_PTHREAD_FLAD ON)
 find_package(Threads REQUIRED)
 
-set(OpenGL_GL_PREFERENCE GLVND)
-find_package(OpenGL REQUIRED)
-
 find_package(OpenMP REQUIRED)
+
+find_package(Vulkan REQUIRED)
 
 # Libraries
 if (WIN32)
@@ -50,8 +49,7 @@ if (WIN32)
     find_package(glfw3 CONFIG REQUIRED)
     target_link_libraries(inferno PUBLIC glfw)
 
-    # OpenGL
-    target_link_libraries(inferno PRIVATE OpenGL::GL)
+    target_link_libraries(inferno PRIVATE Vulkan::Vulkan)
 else()
     find_package(PkgConfig)
 
@@ -67,7 +65,7 @@ else()
 
     target_link_libraries(inferno PRIVATE
         ${GLFW3_LIBRARIES}
-        OpenGL::GL
+        Vulkan::Vulkan
         OpenMP::OpenMP_CXX
     )
 endif()

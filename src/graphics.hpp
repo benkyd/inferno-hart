@@ -2,14 +2,10 @@
 
 // easy include for graphics shit
 
-// Include OpenGL
-extern "C" 
-{
-#include <glad/glad.h>
-}
-
 // Include GLFW and ImGUI
+#define GLFW_INCLUDE_VULKAN
 #include <GLFW/glfw3.h>
+
 #include "imgui/imgui.h"
 #include "imgui/imgui_internal.h"
 #include "imgui/imgui_impl_opengl3.h"
