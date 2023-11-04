@@ -66,6 +66,7 @@ else()
     target_link_libraries(inferno PRIVATE
         ${GLFW3_LIBRARIES}
         Vulkan::Vulkan
+        libvulkan.so
         OpenMP::OpenMP_CXX
     )
 endif()

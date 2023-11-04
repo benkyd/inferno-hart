@@ -2,13 +2,15 @@
 
 #include "gui/style.hpp"
 
-#include <version.hpp>
 #include <graphics.hpp>
+#include <version.hpp>
 
 #include "yolo/yolo.hpp"
 
 #include <optional>
+#include <set>
 #include <vector>
+#include <vulkan/vulkan_core.h>
 
 namespace inferno::graphics {
 
@@ -16,9 +18,6 @@ static WINDOW_MODE WinMode = WINDOW_MODE::WIN_MODE_DEFAULT;
 static KeyCallback UserKeyCallback = nullptr;
 static int Width, Height;
 static GLFWwindow* Window;
-
-static VkInstance VulkanInstance;
-static VkPhysicalDevice VulkanPhysicalDevice = VK_NULL_HANDLE;
 
 void glfwKeyCallback(GLFWwindow* window, int key, int scancode,
     int action, int mods)
@@ -31,40 +30,6 @@ void glfwKeyCallback(GLFWwindow* window, int key, int scancode,
 void glfwErrorCallback(int error, const char* description)
 {
     yolo::error("[GLFW {}] {}", error, description);
-}
-
-struct QueueFamilyIndices {
-    std::optional<uint32_t> graphicsFamily;
-
-    bool isComplete() {
-        return graphicsFamily.has_value();
-    }
-};
-
-QueueFamilyIndices findQueueFamilies(VkPhysicalDevice device)
-{
-    QueueFamilyIndices indices;
-
-    uint32_t queueFamilyCount = 0;
-    vkGetPhysicalDeviceQueueFamilyProperties(device, &queueFamilyCount, nullptr);
-
-    std::vector<VkQueueFamilyProperties> queueFamilies(queueFamilyCount);
-    vkGetPhysicalDeviceQueueFamilyProperties(device, &queueFamilyCount, queueFamilies.data());
-
-    int i = 0;
-    for (const auto& queueFamily : queueFamilies) {
-        if (queueFamily.queueFlags & VK_QUEUE_GRAPHICS_BIT) {
-            indices.graphicsFamily = i;
-        }
-
-        if (indices.isComplete()) {
-            break;
-        }
-
-        i++;
-    }
-
-    return indices;
 }
 
 void setupGLFW(std::string title)
@@ -84,6 +49,11 @@ void setupGLFW(std::string title)
     if (Window == NULL)
         throw std::runtime_error("Could not create window");
 
+    if (!glfwVulkanSupported()) {
+        yolo::error("Vulkan not supported");
+        exit(1);
+    }
+
     // Vulkan Init
     VkApplicationInfo appInfo {};
     appInfo.sType = VK_STRUCTURE_TYPE_APPLICATION_INFO;
@@ -99,10 +69,13 @@ void setupGLFW(std::string title)
 
     uint32_t glfwExtCount = 0;
     const char** exts = glfwGetRequiredInstanceExtensions(&ext);
+    // add VK_KHR_xcb_surface to the list of extensions
+    // TODO: This is a massive fuck off hack - SOLVE IT!!!!
+    exts[glfwExtCount++] = "VK_KHR_xcb_surface";
     instInfo.enabledExtensionCount = glfwExtCount;
     instInfo.ppEnabledExtensionNames = exts;
     instInfo.enabledLayerCount = 0;
-    yolo::info("GLFW requested {} extensions: {}", glfwExtCount, exts);
+    yolo::info("GLFW requested {} extensions: {}", glfwExtCount, exts[0]);
 
     if (vkCreateInstance(&instInfo, nullptr, &VulkanInstance) != VK_SUCCESS) {
         yolo::error("Could not create Vulkan instance");
@@ -120,14 +93,45 @@ void setupGLFW(std::string title)
     std::vector<VkPhysicalDevice> devices(deviceCount);
     vkEnumeratePhysicalDevices(VulkanInstance, &deviceCount, devices.data());
 
+    // TODO: We need to do device suitability in a much better way
+    const std::vector<const char*> deviceExtensions {
+        VK_KHR_SWAPCHAIN_EXTENSION_NAME,
+    };
+
     for (const auto& device : devices) {
-        VkPhysicalDeviceProperties deviceProperties;
-        vkGetPhysicalDeviceProperties(device, &deviceProperties);
-        VkPhysicalDeviceFeatures deviceFeatures;
-        vkGetPhysicalDeviceFeatures(device, &deviceFeatures);
-        yolo::info("Found Vulkan device: {}", deviceProperties.deviceName);
-        if (deviceProperties.deviceType == VK_PHYSICAL_DEVICE_TYPE_DISCRETE_GPU
-            && deviceFeatures.geometryShader) {
+        const auto& checkDevExtensions = [&]() -> bool {
+            uint32_t extensionCount;
+            vkEnumerateDeviceExtensionProperties(device, nullptr, &extensionCount, nullptr);
+
+            std::vector<VkExtensionProperties> availableExtensions(extensionCount);
+            vkEnumerateDeviceExtensionProperties(device, nullptr, &extensionCount, availableExtensions.data());
+
+            std::set<std::string> requiredExtensions(deviceExtensions.begin(), deviceExtensions.end());
+
+            for (const auto& extension : availableExtensions) {
+                requiredExtensions.erase(extension.extensionName);
+            }
+
+            return requiredExtensions.empty();
+        };
+
+        const auto& isDeviceSuitable
+            = [&]() -> bool {
+            VkPhysicalDeviceProperties deviceProperties;
+            vkGetPhysicalDeviceProperties(device, &deviceProperties);
+            VkPhysicalDeviceFeatures deviceFeatures;
+            vkGetPhysicalDeviceFeatures(device, &deviceFeatures);
+            yolo::info("Found Vulkan device: {}", deviceProperties.deviceName);
+
+            bool features = deviceProperties.deviceType == VK_PHYSICAL_DEVICE_TYPE_DISCRETE_GPU && deviceFeatures.geometryShader;
+
+            QueueFamilyIndices indices = window_get_queue_families(device);
+            bool extensions = checkDevExtensions();
+
+            return indices.isComplete() && extensions && features;
+        };
+
+        if (isDeviceSuitable()) {
             VulkanPhysicalDevice = device;
             break;
         }
@@ -139,19 +143,25 @@ void setupGLFW(std::string title)
     }
 
     // Logical Device
-    QueueFamilyIndices indices = findQueueFamilies(VulkanPhysicalDevice);
-    VkDeviceQueueCreateInfo queueCreateInfo {};
-    queueCreateInfo.sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO;
-    queueCreateInfo.queueFamilyIndex = indices.graphicsFamily.value();
-    queueCreateInfo.queueCount = 1;
+    QueueFamilyIndices indices = window_get_queue_families(VulkanPhysicalDevice);
+    std::vector<VkDeviceQueueCreateInfo> queueCreateInfos;
+    std::set<uint32_t> uniqueQueueFamilies = { indices.graphicsFamily.value(), indices.presentFamily.value() };
+
     float queuePriority = 1.0f;
-    queueCreateInfo.pQueuePriorities = &queuePriority;
+    for (uint32_t queueFamily : uniqueQueueFamilies) {
+        VkDeviceQueueCreateInfo queueCreateInfo {};
+        queueCreateInfo.sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO;
+        queueCreateInfo.queueFamilyIndex = queueFamily;
+        queueCreateInfo.queueCount = 1;
+        queueCreateInfo.pQueuePriorities = &queuePriority;
+        queueCreateInfos.push_back(queueCreateInfo);
+    }
 
     VkPhysicalDeviceFeatures deviceFeatures {};
     VkDeviceCreateInfo createInfo {};
     createInfo.sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO;
-    createInfo.pQueueCreateInfos = &queueCreateInfo;
-    createInfo.queueCreateInfoCount = 1;
+    createInfo.queueCreateInfoCount = static_cast<uint32_t>(queueCreateInfos.size());
+    createInfo.pQueueCreateInfos = queueCreateInfos.data();
     createInfo.pEnabledFeatures = &deviceFeatures;
     createInfo.enabledExtensionCount = 0;
     createInfo.enabledLayerCount = 0;
@@ -161,9 +171,18 @@ void setupGLFW(std::string title)
         exit(1);
     }
 
+    vkGetDeviceQueue(VulkanDevice, indices.graphicsFamily.value(), 0, &VulkanPresentQueue);
+
     VkPhysicalDeviceProperties deviceProperties;
     vkGetPhysicalDeviceProperties(VulkanPhysicalDevice, &deviceProperties);
     yolo::info("Vulkan running on ", deviceProperties.deviceName);
+
+    // "Surface" creation
+    VkResult result = glfwCreateWindowSurface(VulkanInstance, Window, nullptr, &VulkanSurface);
+    if (result != VK_SUCCESS) {
+        yolo::error("Could not create Vulkan surface (code: {})", result);
+        exit(1);
+    }
 }
 
 void setupImGui()
@@ -246,6 +265,8 @@ void window_create(std::string title, int width, int height)
 
 void window_cleanup()
 {
+    vkDestroySurfaceKHR(VulkanInstance, VulkanSurface, nullptr);
+    vkDestroyInstance(VulkanInstance, nullptr);
     vkDestroyDevice(VulkanDevice, nullptr);
     shutdownGLFW();
 }
@@ -267,6 +288,41 @@ void window_set_pos(int x, int y) { glfwSetWindowPos(Window, x, y); }
 glm::vec2 window_get_size() { return { Width, Height }; }
 
 void window_get_pos(int& x, int& y) { glfwGetWindowPos(Window, &x, &y); }
+
+// VULKAN SPECIFIC
+QueueFamilyIndices window_get_queue_families(VkPhysicalDevice device)
+{
+    QueueFamilyIndices indices;
+
+    uint32_t queueFamilyCount = 0;
+    vkGetPhysicalDeviceQueueFamilyProperties(device, &queueFamilyCount, nullptr);
+
+    std::vector<VkQueueFamilyProperties> queueFamilies(queueFamilyCount);
+    vkGetPhysicalDeviceQueueFamilyProperties(device, &queueFamilyCount, queueFamilies.data());
+
+    int i = 0;
+    for (const auto& queueFamily : queueFamilies) {
+        if (queueFamily.queueFlags & VK_QUEUE_GRAPHICS_BIT) {
+            indices.graphicsFamily = i;
+        }
+
+        VkBool32 presentSupport = false;
+        vkGetPhysicalDeviceSurfaceSupportKHR(device, i, VulkanSurface, &presentSupport);
+
+        if (presentSupport) {
+            indices.presentFamily = i;
+        }
+
+        if (indices.isComplete()) {
+            break;
+        }
+
+        i++;
+    }
+
+    return indices;
+}
+// END VULKAN SPECIFIC
 
 GLFWwindow* window_get_glfw_window() { return Window; }
 

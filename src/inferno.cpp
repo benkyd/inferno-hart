@@ -1,7 +1,7 @@
 #include "inferno.hpp"
 
-#include <version.hpp>
 #include <graphics.hpp>
+#include <version.hpp>
 // #include "gui/layout.hpp"
 // #include "renderer/renderer.hpp"
 // #include "scene/scene.hpp"
@@ -21,6 +21,7 @@
 #include <iostream>
 #include <memory>
 #include <numeric>
+#include <set>
 
 namespace inferno {
 
@@ -83,13 +84,14 @@ InfernoApp* inferno_create()
     InfernoApp* app = new InfernoApp;
     // app->Input = new InfernoInput;
     // app->Scene = scene::scene_create();
-    // app->MainTimer = inferno_timer_create();
-    //
+    app->MainTimer = inferno_timer_create();
+
     // graphics::camera_set_position(app->Scene->Camera, { 0.0f, 1.0f, 3.1f });
-    //
+
     // // Create window
     graphics::window_create("Inferno v" INFERNO_VERSION, 1280, 720);
-    //
+
+
     // // setup the scene
     // scene::Material* basicMaterial = new scene::Material("basic");
     // graphics::Shader* basicShader = graphics::shader_create();
@@ -225,106 +227,105 @@ bool inferno_pre(InfernoApp* app)
 
 void inferno_end(InfernoApp* app)
 {
-
 }
 
 int inferno_run(InfernoApp* app)
 {
     while (true) {
-    //     inferno_timer_start(app->MainTimer);
-    //     if (!inferno_pre(app))
-    //         break;
-    //
-    //     if (glm::length(app->Input->MouseDelta) > 0.0f)
-    //         graphics::camera_mouse_move(app->Scene->Camera, app->Input->MouseDelta);
-    //     if (app->Input->MovementDelta != 0b00000000)
-    //         graphics::camera_move(app->Scene->Camera, app->Input->MovementDelta);
-    //
-    //     // Menu Bar
-    //     static bool showPreview = true;
-    //     static bool showRenderSettings = true;
-    //     static bool showDemoWindow = false;
-    //     if (ImGui::BeginMenuBar()) {
-    //         if (ImGui::BeginMenu("Menu")) {
-    //             ImGui::EndMenu();
-    //         }
-    //         if (ImGui::BeginMenu("View")) {
-    //             ImGui::Checkbox("Show Preview", &showPreview);
-    //             ImGui::SameLine();
-    //             inferno_gui_help_marker("Show the preview window");
-    //             ImGui::Checkbox("Show Settings", &showRenderSettings);
-    //             ImGui::SameLine();
-    //             inferno_gui_help_marker("Show the Inferno HART settings window");
-    //             ImGui::Checkbox("Show Demo", &showDemoWindow);
-    //
-    //             ImGui::EndMenu();
-    //         }
-    //         ImGui::EndMenuBar();
-    //     }
-    //
-    //     if (showRenderSettings && ImGui::Begin("Inferno HART")) {
-    //         if (ImGui::TreeNode("Camera")) {
-    //             graphics::Camera* camera = scene::scene_get_camera(app->Scene);
-    //             graphics::camera_draw_ui(camera);
-    //             ImGui::TreePop();
-    //         }
-    //         if (ImGui::TreeNode("Preview Render")) {
-    //             ImGui::Checkbox("Show Preview", &showPreview);
-    //             graphics::preview_draw_ui(app->PreviewRenderer);
-    //             if (ImGui::TreeNode("Debug Overlay")) {
-    //                 graphics::debug_draw_ui();
-    //                 ImGui::TreePop();
-    //             }
-    //             ImGui::TreePop();
-    //         }
-    //         if (ImGui::TreeNode("RayTraced Render")) {
-    //             graphics::rayr_draw_ui(app->RayRenderer);
-    //             ImGui::TreePop();
-    //         }
-    //         ImGui::End();
-    //     }
-    //
-    //     if (showPreview && ImGui::Begin("Preview", nullptr, ImGuiWindowFlags_NoScrollbar)) {
-    //         if (ImGui::IsWindowHovered()) {
-    //             inferno_move_input(app, inferno_timer_get_time(app->MainTimer));
-    //         } else {
-    //             inferno_stop_move_input(app);
-    //         }
-    //
-    //         graphics::camera_raster_set_viewport(scene::scene_get_camera(app->Scene),
-    //             { ImGui::GetWindowSize().x, ImGui::GetWindowSize().y });
-    //         graphics::preview_set_viewport(app->PreviewRenderer, app->Scene->Camera);
-    //
-    //         graphics::preview_draw(app->PreviewRenderer, app->Scene);
-    //         graphics::debug_draw_to_target(app->Scene);
-    //
-    //         ImTextureID texture = (ImTextureID)graphics::preview_get_rendered_texture(app->PreviewRenderer);
-    //         ImGui::Image(
-    //             texture,
-    //             { ImGui::GetWindowSize().x, ImGui::GetWindowSize().y },
-    //             ImVec2(0, 1), ImVec2(1, 0));
-    //
-    //         ImGui::End();
-    //     }
-    //
-    //     if (ImGui::Begin("Render")) {
-    //         graphics::rayr_draw(app->RayRenderer);
-    //
-    //         ImTextureID texture = (ImTextureID)graphics::rayr_get_rendered_texture(app->RayRenderer);
-    //         ImGui::Image(
-    //             texture,
-    //             { ImGui::GetWindowSize().x, ImGui::GetWindowSize().y },
-    //             ImVec2(0, 1), ImVec2(1, 0));
-    //         ImGui::End();
-    //     }
-    //
-    //     if (showDemoWindow) {
-    //         ImGui::ShowDemoWindow();
-    //     }
-    //
+        //     inferno_timer_start(app->MainTimer);
+        //     if (!inferno_pre(app))
+        //         break;
+        //
+        //     if (glm::length(app->Input->MouseDelta) > 0.0f)
+        //         graphics::camera_mouse_move(app->Scene->Camera, app->Input->MouseDelta);
+        //     if (app->Input->MovementDelta != 0b00000000)
+        //         graphics::camera_move(app->Scene->Camera, app->Input->MovementDelta);
+        //
+        //     // Menu Bar
+        //     static bool showPreview = true;
+        //     static bool showRenderSettings = true;
+        //     static bool showDemoWindow = false;
+        //     if (ImGui::BeginMenuBar()) {
+        //         if (ImGui::BeginMenu("Menu")) {
+        //             ImGui::EndMenu();
+        //         }
+        //         if (ImGui::BeginMenu("View")) {
+        //             ImGui::Checkbox("Show Preview", &showPreview);
+        //             ImGui::SameLine();
+        //             inferno_gui_help_marker("Show the preview window");
+        //             ImGui::Checkbox("Show Settings", &showRenderSettings);
+        //             ImGui::SameLine();
+        //             inferno_gui_help_marker("Show the Inferno HART settings window");
+        //             ImGui::Checkbox("Show Demo", &showDemoWindow);
+        //
+        //             ImGui::EndMenu();
+        //         }
+        //         ImGui::EndMenuBar();
+        //     }
+        //
+        //     if (showRenderSettings && ImGui::Begin("Inferno HART")) {
+        //         if (ImGui::TreeNode("Camera")) {
+        //             graphics::Camera* camera = scene::scene_get_camera(app->Scene);
+        //             graphics::camera_draw_ui(camera);
+        //             ImGui::TreePop();
+        //         }
+        //         if (ImGui::TreeNode("Preview Render")) {
+        //             ImGui::Checkbox("Show Preview", &showPreview);
+        //             graphics::preview_draw_ui(app->PreviewRenderer);
+        //             if (ImGui::TreeNode("Debug Overlay")) {
+        //                 graphics::debug_draw_ui();
+        //                 ImGui::TreePop();
+        //             }
+        //             ImGui::TreePop();
+        //         }
+        //         if (ImGui::TreeNode("RayTraced Render")) {
+        //             graphics::rayr_draw_ui(app->RayRenderer);
+        //             ImGui::TreePop();
+        //         }
+        //         ImGui::End();
+        //     }
+        //
+        //     if (showPreview && ImGui::Begin("Preview", nullptr, ImGuiWindowFlags_NoScrollbar)) {
+        //         if (ImGui::IsWindowHovered()) {
+        //             inferno_move_input(app, inferno_timer_get_time(app->MainTimer));
+        //         } else {
+        //             inferno_stop_move_input(app);
+        //         }
+        //
+        //         graphics::camera_raster_set_viewport(scene::scene_get_camera(app->Scene),
+        //             { ImGui::GetWindowSize().x, ImGui::GetWindowSize().y });
+        //         graphics::preview_set_viewport(app->PreviewRenderer, app->Scene->Camera);
+        //
+        //         graphics::preview_draw(app->PreviewRenderer, app->Scene);
+        //         graphics::debug_draw_to_target(app->Scene);
+        //
+        //         ImTextureID texture = (ImTextureID)graphics::preview_get_rendered_texture(app->PreviewRenderer);
+        //         ImGui::Image(
+        //             texture,
+        //             { ImGui::GetWindowSize().x, ImGui::GetWindowSize().y },
+        //             ImVec2(0, 1), ImVec2(1, 0));
+        //
+        //         ImGui::End();
+        //     }
+        //
+        //     if (ImGui::Begin("Render")) {
+        //         graphics::rayr_draw(app->RayRenderer);
+        //
+        //         ImTextureID texture = (ImTextureID)graphics::rayr_get_rendered_texture(app->RayRenderer);
+        //         ImGui::Image(
+        //             texture,
+        //             { ImGui::GetWindowSize().x, ImGui::GetWindowSize().y },
+        //             ImVec2(0, 1), ImVec2(1, 0));
+        //         ImGui::End();
+        //     }
+        //
+        //     if (showDemoWindow) {
+        //         ImGui::ShowDemoWindow();
+        //     }
+        //
         graphics::window_render();
         inferno_end(app);
-    //     inferno_timer_end(app->MainTimer);
+        //     inferno_timer_end(app->MainTimer);
     }
     //
     return 1;
