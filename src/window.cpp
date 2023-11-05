@@ -128,7 +128,8 @@ void setupGLFW(std::string title)
             QueueFamilyIndices indices = window_get_queue_families(device);
             bool extensions = checkDevExtensions();
 
-            return indices.isComplete() && extensions && features;
+            yolo::debug("Device {} is {}suitable", deviceProperties.deviceName, (features && extensions) ? "" : "not ");
+            return extensions && features;
         };
 
         if (isDeviceSuitable()) {
@@ -229,7 +230,6 @@ void setupGLFW(std::string title)
 
         return availableFormats[0];
     };
-
 }
 
 void setupImGui()
