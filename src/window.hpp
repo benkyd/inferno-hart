@@ -2,8 +2,8 @@
 
 #include "graphics.hpp"
 
-#include <string>
 #include <optional>
+#include <string>
 
 #define WINDOW_FLAGS ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoBringToFrontOnFocus | ImGuiWindowFlags_NoNavFocus | ImGuiWindowFlags_MenuBar | ImGuiWindowFlags_NoBackground | ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoCollapse
 
@@ -17,10 +17,16 @@ static VkPhysicalDevice VulkanPhysicalDevice = VK_NULL_HANDLE;
 static VkDevice VulkanDevice;
 static VkQueue VulkanPresentQueue;
 static VkSurfaceKHR VulkanSurface;
+static VkSwapchainKHR VulkanSwapChain;
 
 enum WINDOW_MODE {
     WIN_MODE_DEFAULT,
     WIN_MODE_FPS,
+};
+
+enum HW_CAPABILITY {
+    HW_CAPABILITY_VK,
+    HW_CAPABILITY_VK_RT,
 };
 
 struct QueueFamilyIndices {
@@ -31,6 +37,12 @@ struct QueueFamilyIndices {
     {
         return graphicsFamily.has_value() && presentFamily.has_value();
     }
+};
+
+struct SwapChainSupportDetails {
+    VkSurfaceCapabilitiesKHR capabilities;
+    std::vector<VkSurfaceFormatKHR> formats;
+    std::vector<VkPresentModeKHR> presentModes;
 };
 
 void window_create(std::string title, int width, int height);
@@ -44,7 +56,10 @@ glm::vec2 window_get_size();
 void window_get_pos(int& x, int& y);
 
 // VULKAN SPECIFIC
+bool window_evaluate_device(VkPhysicalDevice device, std::vector<const char*> ext_needed, HW_CAPABILITY* capability);
+bool window_evaluate_device_extensions(VkPhysicalDevice device, std::vector<const char*> extensions);
 QueueFamilyIndices window_get_queue_families(VkPhysicalDevice device);
+SwapChainSupportDetails window_get_swap_chain_support(VkPhysicalDevice device);
 // END VULKAN SPECIFIC
 
 GLFWwindow* window_get_glfw_window();
