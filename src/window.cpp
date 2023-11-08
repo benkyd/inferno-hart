@@ -111,8 +111,11 @@ void setupGLFW(std::string title)
     }
 
     // Logical Device
+    yolo::debug("1");
     QueueFamilyIndices indices = window_get_queue_families(VulkanPhysicalDevice);
+    yolo::debug("2");
     std::vector<VkDeviceQueueCreateInfo> queueCreateInfos;
+    yolo::debug("3");
     std::set<uint32_t> uniqueQueueFamilies = { indices.graphicsFamily.value_or(0), indices.presentFamily.value_or(0) };
 
     float queuePriority = 1.0f;
@@ -190,13 +193,11 @@ void setupGLFW(std::string title)
 
             actualExtent.width = std::max(
                 capabilities.minImageExtent.width,
-                std::min(capabilities.maxImageExtent.width, actualExtent.width)
-            );
+                std::min(capabilities.maxImageExtent.width, actualExtent.width));
 
             actualExtent.height = std::max(
                 capabilities.minImageExtent.height,
-                std::min(capabilities.maxImageExtent.height, actualExtent.height)
-            );
+                std::min(capabilities.maxImageExtent.height, actualExtent.height));
 
             return actualExtent;
         }
@@ -210,8 +211,7 @@ void setupGLFW(std::string title)
     uint32_t imageCount = swapChainSupport.capabilities.minImageCount + 1;
     if (
         swapChainSupport.capabilities.maxImageCount > 0
-        && imageCount > swapChainSupport.capabilities.maxImageCount
-    ) {
+        && imageCount > swapChainSupport.capabilities.maxImageCount) {
         imageCount = swapChainSupport.capabilities.maxImageCount;
     }
 
@@ -357,25 +357,17 @@ void window_get_pos(int& x, int& y) { glfwGetWindowPos(Window, &x, &y); }
 // VULKAN SPECIFIC
 bool window_evaluate_device(VkPhysicalDevice device, std::vector<const char*> ext_needed, HW_CAPABILITY* capability)
 {
-    VkPhysicalDeviceProperties deviceProperties;
-    vkGetPhysicalDeviceProperties(device, &deviceProperties);
-    VkPhysicalDeviceFeatures deviceFeatures;
-    vkGetPhysicalDeviceFeatures(device, &deviceFeatures);
-    yolo::info("Found Vulkan device: {}", deviceProperties.deviceName);
-
-    bool features = deviceProperties.deviceType == deviceFeatures.geometryShader;
-
     QueueFamilyIndices indices = window_get_queue_families(device);
-    bool extensions = window_evaluate_device_extensions(device, ext_needed);
+
+    bool extensionsSupported = window_evaluate_device_extensions(device, ext_needed);
 
     bool swapChainAdequate = false;
-    if (extensions) {
+    if (extensionsSupported) {
         SwapChainSupportDetails swapChainSupport = window_get_swap_chain_support(device);
         swapChainAdequate = !swapChainSupport.formats.empty() && !swapChainSupport.presentModes.empty();
     }
 
-    yolo::debug("Device {} is {}suitable", deviceProperties.deviceName, (features && extensions) ? "" : "not ");
-    return swapChainAdequate && extensions && features;
+    return indices.isComplete() && extensionsSupported && swapChainAdequate;
 }
 
 bool window_evaluate_device_extensions(VkPhysicalDevice device, std::vector<const char*> extensions)
@@ -431,6 +423,7 @@ QueueFamilyIndices window_get_queue_families(VkPhysicalDevice device)
 SwapChainSupportDetails window_get_swap_chain_support(VkPhysicalDevice device)
 {
     SwapChainSupportDetails details;
+
     vkGetPhysicalDeviceSurfaceCapabilitiesKHR(device, VulkanSurface, &details.capabilities);
 
     uint32_t formatCount;
