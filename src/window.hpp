@@ -12,9 +12,18 @@ namespace inferno::graphics {
 typedef void (*KeyCallback)(int key, int scan, int action, int mod);
 typedef void (*MouseCallback)(double x, double y);
 
+#define VALIDATION_LAYERS_ENABLED true
+#ifdef VALIDATION_LAYERS_ENABLED
+const std::vector<const char*> VALIDATION_LAYERS = {
+    "VK_LAYER_KHRONOS_validation",
+};
+#endif
+
 static VkInstance VulkanInstance;
 static VkPhysicalDevice VulkanPhysicalDevice = VK_NULL_HANDLE;
 static VkDevice VulkanDevice;
+static VkDebugUtilsMessengerEXT VulkanDebugMessenger = VK_NULL_HANDLE;
+static VkQueue VulkanGraphicsQueue;
 static VkQueue VulkanPresentQueue;
 static VkSurfaceKHR VulkanSurface;
 static VkSwapchainKHR VulkanSwapChain;
@@ -22,11 +31,6 @@ static VkSwapchainKHR VulkanSwapChain;
 enum WINDOW_MODE {
     WIN_MODE_DEFAULT,
     WIN_MODE_FPS,
-};
-
-enum HW_CAPABILITY {
-    HW_CAPABILITY_VK,
-    HW_CAPABILITY_VK_RT,
 };
 
 struct QueueFamilyIndices {
@@ -48,19 +52,23 @@ struct SwapChainSupportDetails {
 void window_create(std::string title, int width, int height);
 void window_cleanup();
 
+void window_create_vulkan_instance();
+void window_vulkan_debugger();
+void window_create_vulkan_surface();
+void window_create_vulkan_physical_device();
+void window_create_vulkan_logical_device();
+
+bool window_evaluate_device(VkPhysicalDevice device);
+bool window_evaluate_device_extensions(VkPhysicalDevice device, std::vector<const char*> extensions);
+QueueFamilyIndices window_get_queue_families(VkPhysicalDevice device);
+SwapChainSupportDetails window_get_swap_chain_support(VkPhysicalDevice device);
+
 void window_set_title(std::string title);
 
 void window_set_size(int w, int h);
 void window_set_pos(int x, int y);
 glm::vec2 window_get_size();
 void window_get_pos(int& x, int& y);
-
-// VULKAN SPECIFIC
-bool window_evaluate_device(VkPhysicalDevice device, std::vector<const char*> ext_needed, HW_CAPABILITY* capability);
-bool window_evaluate_device_extensions(VkPhysicalDevice device, std::vector<const char*> extensions);
-QueueFamilyIndices window_get_queue_families(VkPhysicalDevice device);
-SwapChainSupportDetails window_get_swap_chain_support(VkPhysicalDevice device);
-// END VULKAN SPECIFIC
 
 GLFWwindow* window_get_glfw_window();
 void window_set_mode(WINDOW_MODE mode);

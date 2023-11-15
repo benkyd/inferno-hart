@@ -7,6 +7,7 @@
 
 #include "yolo/yolo.hpp"
 
+#include <map>
 #include <optional>
 #include <set>
 #include <vector>
@@ -32,222 +33,116 @@ void glfwErrorCallback(int error, const char* description)
     yolo::error("[GLFW {}] {}", error, description);
 }
 
-void setupGLFW(std::string title)
+static VKAPI_ATTR VkBool32 VKAPI_CALL debugCallback(
+    VkDebugUtilsMessageSeverityFlagBitsEXT messageSeverity,
+    VkDebugUtilsMessageTypeFlagsEXT messageType,
+    const VkDebugUtilsMessengerCallbackDataEXT* pCallbackData,
+    void* pUserData)
 {
-    glfwSetErrorCallback(glfwErrorCallback);
-    if (!glfwInit())
-        throw std::runtime_error("Failed to initialize GLFW");
+    yolo::warn("[VULKAN] {}", pCallbackData->pMessage);
 
-    glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
+    return VK_FALSE;
+}
 
-    uint32_t ext = 0;
-    vkEnumerateInstanceExtensionProperties(nullptr, &ext, nullptr);
-    yolo::info("Vulkan {} extensions supported", ext);
-
-    // Create window with graphics context
-    Window = glfwCreateWindow(1280, 720, title.c_str(), NULL, NULL);
-    if (Window == NULL)
-        throw std::runtime_error("Could not create window");
-
-    if (!glfwVulkanSupported()) {
-        yolo::error("Vulkan not supported");
-        exit(1);
-    }
-
-    // Vulkan Init
-    VkApplicationInfo appInfo {};
-    appInfo.sType = VK_STRUCTURE_TYPE_APPLICATION_INFO;
-    appInfo.pApplicationName = INFERNO_VERSION;
-    appInfo.applicationVersion = VK_MAKE_VERSION(1, 0, 0);
-    appInfo.pEngineName = "Inferno";
-    appInfo.engineVersion = VK_MAKE_VERSION(1, 0, 0);
-    appInfo.apiVersion = VK_API_VERSION_1_0;
-
-    VkInstanceCreateInfo instInfo {};
-    instInfo.sType = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO;
-    instInfo.pApplicationInfo = &appInfo;
-
-    uint32_t glfwExtCount = 0;
-    const char** exts = glfwGetRequiredInstanceExtensions(&ext);
-    // add VK_KHR_xcb_surface to the list of extensions
-    // TODO: This is a massive fuck off hack - SOLVE IT!!!!
-    exts[glfwExtCount++] = "VK_KHR_xcb_surface";
-    instInfo.enabledExtensionCount = glfwExtCount;
-    instInfo.ppEnabledExtensionNames = exts;
-    instInfo.enabledLayerCount = 0;
-    yolo::info("GLFW requested {} extensions: {}", glfwExtCount, exts[0]);
-
-    if (vkCreateInstance(&instInfo, nullptr, &VulkanInstance) != VK_SUCCESS) {
-        yolo::error("Could not create Vulkan instance");
-        exit(1);
-    }
-
-    // Physical Device
-    uint32_t deviceCount = 0;
-    vkEnumeratePhysicalDevices(VulkanInstance, &deviceCount, nullptr);
-    if (deviceCount == 0) {
-        yolo::error("No Vulkan devices found");
-        exit(1);
-    }
-
-    std::vector<VkPhysicalDevice> devices(deviceCount);
-    vkEnumeratePhysicalDevices(VulkanInstance, &deviceCount, devices.data());
-
-    // TODO: We need to do device suitability in a much better way
-    const std::vector<const char*> deviceExtensions {
-        VK_KHR_SWAPCHAIN_EXTENSION_NAME,
-    };
-
-    for (const auto& device : devices) {
-        if (window_evaluate_device(device, deviceExtensions, nullptr)) {
-            VulkanPhysicalDevice = device;
-            break;
-        }
-    }
-
-    if (VulkanPhysicalDevice == VK_NULL_HANDLE) {
-        yolo::error("No discrete Vulkan devices found");
-        exit(1);
-    }
-
-    // Logical Device
-    yolo::debug("1");
-    QueueFamilyIndices indices = window_get_queue_families(VulkanPhysicalDevice);
-    yolo::debug("2");
-    std::vector<VkDeviceQueueCreateInfo> queueCreateInfos;
-    yolo::debug("3");
-    std::set<uint32_t> uniqueQueueFamilies = { indices.graphicsFamily.value_or(0), indices.presentFamily.value_or(0) };
-
-    float queuePriority = 1.0f;
-    for (uint32_t queueFamily : uniqueQueueFamilies) {
-        VkDeviceQueueCreateInfo queueCreateInfo {};
-        queueCreateInfo.sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO;
-        queueCreateInfo.queueFamilyIndex = queueFamily;
-        queueCreateInfo.queueCount = 1;
-        queueCreateInfo.pQueuePriorities = &queuePriority;
-        queueCreateInfos.push_back(queueCreateInfo);
-    }
-
-    VkPhysicalDeviceFeatures deviceFeatures {};
-    VkDeviceCreateInfo createInfo {};
-    createInfo.sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO;
-    createInfo.queueCreateInfoCount = static_cast<uint32_t>(queueCreateInfos.size());
-    createInfo.pQueueCreateInfos = queueCreateInfos.data();
-    createInfo.pEnabledFeatures = &deviceFeatures;
-    createInfo.enabledExtensionCount = 0;
-    createInfo.enabledLayerCount = 0;
-    createInfo.enabledExtensionCount = static_cast<uint32_t>(deviceExtensions.size());
-    createInfo.ppEnabledExtensionNames = deviceExtensions.data();
-
-    if (vkCreateDevice(VulkanPhysicalDevice, &createInfo, nullptr, &VulkanDevice) != VK_SUCCESS) {
-        yolo::error("Could not create Vulkan logical device");
-        exit(1);
-    }
-
-    vkGetDeviceQueue(VulkanDevice, indices.graphicsFamily.value(), 0, &VulkanPresentQueue);
-
-    VkPhysicalDeviceProperties deviceProperties;
-    vkGetPhysicalDeviceProperties(VulkanPhysicalDevice, &deviceProperties);
-    yolo::info("Vulkan running on {}", deviceProperties.deviceName);
-
-    // "Surface" creation
-    VkResult result = glfwCreateWindowSurface(VulkanInstance, Window, nullptr, &VulkanSurface);
-    if (result != VK_SUCCESS) {
-        yolo::error("Could not create Vulkan surface (code: {})", result);
-        exit(1);
-    }
-
-    // Swapchainnnnn
-    const auto chooseSwapSurfaceFormat = [&](const std::vector<VkSurfaceFormatKHR>& available) {
-        for (const auto& availableFormat : available) {
-            if (availableFormat.format == VK_FORMAT_B8G8R8A8_SRGB
-                && availableFormat.colorSpace == VK_COLOR_SPACE_SRGB_NONLINEAR_KHR) {
-                return availableFormat;
-            }
-        }
-
-        return available[0];
-    };
-
-    const auto chooseSwapPresentMode = [&](const std::vector<VkPresentModeKHR>& available) {
-        for (const auto& availablePresentMode : available) {
-            if (availablePresentMode == VK_PRESENT_MODE_MAILBOX_KHR) {
-                return availablePresentMode;
-            }
-        }
-
-        return VK_PRESENT_MODE_FIFO_KHR;
-    };
-
-    const auto chooseSwapExtent = [&](const VkSurfaceCapabilitiesKHR& capabilities) {
-        if (capabilities.currentExtent.width != UINT32_MAX) {
-            return capabilities.currentExtent;
-        } else {
-            int width, height;
-            glfwGetFramebufferSize(Window, &width, &height);
-
-            VkExtent2D actualExtent = {
-                static_cast<uint32_t>(width),
-                static_cast<uint32_t>(height)
-            };
-
-            actualExtent.width = std::max(
-                capabilities.minImageExtent.width,
-                std::min(capabilities.maxImageExtent.width, actualExtent.width));
-
-            actualExtent.height = std::max(
-                capabilities.minImageExtent.height,
-                std::min(capabilities.maxImageExtent.height, actualExtent.height));
-
-            return actualExtent;
-        }
-    };
-
-    SwapChainSupportDetails swapChainSupport = window_get_swap_chain_support(VulkanPhysicalDevice);
-    VkSurfaceFormatKHR surfaceFormat = chooseSwapSurfaceFormat(swapChainSupport.formats);
-    VkPresentModeKHR presentMode = chooseSwapPresentMode(swapChainSupport.presentModes);
-    VkExtent2D extent = chooseSwapExtent(swapChainSupport.capabilities);
-
-    uint32_t imageCount = swapChainSupport.capabilities.minImageCount + 1;
-    if (
-        swapChainSupport.capabilities.maxImageCount > 0
-        && imageCount > swapChainSupport.capabilities.maxImageCount) {
-        imageCount = swapChainSupport.capabilities.maxImageCount;
-    }
-
-    VkSwapchainCreateInfoKHR swapCreateInfo {};
-    swapCreateInfo.sType = VK_STRUCTURE_TYPE_SWAPCHAIN_CREATE_INFO_KHR;
-    swapCreateInfo.surface = VulkanSurface;
-    swapCreateInfo.minImageCount = imageCount;
-    swapCreateInfo.imageFormat = surfaceFormat.format;
-    swapCreateInfo.imageColorSpace = surfaceFormat.colorSpace;
-    swapCreateInfo.imageExtent = extent;
-    swapCreateInfo.imageArrayLayers = 1;
-    swapCreateInfo.imageUsage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT;
-
-    QueueFamilyIndices indices2 = window_get_queue_families(VulkanPhysicalDevice);
-    uint32_t queueFamilyIndices[] = { indices2.graphicsFamily.value_or(0), indices2.presentFamily.value_or(0) };
-    if (indices2.graphicsFamily != indices2.presentFamily) {
-        swapCreateInfo.imageSharingMode = VK_SHARING_MODE_CONCURRENT;
-        swapCreateInfo.queueFamilyIndexCount = 2;
-        swapCreateInfo.pQueueFamilyIndices = queueFamilyIndices;
+VkResult createDebugUtilsMessengerEXT(
+    VkInstance instance, const VkDebugUtilsMessengerCreateInfoEXT* pCreateInfo,
+    const VkAllocationCallbacks* pAllocator,
+    VkDebugUtilsMessengerEXT* pDebugMessenger)
+{
+    auto func = (PFN_vkCreateDebugUtilsMessengerEXT)vkGetInstanceProcAddr(
+        instance, "vkCreateDebugUtilsMessengerEXT");
+    if (func != nullptr) {
+        return func(instance, pCreateInfo, pAllocator, pDebugMessenger);
     } else {
-        swapCreateInfo.imageSharingMode = VK_SHARING_MODE_EXCLUSIVE;
-        swapCreateInfo.queueFamilyIndexCount = 0; // Optional
-        swapCreateInfo.pQueueFamilyIndices = nullptr; // Optional
+        return VK_ERROR_EXTENSION_NOT_PRESENT;
+    }
+}
+
+void destroyDebugUtilsMessengerEXT(VkInstance instance,
+    VkDebugUtilsMessengerEXT debugMessenger,
+    const VkAllocationCallbacks* pAllocator)
+{
+    auto func = (PFN_vkDestroyDebugUtilsMessengerEXT)vkGetInstanceProcAddr(
+        instance, "vkDestroyDebugUtilsMessengerEXT");
+    if (func != nullptr) {
+        func(instance, debugMessenger, pAllocator);
+    }
+}
+
+void populateDebugMessengerCreateInfo(
+    VkDebugUtilsMessengerCreateInfoEXT& createInfo)
+{
+    createInfo = {};
+    createInfo.sType = VK_STRUCTURE_TYPE_DEBUG_UTILS_MESSENGER_CREATE_INFO_EXT;
+    createInfo.messageSeverity = VK_DEBUG_UTILS_MESSAGE_SEVERITY_VERBOSE_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT;
+    createInfo.messageType = VK_DEBUG_UTILS_MESSAGE_TYPE_GENERAL_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_TYPE_VALIDATION_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_TYPE_PERFORMANCE_BIT_EXT;
+    createInfo.pfnUserCallback = debugCallback;
+}
+
+bool checkValidationLayerSupport()
+{
+    uint32_t layerCount;
+    vkEnumerateInstanceLayerProperties(&layerCount, nullptr);
+
+    std::vector<VkLayerProperties> availableLayers(layerCount);
+    vkEnumerateInstanceLayerProperties(&layerCount, availableLayers.data());
+
+    for (const char* layerName : VALIDATION_LAYERS) {
+        bool layerFound = false;
+
+        for (const auto& layerProperties : availableLayers) {
+            if (strcmp(layerName, layerProperties.layerName) == 0) {
+                layerFound = true;
+                break;
+            }
+        }
+
+        if (!layerFound) {
+            return false;
+        }
     }
 
-    swapCreateInfo.preTransform = swapChainSupport.capabilities.currentTransform;
-    swapCreateInfo.compositeAlpha = VK_COMPOSITE_ALPHA_OPAQUE_BIT_KHR;
-    swapCreateInfo.presentMode = presentMode;
-    swapCreateInfo.clipped = VK_TRUE;
-    swapCreateInfo.oldSwapchain = VK_NULL_HANDLE;
+    return true;
+}
 
-    if (vkCreateSwapchainKHR(VulkanDevice, &swapCreateInfo, nullptr, &VulkanSwapChain) != VK_SUCCESS) {
-        yolo::error("Could not create Vulkan swap chain");
-        exit(1);
+std::vector<const char*> getRequiredExtensions()
+{
+    uint32_t glfwExtensionCount = 0;
+    const char** glfwExtensions;
+    glfwExtensions = glfwGetRequiredInstanceExtensions(&glfwExtensionCount);
+
+    std::vector<const char*> extensions(glfwExtensions,
+        glfwExtensions + glfwExtensionCount);
+
+    if constexpr (VALIDATION_LAYERS_ENABLED) {
+        extensions.push_back(VK_EXT_DEBUG_UTILS_EXTENSION_NAME);
     }
-    yolo::info("Vulkan swap chain created with {} images", imageCount);
+
+    return extensions;
+}
+
+
+
+
+void setupWindow(std::string title)
+{
+    glfwInit();
+
+    // tell glfw to not use a specific api? TODO: reasearch
+    glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
+    // disable resizing the window, this project is not configured to handle resizing
+    glfwWindowHint(GLFW_RESIZABLE, GLFW_FALSE);
+
+    Window = glfwCreateWindow(Width, Height, title.c_str(), nullptr, nullptr);
+}
+
+void setupVulkan()
+{
+    window_create_vulkan_instance();
+    window_vulkan_debugger();
+    window_create_vulkan_surface();
+    window_create_vulkan_physical_device();
+    window_create_vulkan_logical_device();
 }
 
 void setupImGui()
@@ -323,7 +218,8 @@ void window_create(std::string title, int width, int height)
 {
     Width = width;
     Height = height;
-    setupGLFW(title);
+    setupWindow(title);
+    setupVulkan();
     glfwSetKeyCallback(Window, glfwKeyCallback);
     // setupImGui();
 }
@@ -336,38 +232,180 @@ void window_cleanup()
     shutdownGLFW();
 }
 
-void window_set_title(std::string title)
+void window_create_vulkan_instance()
 {
-    glfwSetWindowTitle(Window, title.c_str());
-}
-
-void window_set_size(int w, int h)
-{
-    Width = w;
-    Height = h;
-    glfwSetWindowSize(Window, Width, Height);
-}
-
-void window_set_pos(int x, int y) { glfwSetWindowPos(Window, x, y); }
-
-glm::vec2 window_get_size() { return { Width, Height }; }
-
-void window_get_pos(int& x, int& y) { glfwGetWindowPos(Window, &x, &y); }
-
-// VULKAN SPECIFIC
-bool window_evaluate_device(VkPhysicalDevice device, std::vector<const char*> ext_needed, HW_CAPABILITY* capability)
-{
-    QueueFamilyIndices indices = window_get_queue_families(device);
-
-    bool extensionsSupported = window_evaluate_device_extensions(device, ext_needed);
-
-    bool swapChainAdequate = false;
-    if (extensionsSupported) {
-        SwapChainSupportDetails swapChainSupport = window_get_swap_chain_support(device);
-        swapChainAdequate = !swapChainSupport.formats.empty() && !swapChainSupport.presentModes.empty();
+    if (VALIDATION_LAYERS_ENABLED && !checkValidationLayerSupport()) {
+        throw std::runtime_error(
+            "validation layers requested, but not available!");
     }
 
-    return indices.isComplete() && extensionsSupported && swapChainAdequate;
+    VkApplicationInfo appInfo {};
+    appInfo.sType = VK_STRUCTURE_TYPE_APPLICATION_INFO;
+    appInfo.pApplicationName = "Inferno HART";
+    appInfo.applicationVersion = VK_MAKE_VERSION(1, 0, 0);
+    appInfo.pEngineName = "No Engine";
+    appInfo.engineVersion = VK_MAKE_VERSION(1, 0, 0);
+    appInfo.apiVersion = VK_API_VERSION_1_0;
+
+    VkInstanceCreateInfo createInfo {};
+    createInfo.sType = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO;
+    createInfo.pApplicationInfo = &appInfo;
+
+    auto extensions = getRequiredExtensions();
+    createInfo.enabledExtensionCount = static_cast<uint32_t>(extensions.size());
+    createInfo.ppEnabledExtensionNames = extensions.data();
+
+    VkDebugUtilsMessengerCreateInfoEXT debugCreateInfo;
+#ifdef VALIDATION_LAYERS_ENABLED
+    createInfo.enabledLayerCount = static_cast<uint32_t>(VALIDATION_LAYERS.size());
+    createInfo.ppEnabledLayerNames = VALIDATION_LAYERS.data();
+
+    populateDebugMessengerCreateInfo(debugCreateInfo);
+    createInfo.pNext = (VkDebugUtilsMessengerCreateInfoEXT*)&debugCreateInfo;
+#else
+    createInfo.enabledLayerCount = 0;
+
+    createInfo.pNext = nullptr;
+#endif
+
+    if (vkCreateInstance(&createInfo, nullptr, &VulkanInstance) != VK_SUCCESS) {
+        throw std::runtime_error("failed to create instance!");
+    }
+    yolo::info("Vulkan instance created");
+}
+
+void window_vulkan_debugger()
+{
+    if constexpr (!VALIDATION_LAYERS_ENABLED) {
+        return;
+    }
+
+    VkDebugUtilsMessengerCreateInfoEXT createInfo;
+    populateDebugMessengerCreateInfo(createInfo);
+
+    if (createDebugUtilsMessengerEXT(VulkanInstance, &createInfo, nullptr,
+            &VulkanDebugMessenger)
+        != VK_SUCCESS) {
+        throw std::runtime_error("failed to set up debug messenger!");
+    }
+}
+
+void window_create_vulkan_surface()
+{
+    if (glfwCreateWindowSurface(VulkanInstance, Window, nullptr, &VulkanSurface) != VK_SUCCESS) {
+        throw std::runtime_error("failed to create window surface!");
+    }
+    yolo::info("Vulkan surface created");
+}
+
+void window_create_vulkan_physical_device()
+{
+    uint32_t deviceCount = 0;
+    vkEnumeratePhysicalDevices(VulkanInstance, &deviceCount, nullptr);
+
+    if (deviceCount == 0) {
+        throw std::runtime_error("failed to find GPUs with Vulkan support!");
+    }
+
+    std::vector<VkPhysicalDevice> devices(deviceCount);
+    vkEnumeratePhysicalDevices(VulkanInstance, &deviceCount, devices.data());
+
+    // std::multimap is sorted list of key-value pairs. Sorted by key.
+    std::multimap<int, VkPhysicalDevice> candidates;
+
+    for (const auto& device : devices) {
+        int score = window_evaluate_device(device);
+        candidates.insert(std::make_pair(score, device));
+    }
+
+    // as candidates is a sorted list, the last value will always be the biggest score (first element)
+    if (candidates.rbegin()->first > 0) {
+        VkPhysicalDeviceProperties deviceProperties;
+        vkGetPhysicalDeviceProperties(candidates.rbegin()->second, &deviceProperties);
+        yolo::info("Using device: {}", deviceProperties.deviceName);
+
+        // established the device with the best score, or the only one in the system.
+        VulkanPhysicalDevice = candidates.rbegin()->second;
+    } else {
+        throw std::runtime_error("failed to find a suitable GPU!");
+    }
+}
+
+void window_create_vulkan_logical_device()
+{
+    QueueFamilyIndices indices = window_get_queue_families(VulkanPhysicalDevice);
+
+    std::vector<VkDeviceQueueCreateInfo> queueCreateInfos;
+    std::set<uint32_t> uniqueQueueFamilies = { indices.graphicsFamily.value(), indices.presentFamily.value() };
+
+    float queuePriority = 1.0f;
+    for (uint32_t queueFamily : uniqueQueueFamilies) {
+        VkDeviceQueueCreateInfo queueCreateInfo {};
+        queueCreateInfo.sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO;
+        queueCreateInfo.queueFamilyIndex = queueFamily;
+        queueCreateInfo.pQueuePriorities = &queuePriority;
+        queueCreateInfo.queueCount = 1;
+        queueCreateInfos.push_back(queueCreateInfo);
+    }
+
+    VkPhysicalDeviceFeatures deviceFeatures {};
+
+    VkDeviceCreateInfo createInfo {};
+    createInfo.sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO;
+
+    createInfo.queueCreateInfoCount = static_cast<uint32_t>(queueCreateInfos.size());
+    createInfo.pQueueCreateInfos = queueCreateInfos.data();
+
+    createInfo.pEnabledFeatures = &deviceFeatures;
+
+    createInfo.enabledExtensionCount = 0;
+
+#ifdef VALIDATION_LAYERS_ENABLED
+    createInfo.enabledLayerCount = static_cast<uint32_t>(VALIDATION_LAYERS.size());
+    createInfo.ppEnabledLayerNames = VALIDATION_LAYERS.data();
+#elif
+    createInfo.enabledLayerCount = 0;
+#endif
+
+    if (vkCreateDevice(VulkanPhysicalDevice, &createInfo, nullptr, &VulkanDevice) != VK_SUCCESS) {
+        throw std::runtime_error("failed to create logical device!");
+    }
+
+    vkGetDeviceQueue(VulkanDevice, indices.graphicsFamily.value(), 0, &VulkanGraphicsQueue);
+    vkGetDeviceQueue(VulkanDevice, indices.presentFamily.value(), 0, &VulkanPresentQueue);
+}
+
+bool window_evaluate_device(VkPhysicalDevice device)
+{
+    int score = 0;
+
+    VkPhysicalDeviceProperties deviceProperties;
+    vkGetPhysicalDeviceProperties(device, &deviceProperties);
+
+    VkPhysicalDeviceFeatures deviceFeatures;
+    vkGetPhysicalDeviceFeatures(device, &deviceFeatures);
+
+    yolo::info("Found device {}", deviceProperties.deviceName);
+    // Discrete GPUs have a significant performance advantage
+    if (deviceProperties.deviceType == VK_PHYSICAL_DEVICE_TYPE_DISCRETE_GPU) {
+        yolo::info("Device {} is a discrete GPU", deviceProperties.deviceName);
+        score += 1000;
+    }
+    // We really want to favour ones with RayTracing support
+
+    // Maximum possible size of textures affects graphics quality
+    score += deviceProperties.limits.maxImageDimension2D;
+
+    // Application won't function without geometry shaders
+    if (!deviceFeatures.geometryShader)
+        return 0;
+
+    // Ensure that the device can process the graphics commands that we need
+    QueueFamilyIndices indices = window_get_queue_families(device);
+    if (!indices.isComplete())
+        return 0;
+
+    return score;
 }
 
 bool window_evaluate_device_extensions(VkPhysicalDevice device, std::vector<const char*> extensions)
@@ -390,31 +428,32 @@ bool window_evaluate_device_extensions(VkPhysicalDevice device, std::vector<cons
 QueueFamilyIndices window_get_queue_families(VkPhysicalDevice device)
 {
     QueueFamilyIndices indices;
-
     uint32_t queueFamilyCount = 0;
+
     vkGetPhysicalDeviceQueueFamilyProperties(device, &queueFamilyCount, nullptr);
 
     std::vector<VkQueueFamilyProperties> queueFamilies(queueFamilyCount);
     vkGetPhysicalDeviceQueueFamilyProperties(device, &queueFamilyCount, queueFamilies.data());
 
-    int i = 0;
+    uint32_t queueFamIndex = 0;
+
     for (const auto& queueFamily : queueFamilies) {
         if (queueFamily.queueFlags & VK_QUEUE_GRAPHICS_BIT) {
-            indices.graphicsFamily = i;
+            indices.graphicsFamily = queueFamIndex;
         }
 
         VkBool32 presentSupport = false;
-        vkGetPhysicalDeviceSurfaceSupportKHR(device, i, VulkanSurface, &presentSupport);
+        vkGetPhysicalDeviceSurfaceSupportKHR(device, queueFamIndex, VulkanSurface, &presentSupport);
 
         if (presentSupport) {
-            indices.presentFamily = i;
+            indices.presentFamily = queueFamIndex;
         }
 
         if (indices.isComplete()) {
             break;
         }
 
-        i++;
+        queueFamIndex++;
     }
 
     return indices;
@@ -445,7 +484,23 @@ SwapChainSupportDetails window_get_swap_chain_support(VkPhysicalDevice device)
     return details;
 }
 
-// END VULKAN SPECIFIC
+void window_set_title(std::string title)
+{
+    glfwSetWindowTitle(Window, title.c_str());
+}
+
+void window_set_size(int w, int h)
+{
+    Width = w;
+    Height = h;
+    glfwSetWindowSize(Window, Width, Height);
+}
+
+void window_set_pos(int x, int y) { glfwSetWindowPos(Window, x, y); }
+
+glm::vec2 window_get_size() { return { Width, Height }; }
+
+void window_get_pos(int& x, int& y) { glfwGetWindowPos(Window, &x, &y); }
 
 GLFWwindow* window_get_glfw_window() { return Window; }
 
