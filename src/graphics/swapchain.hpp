@@ -12,11 +12,13 @@ typedef struct SwapChain {
     VkExtent2D Extent;
 
     std::vector<VkImage> Images;
+    std::vector<VkImageView> ImageViews;
 
     GraphicsDevice* Device;
 } SwapChain;
 
 SwapChain* swapchain_create(GraphicsDevice* device, glm::ivec2 surface_size);
 void swapchain_cleanup(SwapChain* swapchain);
+void swapchain_image_view_create(SwapChain* swapchain);
 
 }

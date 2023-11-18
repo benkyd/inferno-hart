@@ -138,6 +138,8 @@ SwapChain* swapchain_create(GraphicsDevice* device, glm::ivec2 surface_size)
     swapchain->Extent = extent;
     swapchain->Device = device;
 
+    swapchain_image_view_create(swapchain);
+
     return swapchain;
 }
 
@@ -145,6 +147,35 @@ void swapchain_cleanup(SwapChain* swapchain)
 {
     vkDestroySwapchainKHR(swapchain->Device->VulkanDevice, swapchain->Handle, nullptr);
     delete swapchain;
+}
+
+void swapchain_image_view_create(SwapChain* swapchain)
+{
+    swapchain->ImageViews.resize(swapchain->Images.size());
+
+    for (size_t i = 0; i < swapchain->Images.size(); i++) {
+        VkImageViewCreateInfo createInfo = {};
+        createInfo.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
+        createInfo.image = swapchain->Images[i];
+        createInfo.viewType = VK_IMAGE_VIEW_TYPE_2D;
+        createInfo.format = swapchain->ImageFormat;
+
+        createInfo.components.r = VK_COMPONENT_SWIZZLE_IDENTITY;
+        createInfo.components.g = VK_COMPONENT_SWIZZLE_IDENTITY;
+        createInfo.components.b = VK_COMPONENT_SWIZZLE_IDENTITY;
+        createInfo.components.a = VK_COMPONENT_SWIZZLE_IDENTITY;
+
+        createInfo.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+        createInfo.subresourceRange.baseMipLevel = 0;
+        createInfo.subresourceRange.levelCount = 1;
+        createInfo.subresourceRange.baseArrayLayer = 0;
+        createInfo.subresourceRange.layerCount = 1;
+
+        if (vkCreateImageView(swapchain->Device->VulkanDevice, &createInfo, nullptr, &swapchain->ImageViews[i]) != VK_SUCCESS) {
+            yolo::error("failed to create image views!");
+            exit(1);
+        }
+    }
 }
 
 }
