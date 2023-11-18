@@ -5,9 +5,9 @@
 
 #include "yolo/yolo.hpp"
 
+#include <map>
 #include <optional>
 #include <set>
-#include <map>
 
 namespace inferno::graphics {
 
@@ -115,7 +115,6 @@ std::vector<const char*> getRequiredExtensions()
     return extensions;
 }
 
-
 QueueFamilyIndices device_get_queue_families(GraphicsDevice* g, VkPhysicalDevice device)
 {
     QueueFamilyIndices indices;
@@ -200,7 +199,6 @@ bool device_evaluate_extensions(VkPhysicalDevice device, std::vector<const char*
     return requiredExtensions.empty();
 }
 
-
 SwapChainSupportDetails device_get_swap_chain_support(GraphicsDevice* g, VkPhysicalDevice device)
 {
     SwapChainSupportDetails details;
@@ -225,7 +223,6 @@ SwapChainSupportDetails device_get_swap_chain_support(GraphicsDevice* g, VkPhysi
 
     return details;
 }
-
 
 GraphicsDevice* device_create()
 {
@@ -296,6 +293,7 @@ void device_create_vulkan_instance(GraphicsDevice* device)
 void device_vulkan_debugger(GraphicsDevice* device)
 {
     if constexpr (!VALIDATION_LAYERS_ENABLED) {
+        yolo::warn("Validation layers disabled");
         return;
     }
 
@@ -308,6 +306,7 @@ void device_vulkan_debugger(GraphicsDevice* device)
         yolo::error("failed to set up debug messenger!");
         exit(1);
     }
+    yolo::info("Vulkan debugger created");
 }
 
 void device_create_vulkan_physical_device(GraphicsDevice* device)
@@ -389,6 +388,5 @@ void device_create_vulkan_logical_device(GraphicsDevice* device)
     vkGetDeviceQueue(device->VulkanDevice, indices.graphicsFamily.value(), 0, &device->VulkanGraphicsQueue);
     vkGetDeviceQueue(device->VulkanDevice, indices.presentFamily.value(), 0, &device->VulkanPresentQueue);
 }
-
 
 }

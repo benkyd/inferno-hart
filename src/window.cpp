@@ -124,11 +124,11 @@ void window_create(std::string title, int width, int height)
 
 void window_set_surface(GraphicsDevice* device)
 {
-    VkBool32 presentSupport = false;
-    vkGetPhysicalDeviceSurfaceSupportKHR(device->VulkanPhysicalDevice, 0, device->VulkanSurface, &presentSupport);
-    if (!presentSupport) {
-        yolo::error("Surface does not support presentation");
+     if (glfwCreateWindowSurface(device->VulkanInstance, Window, nullptr, &device->VulkanSurface) != VK_SUCCESS) {
+         yolo::error("failed to create window surface!");
+         exit(1);
     }
+    yolo::info("Vulkan surface created");
 }
 
 void window_cleanup()
