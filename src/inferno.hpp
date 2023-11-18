@@ -1,6 +1,7 @@
 #pragma once
 
 #include "graphics.hpp"
+#include "graphics/device.hpp"
 #include "scene/scene.hpp"
 #include "scene/camera.hpp"
 #include "renderer/renderer.hpp"
@@ -12,6 +13,7 @@ namespace inferno {
 
 namespace graphics {
     struct Camera;
+    struct GraphicsDevice;
 }
 
 namespace scene {

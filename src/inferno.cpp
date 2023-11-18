@@ -2,10 +2,13 @@
 
 #include <graphics.hpp>
 #include <version.hpp>
+
 // #include "gui/layout.hpp"
 // #include "renderer/renderer.hpp"
 // #include "scene/scene.hpp"
 #include "window.hpp"
+#include "graphics/pipeline.hpp"
+#include "graphics/device.hpp"
 
 // #include "preview_renderer/debug.hpp"
 // #include "preview_renderer/renderer.hpp"
@@ -88,8 +91,9 @@ InfernoApp* inferno_create()
 
     // graphics::camera_set_position(app->Scene->Camera, { 0.0f, 1.0f, 3.1f });
 
-    // // Create window
-    graphics::window_create("Inferno v" INFERNO_VERSION, 1280, 720);
+    // Create window
+    graphics::window_create("Inferno v" INFERNO_VERSION, 1920, 1080);
+    graphics::GraphicsDevice* d = graphics::device_create();
 
 
     // // setup the scene

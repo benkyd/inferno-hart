@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.13)
 project(inferno)
 
-file(GLOB SRC "src/*.cpp" "src/*.c")
+file(GLOB SRC "src/*.cpp" "src/graphics/*.cpp")
 
 add_executable(inferno ${SRC})
 target_include_directories(inferno PRIVATE "libhart/thirdparty")

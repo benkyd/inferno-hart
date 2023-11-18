@@ -9,59 +9,20 @@
 
 namespace inferno::graphics {
 
+struct GraphicsDevice;
+
 typedef void (*KeyCallback)(int key, int scan, int action, int mod);
 typedef void (*MouseCallback)(double x, double y);
-
-#define VALIDATION_LAYERS_ENABLED true
-#ifdef VALIDATION_LAYERS_ENABLED
-const std::vector<const char*> VALIDATION_LAYERS = {
-    "VK_LAYER_KHRONOS_validation",
-};
-#endif
-
-static VkInstance VulkanInstance;
-static VkPhysicalDevice VulkanPhysicalDevice = VK_NULL_HANDLE;
-static VkDevice VulkanDevice;
-static VkDebugUtilsMessengerEXT VulkanDebugMessenger = VK_NULL_HANDLE;
-static VkQueue VulkanGraphicsQueue;
-static VkQueue VulkanPresentQueue;
-static VkSurfaceKHR VulkanSurface;
-static VkSwapchainKHR VulkanSwapChain;
 
 enum WINDOW_MODE {
     WIN_MODE_DEFAULT,
     WIN_MODE_FPS,
 };
 
-struct QueueFamilyIndices {
-    std::optional<uint32_t> graphicsFamily;
-    std::optional<uint32_t> presentFamily;
-
-    bool isComplete()
-    {
-        return graphicsFamily.has_value() && presentFamily.has_value();
-    }
-};
-
-struct SwapChainSupportDetails {
-    VkSurfaceCapabilitiesKHR capabilities;
-    std::vector<VkSurfaceFormatKHR> formats;
-    std::vector<VkPresentModeKHR> presentModes;
-};
-
 void window_create(std::string title, int width, int height);
 void window_cleanup();
 
-void window_create_vulkan_instance();
-void window_vulkan_debugger();
-void window_create_vulkan_surface();
-void window_create_vulkan_physical_device();
-void window_create_vulkan_logical_device();
-
-bool window_evaluate_device(VkPhysicalDevice device);
-bool window_evaluate_device_extensions(VkPhysicalDevice device, std::vector<const char*> extensions);
-QueueFamilyIndices window_get_queue_families(VkPhysicalDevice device);
-SwapChainSupportDetails window_get_swap_chain_support(VkPhysicalDevice device);
+void window_set_surface(GraphicsDevice* device);
 
 void window_set_title(std::string title);
 
