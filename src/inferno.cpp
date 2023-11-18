@@ -93,8 +93,8 @@ InfernoApp* inferno_create()
 
     // Create window
     graphics::window_create("Inferno v" INFERNO_VERSION, 1920, 1080);
-    graphics::GraphicsDevice* d = graphics::device_create();
-
+    graphics::GraphicsDevice* device = graphics::device_create();
+    graphics::Pipeline* p = graphics::pipeline_create(device);
 
     // // setup the scene
     // scene::Material* basicMaterial = new scene::Material("basic");

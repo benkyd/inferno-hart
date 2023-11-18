@@ -6,26 +6,9 @@
 #include "yolo/yolo.hpp"
 
 #include <map>
-#include <optional>
 #include <set>
 
 namespace inferno::graphics {
-
-struct QueueFamilyIndices {
-    std::optional<uint32_t> graphicsFamily;
-    std::optional<uint32_t> presentFamily;
-
-    bool isComplete()
-    {
-        return graphicsFamily.has_value() && presentFamily.has_value();
-    }
-};
-
-struct SwapChainSupportDetails {
-    VkSurfaceCapabilitiesKHR capabilities;
-    std::vector<VkSurfaceFormatKHR> formats;
-    std::vector<VkPresentModeKHR> presentModes;
-};
 
 static VKAPI_ATTR VkBool32 VKAPI_CALL debugCallback(
     VkDebugUtilsMessageSeverityFlagBitsEXT messageSeverity,
@@ -112,6 +95,11 @@ std::vector<const char*> getRequiredExtensions()
         extensions.push_back(VK_EXT_DEBUG_UTILS_EXTENSION_NAME);
     }
 
+    yolo::info("Requested instance extensions:");
+    for (const auto& extension : extensions) {
+        yolo::info("\t{}", extension);
+    }
+
     return extensions;
 }
 
@@ -149,39 +137,6 @@ QueueFamilyIndices device_get_queue_families(GraphicsDevice* g, VkPhysicalDevice
     return indices;
 }
 
-bool device_evaluate(GraphicsDevice* g, VkPhysicalDevice device)
-{
-    int score = 0;
-
-    VkPhysicalDeviceProperties deviceProperties;
-    vkGetPhysicalDeviceProperties(device, &deviceProperties);
-
-    VkPhysicalDeviceFeatures deviceFeatures;
-    vkGetPhysicalDeviceFeatures(device, &deviceFeatures);
-
-    yolo::info("Found device {}", deviceProperties.deviceName);
-    // Discrete GPUs have a significant performance advantage
-    if (deviceProperties.deviceType == VK_PHYSICAL_DEVICE_TYPE_DISCRETE_GPU) {
-        yolo::info("Device {} is a discrete GPU", deviceProperties.deviceName);
-        score += 1000;
-    }
-    // We really want to favour ones with RayTracing support
-
-    // Maximum possible size of textures affects graphics quality
-    score += deviceProperties.limits.maxImageDimension2D;
-
-    // Application won't function without geometry shaders
-    if (!deviceFeatures.geometryShader)
-        return 0;
-
-    // Ensure that the device can process the graphics commands that we need
-    QueueFamilyIndices indices = device_get_queue_families(g, device);
-    if (!indices.isComplete())
-        return 0;
-
-    return score;
-}
-
 bool device_evaluate_extensions(VkPhysicalDevice device, std::vector<const char*> extensions)
 {
     uint32_t extensionCount;
@@ -199,30 +154,43 @@ bool device_evaluate_extensions(VkPhysicalDevice device, std::vector<const char*
     return requiredExtensions.empty();
 }
 
-SwapChainSupportDetails device_get_swap_chain_support(GraphicsDevice* g, VkPhysicalDevice device)
+bool device_evaluate(GraphicsDevice* g, VkPhysicalDevice device)
 {
-    SwapChainSupportDetails details;
+    int score = 0;
 
-    vkGetPhysicalDeviceSurfaceCapabilitiesKHR(device, g->VulkanSurface, &details.capabilities);
+    VkPhysicalDeviceProperties deviceProperties;
+    vkGetPhysicalDeviceProperties(device, &deviceProperties);
 
-    uint32_t formatCount;
-    vkGetPhysicalDeviceSurfaceFormatsKHR(device, g->VulkanSurface, &formatCount, nullptr);
+    VkPhysicalDeviceFeatures deviceFeatures;
+    vkGetPhysicalDeviceFeatures(device, &deviceFeatures);
 
-    if (formatCount != 0) {
-        details.formats.resize(formatCount);
-        vkGetPhysicalDeviceSurfaceFormatsKHR(device, g->VulkanSurface, &formatCount, details.formats.data());
+    yolo::info("Found device {}", deviceProperties.deviceName);
+    // Discrete GPUs have a significant performance advantage
+    if (deviceProperties.deviceType == VK_PHYSICAL_DEVICE_TYPE_DISCRETE_GPU) {
+        yolo::info("Device {} is a discrete GPU", deviceProperties.deviceName);
+        score += 1000;
     }
 
-    uint32_t presentModeCount;
-    vkGetPhysicalDeviceSurfacePresentModesKHR(device, g->VulkanSurface, &presentModeCount, nullptr);
-
-    if (presentModeCount != 0) {
-        details.presentModes.resize(presentModeCount);
-        vkGetPhysicalDeviceSurfacePresentModesKHR(device, g->VulkanSurface, &presentModeCount, details.presentModes.data());
+    // does the device support the extensions we need?
+    if (!device_evaluate_extensions(device, DEVICE_EXTENSIONS)) {
+        return 0;
     }
 
-    return details;
+    // Maximum possible size of textures affects graphics quality
+    score += deviceProperties.limits.maxImageDimension2D;
+
+    // Application won't function without geometry shaders
+    if (!deviceFeatures.geometryShader)
+        return 0;
+
+    // Ensure that the device can process the graphics commands that we need
+    QueueFamilyIndices indices = device_get_queue_families(g, device);
+    if (!indices.isComplete())
+        return 0;
+
+    return score;
 }
+
 
 GraphicsDevice* device_create()
 {
@@ -230,8 +198,10 @@ GraphicsDevice* device_create()
     device_create_vulkan_instance(device);
     device_vulkan_debugger(device);
     window_set_surface(device);
+    device->SurfaceSize = window_get_size();
     device_create_vulkan_physical_device(device);
     device_create_vulkan_logical_device(device);
+    device_create_command_pool(device);
     return device;
 }
 
@@ -371,7 +341,12 @@ void device_create_vulkan_logical_device(GraphicsDevice* device)
 
     createInfo.pEnabledFeatures = &deviceFeatures;
 
-    createInfo.enabledExtensionCount = 0;
+    createInfo.enabledExtensionCount = static_cast<uint32_t>(DEVICE_EXTENSIONS.size());
+    createInfo.ppEnabledExtensionNames = DEVICE_EXTENSIONS.data();
+    yolo::info("Requested device extensions:");
+    for (const auto& extension : DEVICE_EXTENSIONS) {
+        yolo::info("\t{}", extension);
+    }
 
 #ifdef VALIDATION_LAYERS_ENABLED
     createInfo.enabledLayerCount = static_cast<uint32_t>(VALIDATION_LAYERS.size());
@@ -387,6 +362,21 @@ void device_create_vulkan_logical_device(GraphicsDevice* device)
 
     vkGetDeviceQueue(device->VulkanDevice, indices.graphicsFamily.value(), 0, &device->VulkanGraphicsQueue);
     vkGetDeviceQueue(device->VulkanDevice, indices.presentFamily.value(), 0, &device->VulkanPresentQueue);
+}
+
+void device_create_command_pool(GraphicsDevice* device)
+{
+    QueueFamilyIndices queueFamilyIndices = device_get_queue_families(device, device->VulkanPhysicalDevice);
+
+    VkCommandPoolCreateInfo poolInfo = {};
+    poolInfo.sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO;
+    poolInfo.queueFamilyIndex = queueFamilyIndices.graphicsFamily.value();
+    poolInfo.flags = VK_COMMAND_POOL_CREATE_TRANSIENT_BIT | VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT;
+
+    if (vkCreateCommandPool(device->VulkanDevice, &poolInfo, nullptr, &device->VulkanCommandPool) != VK_SUCCESS) {
+        yolo::error("failed to create command pool!");
+    }
+    yolo::info("Vulkan command pool created");
 }
 
 }

@@ -5,12 +5,14 @@
 namespace inferno::graphics {
 
 struct GraphicsDevice;
+struct SwapChain;
 
 typedef struct Pipeline {
-    VkPipelineLayout Layout;
-    VkPipeline Pipeline;
-
     GraphicsDevice* Device;
+    SwapChain* Swap;
 } Pipeline;
+
+Pipeline* pipeline_create(GraphicsDevice* device);
+void pipeline_cleanup(Pipeline* pipeline);
 
 }
