@@ -1,4 +1,3 @@
-#type vertex
 #version 450 core
 
 layout(location = 0) in vec4 position;
@@ -14,16 +13,3 @@ void main()
     vFragPos = model * position;
     gl_Position = proj * view * model * position;
 }
-
-#type fragment
-#version 450 core
-
-in vec4 vFragPos;
-
-layout(location = 0) out vec4 outColour;
-
-void main()
-{
-    outColour = vec4(vFragPos.xyz, 1.0);
-}
-

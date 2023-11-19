@@ -146,6 +146,9 @@ SwapChain* swapchain_create(GraphicsDevice* device, glm::ivec2 surface_size)
 void swapchain_cleanup(SwapChain* swapchain)
 {
     vkDestroySwapchainKHR(swapchain->Device->VulkanDevice, swapchain->Handle, nullptr);
+    for (auto imageView : swapchain->ImageViews) {
+        vkDestroyImageView(swapchain->Device->VulkanDevice, imageView, nullptr);
+    }
     delete swapchain;
 }
 

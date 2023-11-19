@@ -35,6 +35,46 @@ else()
     endif()
 endif()
 
+# Compile shaders first..
+file(GLOB SHADERS "res/shaders/*.vert" "res/shaders/*.frag")
+foreach(SHADER ${SHADERS})
+    get_filename_component(FILENAME ${SHADER} ABSOLUTE)
+    set(SPIRV "${FILENAME}.spv")
+    add_custom_command(
+        OUTPUT ${SPIRV}
+        COMMAND glslc ${SHADER} -o ${SPIRV}
+        DEPENDS ${SHADER}
+    )
+    list(APPEND SPIRV_BINARY_FILES ${SPIRV})
+endforeach(SHADER)
+
+# ..then link them
+add_custom_target(
+    shaders
+    DEPENDS ${SPIRV_BINARY_FILES}
+)
+
+add_dependencies(inferno shaders)
+
+# Copy resources
+file(GLOB_RECURSE RES "res/*")
+foreach(RESOURCE ${RES})
+    # get_filename_component(FILENAME ${RESOURCE} NAME)
+    file(RELATIVE_PATH FILENAME ${CMAKE_CURRENT_SOURCE_DIR}/res ${RESOURCE})
+    add_custom_command(
+        TARGET inferno POST_BUILD
+        COMMAND ${CMAKE_COMMAND} -E copy ${RESOURCE} ${CMAKE_CURRENT_BINARY_DIR}/res/${FILENAME}
+        DEPENDS ${RESOURCE}
+    )
+endforeach(RESOURCE)
+
+add_custom_target(
+    resources
+    DEPENDS ${RES}
+)
+
+add_dependencies(inferno resources)
+
 # "Universal" libraries
 set(THREADS_PREFER_PTHREAD_FLAD ON)
 find_package(Threads REQUIRED)
