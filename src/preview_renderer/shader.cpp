@@ -3,13 +3,11 @@
 #include <fstream>
 #include <iostream>
 
+#include "yolo/yolo.hpp"
+
 namespace inferno::graphics {
 
-static std::unordered_map<GLuint, int> shader2Index = {
-    { GL_VERTEX_SHADER, 0 },
-    { GL_GEOMETRY_SHADER, 1 },
-    { GL_FRAGMENT_SHADER, 2 }
-};
+static std::unordered_map<GLuint, int> shader2Index = {};
 
 inline std::string trim(std::string& str)
 {
@@ -25,164 +23,123 @@ std::string textFromFile(const std::filesystem::path& path)
         std::istreambuf_iterator<char>());
 }
 
-std::vector<const ShaderPreprocessorDefinition*> getKeys(Shader* shader, std::string key)
-{
-    std::vector<const ShaderPreprocessorDefinition*> ret;
-    for (const auto& p : shader->PreprocessorDefinitions)
-        if (p.key == key)
-            ret.push_back(&p);
-    return ret;
-}
-
 bool checkShader(GLuint uid)
 {
     GLint isCompiled = 0;
-    glGetShaderiv(uid, GL_COMPILE_STATUS, &isCompiled);
+    // glGetShaderiv(uid, GL_COMPILE_STATUS, &isCompiled);
     if (isCompiled == GL_FALSE) {
         GLint maxLength = 0;
-        glGetShaderiv(uid, GL_INFO_LOG_LENGTH, &maxLength);
+        // glGetShaderiv(uid, GL_INFO_LOG_LENGTH, &maxLength);
 
         std::vector<GLchar> errorLog(maxLength);
-        glGetShaderInfoLog(uid, maxLength, &maxLength, &errorLog[0]);
+        // glGetShaderInfoLog(uid, maxLength, &maxLength, &errorLog[0]);
 
         for (int i = 0; i < errorLog.size(); i++) {
             std::cout << errorLog[i];
         }
 
-        glDeleteShader(uid);
+        // glDeleteShader(uid);
         return false;
     }
 
     return true;
 }
 
-Shader* shader_create()
+Shader* shader_create(VkDevice device)
 {
     Shader* shader = new Shader;
-
-    shader->Program = 0;
-    shader->Shaders[0] = GL_NONE;
-    shader->Shaders[1] = GL_NONE;
-    shader->Shaders[2] = GL_NONE;
+    shader->Device = device;
 
     return shader;
 }
 
 void shader_cleanup(Shader* shader)
 {
-    for (int i = 0; i < 3; i++) {
-        if (shader->Shaders[i] == GL_NONE)
-            continue;
-        glDeleteShader(shader->Shaders[i]);
-    }
-
-    glDeleteProgram(shader->Program);
+    vkDestroyShaderModule(shader->Device, shader->VertexShader, nullptr);
+    vkDestroyShaderModule(shader->Device, shader->FragmentShader, nullptr);
 }
 
 void shader_load(Shader* shader, std::filesystem::path path)
 {
-
     assert(std::filesystem::exists(path));
 
-    std::string loadedShaderSource = textFromFile(path);
+    // path is the filename, code needs to add .vert.spv or .frag.spv
+    // std::string shaderPath = "shaders/" + path + ".spv";
 
-    for (int i = 0; i < loadedShaderSource.length(); i++) {
-        const char& c = loadedShaderSource[i];
-        if (c == '#') {
-            ShaderPreprocessorDefinition def = { .start = i };
-            int j;
-            for (j = ++i; loadedShaderSource[j] != ' '; j++) {
-                def.key += loadedShaderSource[j];
-            }
-            for (j++; loadedShaderSource[j] != '\n'; j++) {
-                def.def += loadedShaderSource[j];
-            }
-            def.end = j;
-            i = j; // advance i
-            def.def = trim(def.def);
-            def.key = trim(def.key);
-            shader->PreprocessorDefinitions.push_back(def);
-        }
+    std::string shaderPath = path.string();
+    std::string vertexShaderPath = shaderPath + ".vert.spv";
+    std::string fragmentShaderPath = shaderPath + ".frag.spv";
+    assert(std::filesystem::exists(vertexShaderPath));
+    assert(std::filesystem::exists(fragmentShaderPath));
+
+    std::string vertexLoadedShaderCode = textFromFile(vertexShaderPath);
+    VkShaderModuleCreateInfo createInfo = {};
+    createInfo.sType = VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO;
+    createInfo.codeSize = vertexLoadedShaderCode.size();
+    createInfo.pCode
+        = reinterpret_cast<const uint32_t*>(vertexLoadedShaderCode.data());
+
+    if (vkCreateShaderModule(
+            shader->Device, &createInfo, nullptr, &shader->VertexShader)
+        != VK_SUCCESS) {
+        yolo::error("failed to create shader module");
     }
 
-    // now we have all of the key/value definitions
-    // we can extract the relavent ones, for example
-    // "type"
-    std::vector<const ShaderPreprocessorDefinition*> types = getKeys(shader, "type");
-    int i = 0;
-    for (const ShaderPreprocessorDefinition* type : types) {
-        GLuint glType = GL_NONE;
-        if (type->def == "vertex")
-            glType = GL_VERTEX_SHADER;
-        if (type->def == "geometry")
-            glType = GL_GEOMETRY_SHADER;
-        if (type->def == "fragment")
-            glType = GL_FRAGMENT_SHADER;
+    shader->ShaderStages[0].sType
+        = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
+    shader->ShaderStages[0].stage = VK_SHADER_STAGE_VERTEX_BIT;
+    shader->ShaderStages[0].module = shader->VertexShader;
+    shader->ShaderStages[0].pName = "main";
 
-        assert(glType != GL_NONE);
+    std::string fragmentLoadedShaderCode = textFromFile(fragmentShaderPath);
+    VkShaderModuleCreateInfo createInfo2 = {};
+    createInfo2.sType = VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO;
+    createInfo2.codeSize = fragmentLoadedShaderCode.size();
+    createInfo2.pCode
+        = reinterpret_cast<const uint32_t*>(fragmentLoadedShaderCode.data());
 
-        shader->Shaders[shader2Index[glType]] = glCreateShader(glType);
-
-        const char* source = loadedShaderSource.c_str() + type->end;
-        int end = types.size() - 1 == i ? types.size() : types[i + 1]->start;
-        int length = end - type->end;
-
-        glShaderSource(shader->Shaders[shader2Index[glType]], 1, &source, &length);
-        i++;
-    }
-}
-
-void shader_link(Shader* shader)
-{
-    shader->Program = glCreateProgram();
-
-    for (int i = 0; i < 3; i++) {
-        if (shader->Shaders[i] == GL_NONE)
-            continue;
-
-        glCompileShader(shader->Shaders[i]);
-        if (!checkShader(shader->Shaders[i]))
-            continue;
-
-        glAttachShader(shader->Program, shader->Shaders[i]);
+    if (vkCreateShaderModule(
+            shader->Device, &createInfo2, nullptr, &shader->FragmentShader)
+        != VK_SUCCESS) {
+        yolo::error("failed to create shader module");
     }
 
-    glLinkProgram(shader->Program);
+    shader->ShaderStages[1].sType
+        = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
+    shader->ShaderStages[1].stage = VK_SHADER_STAGE_FRAGMENT_BIT;
+    shader->ShaderStages[1].module = shader->FragmentShader;
+    shader->ShaderStages[1].pName = "main";
 }
 
-GLuint shader_get_program(Shader* shader)
-{
-    return shader->Program;
-}
-
-void shader_add_attribute(Shader* shader, const std::string& attribute)
-{
-    shader->Attributes[attribute] = glGetAttribLocation(shader->Program, attribute.c_str());
-}
-
-void shader_add_uniform(Shader* shader, const std::string& uniform)
-{
-    shader->Uniforms[uniform] = glGetUniformLocation(shader->Program, uniform.c_str());
-}
-
-GLuint shader_get_attribute(Shader* shader, const std::string& attribute)
-{
-    return shader->Attributes[attribute];
-}
-
-GLuint shader_get_uniform(Shader* shader, const std::string& uniform)
-{
-    return shader->Uniforms[uniform];
-}
+// void shader_add_attribute(Shader* shader, const std::string& attribute)
+// {
+//     // shader->Attributes[attribute] = glGetAttribLocation(shader->Program,
+//     attribute.c_str());
+// }
+//
+// void shader_add_uniform(Shader* shader, const std::string& uniform)
+// {
+//     shader->Uniforms[uniform] = glGetUniformLocation(shader->Program,
+//     uniform.c_str());
+// }
+//
+// GLuint shader_get_attribute(Shader* shader, const std::string& attribute)
+// {
+//     return shader->Attributes[attribute];
+// }
+//
+// GLuint shader_get_uniform(Shader* shader, const std::string& uniform)
+// {
+//     return shader->Uniforms[uniform];
+// }
 
 void shader_use(Shader* shader)
 {
-    glUseProgram(shader->Program);
+    // glUseProgram(shader->Program);
 }
 
 void shader_unuse(Shader* shader)
 {
-    glUseProgram(0);
+    // glUseProgram(0);
 }
-
 }

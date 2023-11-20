@@ -6,9 +6,10 @@
 // #include "gui/layout.hpp"
 // #include "renderer/renderer.hpp"
 // #include "scene/scene.hpp"
-#include "window.hpp"
-#include "graphics/pipeline.hpp"
 #include "graphics/device.hpp"
+#include "graphics/pipeline.hpp"
+#include "graphics/renderpass.hpp"
+#include "window.hpp"
 
 // #include "preview_renderer/debug.hpp"
 // #include "preview_renderer/renderer.hpp"
@@ -37,16 +38,15 @@ InfernoTimer* inferno_timer_create()
     return timer;
 }
 
-void inferno_timer_cleanup(InfernoTimer* timer)
-{
-    delete timer;
-}
+void inferno_timer_cleanup(InfernoTimer* timer) { delete timer; }
 
 void inferno_timer_rolling_average(InfernoTimer* timer, int count)
 {
     if (timer->Times.size() > count)
         timer->Times.erase(timer->Times.begin());
-    timer->RollingAverage = std::accumulate(timer->Times.begin(), timer->Times.end(), std::chrono::duration<double>(0.0)) / count;
+    timer->RollingAverage = std::accumulate(timer->Times.begin(), timer->Times.end(),
+                                std::chrono::duration<double>(0.0))
+        / count;
 }
 
 void inferno_timer_start(InfernoTimer* timer)
@@ -94,7 +94,7 @@ InfernoApp* inferno_create()
     // Create window
     graphics::window_create("Inferno v" INFERNO_VERSION, 1920, 1080);
     graphics::GraphicsDevice* device = graphics::device_create();
-    graphics::Pipeline* p = graphics::pipeline_create(device);
+    graphics::RenderPass* p = graphics::renderpass_create(device);
 
     // // setup the scene
     // scene::Material* basicMaterial = new scene::Material("basic");
@@ -150,12 +150,12 @@ void inferno_preset_gui(InfernoApp* app)
     // ImGuiID dockspace_id = ImGui::GetID("main");
     //
     // ImGui::DockBuilderRemoveNode(dockspace_id); // Clear out existing layout
-    // ImGui::DockBuilderAddNode(dockspace_id, ImGuiDockNodeFlags_DockSpace); // Add empty node
-    // ImGui::DockBuilderSetNodeSize(dockspace_id, { 1000, 1000 });
+    // ImGui::DockBuilderAddNode(dockspace_id, ImGuiDockNodeFlags_DockSpace); // Add empty
+    // node ImGui::DockBuilderSetNodeSize(dockspace_id, { 1000, 1000 });
     //
     // ImGuiID dock_main_id = dockspace_id;
-    // ImGuiID dock_left = ImGui::DockBuilderSplitNode(dock_main_id, ImGuiDir_Left, 0.5f, NULL, &dock_main_id);
-    // ImGui::DockBuilderDockWindow("Preview", dock_left);
+    // ImGuiID dock_left = ImGui::DockBuilderSplitNode(dock_main_id, ImGuiDir_Left, 0.5f,
+    // NULL, &dock_main_id); ImGui::DockBuilderDockWindow("Preview", dock_left);
     // ImGui::DockBuilderDockWindow("Render", dock_main_id);
     // ImGui::DockBuilderFinish(dockspace_id);
     //
@@ -171,13 +171,16 @@ void inferno_move_input(InfernoApp* app, std::chrono::duration<double> deltaTime
     // pan only get on hold
     static glm::dvec2 lastMousePos;
     static int firstClick = 0;
-    if (glfwGetMouseButton(graphics::window_get_glfw_window(), GLFW_MOUSE_BUTTON_1) == GLFW_PRESS) {
+    if (glfwGetMouseButton(graphics::window_get_glfw_window(), GLFW_MOUSE_BUTTON_1)
+        == GLFW_PRESS) {
         firstClick++;
         if (firstClick == 1) {
-            glfwGetCursorPos(graphics::window_get_glfw_window(), &lastMousePos.x, &lastMousePos.y);
+            glfwGetCursorPos(
+                graphics::window_get_glfw_window(), &lastMousePos.x, &lastMousePos.y);
         }
         glm::dvec2 tempMousePos = { 0.0f, 0.0f };
-        glfwGetCursorPos(graphics::window_get_glfw_window(), &tempMousePos.x, &tempMousePos.y);
+        glfwGetCursorPos(
+            graphics::window_get_glfw_window(), &tempMousePos.x, &tempMousePos.y);
         app->Input->MouseDelta = lastMousePos - tempMousePos;
         lastMousePos = tempMousePos;
     } else {
@@ -211,7 +214,8 @@ bool inferno_pre(InfernoApp* app)
 {
     app->FrameCount++;
     if (app->FrameCount % 100 == 0) {
-        yolo::info("Average FPS: {}", 1.0 / inferno_timer_get_time(app->MainTimer).count());
+        yolo::info(
+            "Average FPS: {}", 1.0 / inferno_timer_get_time(app->MainTimer).count());
         inferno_timer_print(app->MainTimer, false);
     }
 
@@ -229,9 +233,7 @@ bool inferno_pre(InfernoApp* app)
     return true;
 }
 
-void inferno_end(InfernoApp* app)
-{
-}
+void inferno_end(InfernoApp* app) { }
 
 int inferno_run(InfernoApp* app)
 {
@@ -241,7 +243,8 @@ int inferno_run(InfernoApp* app)
         //         break;
         //
         //     if (glm::length(app->Input->MouseDelta) > 0.0f)
-        //         graphics::camera_mouse_move(app->Scene->Camera, app->Input->MouseDelta);
+        //         graphics::camera_mouse_move(app->Scene->Camera,
+        //         app->Input->MouseDelta);
         //     if (app->Input->MovementDelta != 0b00000000)
         //         graphics::camera_move(app->Scene->Camera, app->Input->MovementDelta);
         //
@@ -289,7 +292,8 @@ int inferno_run(InfernoApp* app)
         //         ImGui::End();
         //     }
         //
-        //     if (showPreview && ImGui::Begin("Preview", nullptr, ImGuiWindowFlags_NoScrollbar)) {
+        //     if (showPreview && ImGui::Begin("Preview", nullptr,
+        //     ImGuiWindowFlags_NoScrollbar)) {
         //         if (ImGui::IsWindowHovered()) {
         //             inferno_move_input(app, inferno_timer_get_time(app->MainTimer));
         //         } else {
@@ -298,12 +302,14 @@ int inferno_run(InfernoApp* app)
         //
         //         graphics::camera_raster_set_viewport(scene::scene_get_camera(app->Scene),
         //             { ImGui::GetWindowSize().x, ImGui::GetWindowSize().y });
-        //         graphics::preview_set_viewport(app->PreviewRenderer, app->Scene->Camera);
+        //         graphics::preview_set_viewport(app->PreviewRenderer,
+        //         app->Scene->Camera);
         //
         //         graphics::preview_draw(app->PreviewRenderer, app->Scene);
         //         graphics::debug_draw_to_target(app->Scene);
         //
-        //         ImTextureID texture = (ImTextureID)graphics::preview_get_rendered_texture(app->PreviewRenderer);
+        //         ImTextureID texture =
+        //         (ImTextureID)graphics::preview_get_rendered_texture(app->PreviewRenderer);
         //         ImGui::Image(
         //             texture,
         //             { ImGui::GetWindowSize().x, ImGui::GetWindowSize().y },
@@ -315,7 +321,8 @@ int inferno_run(InfernoApp* app)
         //     if (ImGui::Begin("Render")) {
         //         graphics::rayr_draw(app->RayRenderer);
         //
-        //         ImTextureID texture = (ImTextureID)graphics::rayr_get_rendered_texture(app->RayRenderer);
+        //         ImTextureID texture =
+        //         (ImTextureID)graphics::rayr_get_rendered_texture(app->RayRenderer);
         //         ImGui::Image(
         //             texture,
         //             { ImGui::GetWindowSize().x, ImGui::GetWindowSize().y },

@@ -10,33 +10,23 @@
 
 namespace inferno::graphics {
 
-typedef struct ShaderPreprocessorDefinition {
-    int start, end;
-    std::string key;
-    std::string def;
-} shaderpreprocessordefinition;
-
+// TODO: Make general
 typedef struct Shader {
-    GLuint Shaders[3];
-    GLuint Program;
-    std::unordered_map<std::string, GLuint> Attributes;
-    std::unordered_map<std::string, GLuint> Uniforms;
-    std::vector<ShaderPreprocessorDefinition> PreprocessorDefinitions;
+    VkDevice Device;
+    VkShaderModule VertexShader;
+    VkShaderModule FragmentShader;
+    VkPipelineShaderStageCreateInfo ShaderStages[2];
+    VkPipelineVertexInputStateCreateInfo VertexInputInfo;
 } Shader;
 
-Shader* shader_create();
+Shader* shader_create(VkDevice device);
 void shader_cleanup(Shader* shader);
 
 void shader_load(Shader* shader, std::filesystem::path path);
-void shader_link(Shader* shader);
-
-GLuint shader_get_program(Shader* shader);
 
 // TODO: Implement shader_reload
-void shader_add_attribute(Shader* shader, const std::string& attribute);
-void shader_add_uniform(Shader* shader, const std::string& uniform);
-GLuint shader_get_attribute(Shader* shader, const std::string& attribute);
-GLuint shader_get_uniform(Shader* shader, const std::string& uniform);
+// although with vulkan, it's not really necessary
+// as the pipeline is created with the shaders
 
 void shader_use(Shader* shader);
 void shader_unuse(Shader* shader);
