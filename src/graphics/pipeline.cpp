@@ -5,8 +5,9 @@
 #include "renderpass.hpp"
 #include "swapchain.hpp"
 
+#include <cstdint>
+
 #include "yolo/yolo.hpp"
-#include <vulkan/vulkan_core.h>
 
 namespace inferno::graphics {
 
@@ -17,15 +18,15 @@ Pipeline* pipeline_create(GraphicsDevice* device)
     pipeline->Device = device;
     pipeline->Swap = swapchain_create(device, device->SurfaceSize);
 
-    std::vector<VkDynamicState> dynamicStates = {
-        VK_DYNAMIC_STATE_VIEWPORT,
-        VK_DYNAMIC_STATE_SCISSOR,
-    };
-
-    pipeline->DynamicStateCreateInfo.sType
-        = VK_STRUCTURE_TYPE_PIPELINE_DYNAMIC_STATE_CREATE_INFO;
-    pipeline->DynamicStateCreateInfo.dynamicStateCount = dynamicStates.size();
-    pipeline->DynamicStateCreateInfo.pDynamicStates = dynamicStates.data();
+    // std::vector<VkDynamicState> dynamicStates = {
+    //     VK_DYNAMIC_STATE_VIEWPORT,
+    //     VK_DYNAMIC_STATE_SCISSOR,
+    // };
+    //
+    // pipeline->DynamicStateCreateInfo.sType
+    //     = VK_STRUCTURE_TYPE_PIPELINE_DYNAMIC_STATE_CREATE_INFO;
+    // pipeline->DynamicStateCreateInfo.dynamicStateCount = (uint32_t)dynamicStates.size();
+    // pipeline->DynamicStateCreateInfo.pDynamicStates = dynamicStates.data();
 
     pipeline->VertexInputInfo.sType
         = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO;
@@ -43,21 +44,24 @@ Pipeline* pipeline_create(GraphicsDevice* device)
     // NOTE: This is where the viewport and scissor are set
     // In reality, these should be dynamic, so they can be changed
 
-    // VkViewport viewport = {};
-    // viewport.x = 0.f;
-    // viewport.y = 0.f;
-    // viewport.width = (float)pipeline->Swap->Extent.width;
-    // viewport.height = (float)pipeline->Swap->Extent.height;
-    // viewport.minDepth = 0.f
-    // viewport.maxDepth = 1.f;
-    //
-    // VkRect2D scissor = {};
-    // scissor.offset = { 0, 0 };
-    // scissor.extent = pipeline->Swap->Extent;
+    VkViewport viewport = {};
+    viewport.x = 0.f;
+    viewport.y = 0.f;
+    viewport.width = (float)pipeline->Swap->Extent.width;
+    viewport.height = (float)pipeline->Swap->Extent.height;
+    viewport.minDepth = 0.f;
+    viewport.maxDepth = 1.f;
+    yolo::debug("Viewport size: {}x{}", viewport.width, viewport.height);
+
+    VkRect2D scissor = {};
+    scissor.offset = { 0, 0 };
+    scissor.extent = pipeline->Swap->Extent;
 
     pipeline->ViewportState.sType = VK_STRUCTURE_TYPE_PIPELINE_VIEWPORT_STATE_CREATE_INFO;
     pipeline->ViewportState.viewportCount = 1;
+    pipeline->ViewportState.pViewports = &viewport;
     pipeline->ViewportState.scissorCount = 1;
+    pipeline->ViewportState.pScissors = &scissor;
 
     pipeline->Rasterizer.sType
         = VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_STATE_CREATE_INFO;
@@ -143,7 +147,7 @@ void pipeline_configure_to_renderpass(
     pipelineInfo.pMultisampleState = &pipeline->Multisampling;
     pipelineInfo.pDepthStencilState = nullptr; // Optional
     pipelineInfo.pColorBlendState = &pipeline->ColorBlending;
-    pipelineInfo.pDynamicState = &pipeline->DynamicStateCreateInfo;
+    // pipelineInfo.pDynamicState = &pipeline->DynamicStateCreateInfo;
 
     pipelineInfo.layout = pipeline->Layout;
     pipelineInfo.renderPass = renderpass->RenderPass;
@@ -157,6 +161,8 @@ void pipeline_configure_to_renderpass(
         != VK_SUCCESS) {
         yolo::error("failed to create graphics pipeline!");
     }
+
+    yolo::info("Created graphics pipeline");
 }
 
 } // namespace inferno::graphics

@@ -49,7 +49,7 @@ typedef struct InfernoInput {
 typedef struct InfernoApp {
     InfernoInput* Input;
     scene::Scene* Scene;
-    graphics::PreviewRenderer* PreviewRenderer;
+    // graphics::PreviewRenderer* PreviewRenderer;
     graphics::RayRenderer* RayRenderer;
 
     InfernoTimer* MainTimer;

@@ -10,16 +10,18 @@
 
 namespace inferno::graphics {
 
+struct GraphicsDevice;
+
 // TODO: Make general
 typedef struct Shader {
-    VkDevice Device;
+    GraphicsDevice* Device;
     VkShaderModule VertexShader;
     VkShaderModule FragmentShader;
     VkPipelineShaderStageCreateInfo ShaderStages[2];
     VkPipelineVertexInputStateCreateInfo VertexInputInfo;
 } Shader;
 
-Shader* shader_create(VkDevice device);
+Shader* shader_create(GraphicsDevice* device);
 void shader_cleanup(Shader* shader);
 
 void shader_load(Shader* shader, std::filesystem::path path);

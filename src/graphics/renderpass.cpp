@@ -14,6 +14,7 @@ RenderPass* renderpass_create(GraphicsDevice* device)
 {
     RenderPass* renderpass = new RenderPass;
     renderpass->Device = device;
+    // TODO: this can be done at the end to reduce the complexity of the pipeline creation
     renderpass->RenderPipeline = pipeline_create(device);
 
     VkAttachmentDescription colorAttachment = {};
@@ -49,7 +50,7 @@ RenderPass* renderpass_create(GraphicsDevice* device)
         return nullptr;
     }
 
-    Shader* shader = shader_create(device->VulkanDevice);
+    Shader* shader = shader_create(device);
     shader_load(shader, "res/shaders/vulkan_test");
 
     pipeline_configure_to_renderpass(renderpass->RenderPipeline, shader, renderpass);

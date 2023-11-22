@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.13)
 project(inferno)
 
-file(GLOB SRC "src/*.cpp" "src/graphics/*.cpp")
+file(GLOB SRC "src/*.cpp" "src/graphics/*.cpp" "src/preview_renderer/*.cpp")
 
 add_executable(inferno ${SRC})
 target_include_directories(inferno PRIVATE "libhart/thirdparty")
@@ -48,7 +48,6 @@ foreach(SHADER ${SHADERS})
     list(APPEND SPIRV_BINARY_FILES ${SPIRV})
 endforeach(SHADER)
 
-# ..then link them
 add_custom_target(
     shaders
     DEPENDS ${SPIRV_BINARY_FILES}

@@ -1,5 +1,7 @@
 #include "shader.hpp"
 
+#include "graphics/device.hpp"
+
 #include <fstream>
 #include <iostream>
 
@@ -45,7 +47,7 @@ bool checkShader(GLuint uid)
     return true;
 }
 
-Shader* shader_create(VkDevice device)
+Shader* shader_create(GraphicsDevice* device)
 {
     Shader* shader = new Shader;
     shader->Device = device;
@@ -55,14 +57,12 @@ Shader* shader_create(VkDevice device)
 
 void shader_cleanup(Shader* shader)
 {
-    vkDestroyShaderModule(shader->Device, shader->VertexShader, nullptr);
-    vkDestroyShaderModule(shader->Device, shader->FragmentShader, nullptr);
+    vkDestroyShaderModule(shader->Device->VulkanDevice, shader->VertexShader, nullptr);
+    vkDestroyShaderModule(shader->Device->VulkanDevice, shader->FragmentShader, nullptr);
 }
 
 void shader_load(Shader* shader, std::filesystem::path path)
 {
-    assert(std::filesystem::exists(path));
-
     // path is the filename, code needs to add .vert.spv or .frag.spv
     // std::string shaderPath = "shaders/" + path + ".spv";
 
@@ -80,7 +80,7 @@ void shader_load(Shader* shader, std::filesystem::path path)
         = reinterpret_cast<const uint32_t*>(vertexLoadedShaderCode.data());
 
     if (vkCreateShaderModule(
-            shader->Device, &createInfo, nullptr, &shader->VertexShader)
+            shader->Device->VulkanDevice, &createInfo, nullptr, &shader->VertexShader)
         != VK_SUCCESS) {
         yolo::error("failed to create shader module");
     }
@@ -99,7 +99,7 @@ void shader_load(Shader* shader, std::filesystem::path path)
         = reinterpret_cast<const uint32_t*>(fragmentLoadedShaderCode.data());
 
     if (vkCreateShaderModule(
-            shader->Device, &createInfo2, nullptr, &shader->FragmentShader)
+            shader->Device->VulkanDevice, &createInfo2, nullptr, &shader->FragmentShader)
         != VK_SUCCESS) {
         yolo::error("failed to create shader module");
     }

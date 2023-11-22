@@ -71,9 +71,12 @@ VkExtent2D device_choose_swap_extent(
     const VkSurfaceCapabilitiesKHR& capabilities, int width, int height)
 {
     if (capabilities.currentExtent.width != UINT32_MAX) {
+        yolo::info("Surface size: {}x{}", capabilities.currentExtent.width,
+            capabilities.currentExtent.height);
         return capabilities.currentExtent;
     } else {
         VkExtent2D actualExtent = { (uint32_t)width, (uint32_t)height };
+        yolo::info("Surface size: {}x{}", width, height);
 
         actualExtent.width = std::max(capabilities.minImageExtent.width,
             std::min(capabilities.maxImageExtent.width, actualExtent.width));
@@ -96,8 +99,10 @@ SwapChain* swapchain_create(GraphicsDevice* device, glm::ivec2 surface_size)
         = device_choose_swap_surface_format(swapChainSupport.Formats);
     VkPresentModeKHR presentMode
         = device_choose_swap_present_mode(swapChainSupport.PresentModes);
+    yolo::debug("Surface format: {}", surfaceFormat.format);
     VkExtent2D extent = device_choose_swap_extent(
         swapChainSupport.Capabilities, surface_size.x, surface_size.y);
+    swapchain->Extent = extent;
     uint32_t imageCount = swapChainSupport.Capabilities.minImageCount + 1;
 
     if (swapChainSupport.Capabilities.maxImageCount > 0
@@ -152,7 +157,6 @@ SwapChain* swapchain_create(GraphicsDevice* device, glm::ivec2 surface_size)
         device->VulkanDevice, swapchain->Handle, &imageCount, swapchain->Images.data());
 
     swapchain->ImageFormat = surfaceFormat.format;
-    swapchain->Extent = extent;
     swapchain->Device = device;
 
     swapchain_image_view_create(swapchain);
