@@ -150,7 +150,7 @@ void pipeline_configure_to_renderpass(
     // pipelineInfo.pDynamicState = &pipeline->DynamicStateCreateInfo;
 
     pipelineInfo.layout = pipeline->Layout;
-    pipelineInfo.renderPass = renderpass->RenderPass;
+    pipelineInfo.renderPass = renderpass->VulkanRenderPass;
     pipelineInfo.subpass = 0;
 
     pipelineInfo.basePipelineHandle = VK_NULL_HANDLE; // Optional
@@ -163,6 +163,8 @@ void pipeline_configure_to_renderpass(
     }
 
     yolo::info("Created graphics pipeline");
+
+    swapchain_framebuffers_create(pipeline->Swap, renderpass);
 }
 
 } // namespace inferno::graphics

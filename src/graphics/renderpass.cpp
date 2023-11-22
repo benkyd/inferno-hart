@@ -44,7 +44,7 @@ RenderPass* renderpass_create(GraphicsDevice* device)
     renderPassInfo.pSubpasses = &subpass;
 
     if (vkCreateRenderPass(
-            device->VulkanDevice, &renderPassInfo, nullptr, &renderpass->RenderPass)
+            device->VulkanDevice, &renderPassInfo, nullptr, &renderpass->VulkanRenderPass)
         != VK_SUCCESS) {
         yolo::error("failed to create render pass!");
         return nullptr;
@@ -60,8 +60,74 @@ RenderPass* renderpass_create(GraphicsDevice* device)
 void rendepass_cleanup(RenderPass* renderpass)
 {
     pipeline_cleanup(renderpass->RenderPipeline);
-    vkDestroyRenderPass(renderpass->Device->VulkanDevice, renderpass->RenderPass, nullptr);
+    vkDestroyRenderPass(
+        renderpass->Device->VulkanDevice, renderpass->VulkanRenderPass, nullptr);
+    vkDestroyFramebuffer(
+        renderpass->Device->VulkanDevice, renderpass->Framebuffer, nullptr);
+    vkDestroyCommandPool(
+        renderpass->Device->VulkanDevice, renderpass->CommandPool, nullptr);
     delete renderpass;
+}
+
+void renderpass_configure_command_buffer(RenderPass* renderpass)
+{
+    QueueFamilyIndices i = device_get_queue_families(
+        renderpass->Device, renderpass->Device->VulkanPhysicalDevice);
+    VkCommandPoolCreateInfo poolInfo {};
+    poolInfo.sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO;
+    poolInfo.queueFamilyIndex = i.graphicsFamily.value();
+    poolInfo.flags = 0; // Optional
+
+    if (vkCreateCommandPool(renderpass->Device->VulkanDevice, &poolInfo, nullptr,
+            &renderpass->CommandPool)
+        != VK_SUCCESS) {
+        yolo::error("failed to create command pool!");
+    }
+
+    VkCommandBufferAllocateInfo allocInfo {};
+    allocInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
+    allocInfo.commandPool = renderpass->CommandPool;
+    allocInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
+    allocInfo.commandBufferCount = 1;
+
+    if (vkAllocateCommandBuffers(
+            renderpass->Device->VulkanDevice, &allocInfo, &renderpass->CommandBuffer)
+        != VK_SUCCESS) {
+        yolo::error("failed to allocate command buffers!");
+    }
+
+    yolo::debug("Command buffer created");
+}
+
+
+void renderpass_command_buffer_begin(RenderPass* renderpass)
+{
+    VkCommandBufferBeginInfo beginInfo {};
+    beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
+    beginInfo.flags = 0; // Optional
+    beginInfo.pInheritanceInfo = nullptr; // Optional
+
+    if (vkBeginCommandBuffer(renderpass->CommandBuffer, &beginInfo) != VK_SUCCESS) {
+        yolo::error("failed to begin recording command buffer!");
+    }
+}
+
+void renderpass_command_buffer_end(RenderPass* renderpass) {
+    if (vkEndCommandBuffer(renderpass->CommandBuffer) != VK_SUCCESS) {
+        yolo::error("failed to record command buffer!");
+    }
+}
+
+
+void renderpass_begin(RenderPass* renderpass)
+{
+    renderpass_command_buffer_begin(renderpass);
+
+}
+
+void renderpass_end(RenderPass* renderpass)
+{
+    renderpass_command_buffer_end(renderpass);
 }
 
 }

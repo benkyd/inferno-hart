@@ -1,6 +1,7 @@
 #include "swapchain.hpp"
 
 #include "device.hpp"
+#include "renderpass.hpp"
 
 #include "yolo/yolo.hpp"
 
@@ -170,6 +171,9 @@ void swapchain_cleanup(SwapChain* swapchain)
     for (auto imageView : swapchain->ImageViews) {
         vkDestroyImageView(swapchain->Device->VulkanDevice, imageView, nullptr);
     }
+    for (auto framebuffer : swapchain->SwapFramebuffers) {
+        vkDestroyFramebuffer(swapchain->Device->VulkanDevice, framebuffer, nullptr);
+    }
     delete swapchain;
 }
 
@@ -201,6 +205,34 @@ void swapchain_image_view_create(SwapChain* swapchain)
             yolo::error("failed to create image views!");
             exit(1);
         }
+    }
+}
+
+void swapchain_framebuffers_create(SwapChain* swapchain, RenderPass* renderpass)
+{
+    swapchain->SwapFramebuffers.resize(swapchain->ImageViews.size());
+
+    for (size_t i = 0; i < swapchain->ImageViews.size(); i++) {
+        VkImageView attachments[] = { swapchain->ImageViews[i] };
+
+        VkFramebufferCreateInfo framebufferInfo = {};
+        framebufferInfo.sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO;
+        framebufferInfo.renderPass = renderpass->VulkanRenderPass;
+        framebufferInfo.attachmentCount = 1;
+        framebufferInfo.pAttachments = attachments;
+        yolo::info("SwapChain Framebuffer size: {}x{}", swapchain->Extent.width,
+            swapchain->Extent.height);
+        framebufferInfo.width = swapchain->Extent.width;
+        framebufferInfo.height = swapchain->Extent.height;
+        framebufferInfo.layers = 1;
+
+        if (vkCreateFramebuffer(swapchain->Device->VulkanDevice, &framebufferInfo,
+                nullptr, &swapchain->SwapFramebuffers[i])
+            != VK_SUCCESS) {
+            yolo::error("failed to create framebuffer!");
+            exit(1);
+        }
+        yolo::info("SwapChain Framebuffers created");
     }
 }
 
