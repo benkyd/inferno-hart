@@ -9,6 +9,7 @@
 #include "graphics/device.hpp"
 #include "graphics/pipeline.hpp"
 #include "graphics/renderpass.hpp"
+#include "graphics/vkrenderer.hpp"
 #include "window.hpp"
 
 // #include "preview_renderer/debug.hpp"
@@ -96,6 +97,7 @@ InfernoApp* inferno_create()
     app->Device = graphics::device_create();
     app->RenderPass = graphics::renderpass_create(app->Device);
     graphics::renderpass_configure_command_buffer(app->RenderPass);
+    app->Renderer = graphics::renderer_create(app->Device, app->RenderPass->RenderPipeline->Swap);
 
     // // setup the scene
     // scene::Material* basicMaterial = new scene::Material("basic");
@@ -244,13 +246,13 @@ int inferno_run(InfernoApp* app)
         if (!inferno_pre(app))
             break;
 
-        graphics::renderpass_begin(app->RenderPass);
+        graphics::renderer_begin_frame(app->Renderer, app->RenderPass);
         vkCmdBindPipeline(app->RenderPass->CommandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS,
             app->RenderPass->RenderPipeline->GraphicsPipeline);
 
-
         vkCmdDraw(app->RenderPass->CommandBuffer, 3, 1, 0, 0);
-        graphics::renderpass_end(app->RenderPass);
+
+        graphics::renderer_draw_frame(app->Renderer, app->RenderPass);
         i++;
         yolo::debug("{}", i);
         if (i == 10)

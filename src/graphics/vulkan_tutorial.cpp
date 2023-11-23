@@ -960,7 +960,7 @@ private:
     }
 };
 
-int main()
+int notmain()
 {
     HelloTriangleApplication app;
 

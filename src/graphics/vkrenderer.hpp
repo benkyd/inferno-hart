@@ -7,6 +7,7 @@ namespace inferno::graphics {
 struct GraphicsDevice;
 struct Pipeline;
 struct SwapChain;
+struct RenderPass;
 
 typedef struct VulkanRenderer {
     GraphicsDevice* Device;
@@ -20,8 +21,8 @@ typedef struct VulkanRenderer {
 Renderer* renderer_create(GraphicsDevice* device, SwapChain* swapchain);
 void renderer_cleanup(Renderer* renderer);
 
-void renderer_begin_frame(Renderer* renderer);
-void renderer_draw_frame(Renderer* renderer);
+void renderer_begin_frame(Renderer* renderer, RenderPass* renderpass);
+void renderer_draw_frame(Renderer* renderer, RenderPass* renderpass);
 
 }
 

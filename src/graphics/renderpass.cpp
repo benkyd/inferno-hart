@@ -98,7 +98,7 @@ void renderpass_configure_command_buffer(RenderPass* renderpass)
     yolo::debug("Command buffer created");
 }
 
-void renderpass_begin(RenderPass* renderpass)
+void renderpass_begin(RenderPass* renderpass, uint32_t imageIndex)
 {
     VkCommandBufferBeginInfo beginInfo {};
     beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
@@ -113,7 +113,7 @@ void renderpass_begin(RenderPass* renderpass)
     renderPassInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
     renderPassInfo.renderPass = renderpass->VulkanRenderPass;
     renderPassInfo.framebuffer
-        = renderpass->RenderPipeline->Swap->SwapFramebuffers[renderpass->FrameIndex];
+        = renderpass->RenderPipeline->Swap->SwapFramebuffers[imageIndex];
     renderPassInfo.renderArea.offset = { 0, 0 };
     renderPassInfo.renderArea.extent = renderpass->RenderPipeline->Swap->Extent;
 

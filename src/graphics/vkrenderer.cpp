@@ -47,7 +47,7 @@ void renderer_cleanup(VulkanRenderer* renderer)
     vkDestroyFence(renderer->Device->VulkanDevice, renderer->InFlightFence, nullptr);
 }
 
-void renderer_begin_frame(VulkanRenderer* renderer)
+void renderer_begin_frame(VulkanRenderer* renderer, RenderPass* renderpass)
 {
     vkWaitForFences(
         renderer->Device->VulkanDevice, 1, &renderer->InFlightFence, VK_TRUE, UINT64_MAX);
@@ -57,7 +57,14 @@ void renderer_begin_frame(VulkanRenderer* renderer)
     vkAcquireNextImageKHR(renderer->Device->VulkanDevice, renderer->Swap->Handle,
         UINT64_MAX, renderer->ImageAvailableSemaphore, VK_NULL_HANDLE, &imageIndex);
 
-    // renderer->Swap->CurrentImageIndex = imageIndex;
+    vkResetCommandBuffer(renderpass->CommandBuffer, 0);
+
+    renderpass_begin(renderpass, imageIndex);
+}
+
+void renderer_draw_frame(Renderer* renderer, RenderPass* renderpass)
+{
+    renderpass_end(renderpass);
 }
 
 }

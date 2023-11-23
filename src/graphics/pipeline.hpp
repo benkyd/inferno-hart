@@ -11,6 +11,7 @@ struct Shader;
 
 typedef struct Pipeline {
     GraphicsDevice* Device;
+    // TODO: Pipeline should not need to know about the swapchain
     SwapChain* Swap;
 
     VkPipeline GraphicsPipeline;
