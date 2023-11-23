@@ -12,10 +12,10 @@ typedef struct RenderPass {
     Pipeline* RenderPipeline;
 
     VkRenderPass VulkanRenderPass;
-    VkFramebuffer Framebuffer;
 
     VkCommandPool CommandPool;
     VkCommandBuffer CommandBuffer;
+    int FrameIndex;
 } RenderPass;
 
 RenderPass* renderpass_create(GraphicsDevice* device);

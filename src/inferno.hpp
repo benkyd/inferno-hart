@@ -14,6 +14,8 @@ namespace inferno {
 namespace graphics {
     struct Camera;
     struct GraphicsDevice;
+    struct RenderPass;
+    struct VulkanRenderer;
 }
 
 namespace scene {
@@ -51,6 +53,10 @@ typedef struct InfernoApp {
     scene::Scene* Scene;
     // graphics::PreviewRenderer* PreviewRenderer;
     graphics::RayRenderer* RayRenderer;
+
+    graphics::VulkanRenderer* Renderer;
+    graphics::GraphicsDevice* Device;
+    graphics::RenderPass* RenderPass;
 
     InfernoTimer* MainTimer;
     uint64_t FrameCount;

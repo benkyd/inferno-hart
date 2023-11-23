@@ -93,9 +93,9 @@ InfernoApp* inferno_create()
 
     // Create window
     graphics::window_create("Inferno v" INFERNO_VERSION, 1920, 1080);
-    graphics::GraphicsDevice* device = graphics::device_create();
-    graphics::RenderPass* p = graphics::renderpass_create(device);
-    graphics::renderpass_configure_command_buffer(p);
+    app->Device = graphics::device_create();
+    app->RenderPass = graphics::renderpass_create(app->Device);
+    graphics::renderpass_configure_command_buffer(app->RenderPass);
 
     // // setup the scene
     // scene::Material* basicMaterial = new scene::Material("basic");
@@ -238,10 +238,24 @@ void inferno_end(InfernoApp* app) { }
 
 int inferno_run(InfernoApp* app)
 {
+    int i = 0;
     while (true) {
-        //     inferno_timer_start(app->MainTimer);
-        //     if (!inferno_pre(app))
-        //         break;
+        inferno_timer_start(app->MainTimer);
+        if (!inferno_pre(app))
+            break;
+
+        graphics::renderpass_begin(app->RenderPass);
+        vkCmdBindPipeline(app->RenderPass->CommandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS,
+            app->RenderPass->RenderPipeline->GraphicsPipeline);
+
+
+        vkCmdDraw(app->RenderPass->CommandBuffer, 3, 1, 0, 0);
+        graphics::renderpass_end(app->RenderPass);
+        i++;
+        yolo::debug("{}", i);
+        if (i == 10)
+            exit(0);
+
         //
         //     if (glm::length(app->Input->MouseDelta) > 0.0f)
         //         graphics::camera_mouse_move(app->Scene->Camera,
@@ -337,7 +351,7 @@ int inferno_run(InfernoApp* app)
         //
         graphics::window_render();
         inferno_end(app);
-        //     inferno_timer_end(app->MainTimer);
+        inferno_timer_end(app->MainTimer);
     }
     //
     return 1;

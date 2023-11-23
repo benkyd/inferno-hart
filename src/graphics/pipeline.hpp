@@ -1,7 +1,6 @@
 #pragma once
 
 #include "graphics.hpp"
-#include <vulkan/vulkan_core.h>
 
 namespace inferno::graphics {
 

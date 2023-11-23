@@ -7,6 +7,7 @@
 #include "preview_renderer/shader.hpp"
 
 #include "yolo/yolo.hpp"
+#include <vulkan/vulkan_core.h>
 
 namespace inferno::graphics {
 
@@ -62,8 +63,6 @@ void rendepass_cleanup(RenderPass* renderpass)
     pipeline_cleanup(renderpass->RenderPipeline);
     vkDestroyRenderPass(
         renderpass->Device->VulkanDevice, renderpass->VulkanRenderPass, nullptr);
-    vkDestroyFramebuffer(
-        renderpass->Device->VulkanDevice, renderpass->Framebuffer, nullptr);
     vkDestroyCommandPool(
         renderpass->Device->VulkanDevice, renderpass->CommandPool, nullptr);
     delete renderpass;
@@ -99,8 +98,7 @@ void renderpass_configure_command_buffer(RenderPass* renderpass)
     yolo::debug("Command buffer created");
 }
 
-
-void renderpass_command_buffer_begin(RenderPass* renderpass)
+void renderpass_begin(RenderPass* renderpass)
 {
     VkCommandBufferBeginInfo beginInfo {};
     beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
@@ -110,24 +108,29 @@ void renderpass_command_buffer_begin(RenderPass* renderpass)
     if (vkBeginCommandBuffer(renderpass->CommandBuffer, &beginInfo) != VK_SUCCESS) {
         yolo::error("failed to begin recording command buffer!");
     }
-}
 
-void renderpass_command_buffer_end(RenderPass* renderpass) {
-    if (vkEndCommandBuffer(renderpass->CommandBuffer) != VK_SUCCESS) {
-        yolo::error("failed to record command buffer!");
-    }
-}
+    VkRenderPassBeginInfo renderPassInfo {};
+    renderPassInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
+    renderPassInfo.renderPass = renderpass->VulkanRenderPass;
+    renderPassInfo.framebuffer
+        = renderpass->RenderPipeline->Swap->SwapFramebuffers[renderpass->FrameIndex];
+    renderPassInfo.renderArea.offset = { 0, 0 };
+    renderPassInfo.renderArea.extent = renderpass->RenderPipeline->Swap->Extent;
 
+    VkClearValue clearColor = { { { 0.0f, 0.3f, 0.3f, 1.0f } } };
+    renderPassInfo.clearValueCount = 1;
+    renderPassInfo.pClearValues = &clearColor;
 
-void renderpass_begin(RenderPass* renderpass)
-{
-    renderpass_command_buffer_begin(renderpass);
-
+    vkCmdBeginRenderPass(
+        renderpass->CommandBuffer, &renderPassInfo, VK_SUBPASS_CONTENTS_INLINE);
 }
 
 void renderpass_end(RenderPass* renderpass)
 {
-    renderpass_command_buffer_end(renderpass);
+    vkCmdEndRenderPass(renderpass->CommandBuffer);
+    if (vkEndCommandBuffer(renderpass->CommandBuffer) != VK_SUCCESS) {
+        yolo::error("failed to record command buffer!");
+    }
 }
 
 }
