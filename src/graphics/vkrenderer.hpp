@@ -13,6 +13,10 @@ typedef struct VulkanRenderer {
     GraphicsDevice* Device;
     SwapChain* Swap;
 
+    VkCommandPool CommandPool;
+    VkCommandBuffer CommandBuffer;
+    int FrameIndex;
+
     VkSemaphore ImageAvailableSemaphore;
     VkSemaphore RenderFinishedSemaphore;
     VkFence InFlightFence;
