@@ -7,6 +7,7 @@
 // #include "renderer/renderer.hpp"
 // #include "scene/scene.hpp"
 #include "graphics/device.hpp"
+#include "graphics/swapchain.hpp"
 #include "graphics/pipeline.hpp"
 #include "graphics/renderpass.hpp"
 #include "graphics/vkrenderer.hpp"
@@ -96,7 +97,8 @@ InfernoApp* inferno_create()
     graphics::window_create("Inferno v" INFERNO_VERSION, 1920, 1080);
     app->Device = graphics::device_create();
     app->RenderPass = graphics::renderpass_create(app->Device);
-    app->Renderer = graphics::renderer_create(app->Device, app->RenderPass->RenderPipeline->Swap);
+    app->Renderer
+        = graphics::renderer_create(app->Device, app->RenderPass->RenderPipeline->Swap);
     graphics::renderer_configure_command_buffer(app->Renderer);
 
     // // setup the scene
@@ -249,6 +251,20 @@ int inferno_run(InfernoApp* app)
 
         vkCmdBindPipeline(app->Renderer->CommandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS,
             app->RenderPass->RenderPipeline->GraphicsPipeline);
+
+        VkViewport viewport {};
+        viewport.x = 0.0f;
+        viewport.y = 0.0f;
+        viewport.width = static_cast<float>(app->Renderer->Swap->Extent.width);
+        viewport.height = static_cast<float>(app->Renderer->Swap->Extent.height);
+        viewport.minDepth = 0.0f;
+        viewport.maxDepth = 1.0f;
+        vkCmdSetViewport(app->Renderer->CommandBuffer, 0, 1, &viewport);
+
+        VkRect2D scissor {};
+        scissor.offset = { 0, 0 };
+        scissor.extent = app->Renderer->Swap->Extent;
+        vkCmdSetScissor(app->Renderer->CommandBuffer, 0, 1, &scissor);
 
         vkCmdDraw(app->Renderer->CommandBuffer, 3, 1, 0, 0);
 

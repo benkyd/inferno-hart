@@ -18,16 +18,6 @@ Pipeline* pipeline_create(GraphicsDevice* device)
     pipeline->Device = device;
     pipeline->Swap = swapchain_create(device, device->SurfaceSize);
 
-    // std::vector<VkDynamicState> dynamicStates = {
-    //     VK_DYNAMIC_STATE_VIEWPORT,
-    //     VK_DYNAMIC_STATE_SCISSOR,
-    // };
-    //
-    // pipeline->DynamicStateCreateInfo.sType
-    //     = VK_STRUCTURE_TYPE_PIPELINE_DYNAMIC_STATE_CREATE_INFO;
-    // pipeline->DynamicStateCreateInfo.dynamicStateCount = (uint32_t)dynamicStates.size();
-    // pipeline->DynamicStateCreateInfo.pDynamicStates = dynamicStates.data();
-
     pipeline->VertexInputInfo.sType
         = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO;
     pipeline->VertexInputInfo.vertexBindingDescriptionCount = 0;
@@ -44,24 +34,24 @@ Pipeline* pipeline_create(GraphicsDevice* device)
     // NOTE: This is where the viewport and scissor are set
     // In reality, these should be dynamic, so they can be changed
 
-    VkViewport viewport = {};
-    viewport.x = 0.f;
-    viewport.y = 0.f;
-    viewport.width = (float)pipeline->Swap->Extent.width;
-    viewport.height = (float)pipeline->Swap->Extent.height;
-    viewport.minDepth = 0.f;
-    viewport.maxDepth = 1.f;
-    yolo::debug("Viewport size: {}x{}", viewport.width, viewport.height);
-
-    VkRect2D scissor = {};
-    scissor.offset = { 0, 0 };
-    scissor.extent = pipeline->Swap->Extent;
+    // VkViewport viewport = {};
+    // viewport.x = 0.f;
+    // viewport.y = 0.f;
+    // viewport.width = (float)pipeline->Swap->Extent.width;
+    // viewport.height = (float)pipeline->Swap->Extent.height;
+    // viewport.minDepth = 0.f;
+    // viewport.maxDepth = 1.f;
+    // yolo::debug("Viewport size: {}x{}", viewport.width, viewport.height);
+    //
+    // VkRect2D scissor = {};
+    // scissor.offset = { 0, 0 };
+    // scissor.extent = pipeline->Swap->Extent;
 
     pipeline->ViewportState.sType = VK_STRUCTURE_TYPE_PIPELINE_VIEWPORT_STATE_CREATE_INFO;
     pipeline->ViewportState.viewportCount = 1;
-    pipeline->ViewportState.pViewports = &viewport;
+    // pipeline->ViewportState.pViewports = &viewport;
     pipeline->ViewportState.scissorCount = 1;
-    pipeline->ViewportState.pScissors = &scissor;
+    // pipeline->ViewportState.pScissors = &scissor;
 
     pipeline->Rasterizer.sType
         = VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_STATE_CREATE_INFO;
@@ -140,21 +130,24 @@ void pipeline_configure_to_renderpass(
     pipelineInfo.stageCount = 2;
     pipelineInfo.pStages = shader->ShaderStages;
 
+    std::vector<VkDynamicState> dynamicStates
+        = { VK_DYNAMIC_STATE_VIEWPORT, VK_DYNAMIC_STATE_SCISSOR };
+    pipeline->DynamicStates.sType = VK_STRUCTURE_TYPE_PIPELINE_DYNAMIC_STATE_CREATE_INFO;
+    pipeline->DynamicStates.dynamicStateCount
+        = static_cast<uint32_t>(dynamicStates.size());
+    pipeline->DynamicStates.pDynamicStates = dynamicStates.data();
+
     pipelineInfo.pVertexInputState = &pipeline->VertexInputInfo;
     pipelineInfo.pInputAssemblyState = &pipeline->InputAssembly;
     pipelineInfo.pViewportState = &pipeline->ViewportState;
     pipelineInfo.pRasterizationState = &pipeline->Rasterizer;
     pipelineInfo.pMultisampleState = &pipeline->Multisampling;
-    pipelineInfo.pDepthStencilState = nullptr; // Optional
     pipelineInfo.pColorBlendState = &pipeline->ColorBlending;
-    // pipelineInfo.pDynamicState = &pipeline->DynamicStateCreateInfo;
-
+    pipelineInfo.pDynamicState = &pipeline->DynamicStates;
     pipelineInfo.layout = pipeline->Layout;
     pipelineInfo.renderPass = renderpass->VulkanRenderPass;
     pipelineInfo.subpass = 0;
-
     pipelineInfo.basePipelineHandle = VK_NULL_HANDLE; // Optional
-    pipelineInfo.basePipelineIndex = -1; // Optional
 
     if (vkCreateGraphicsPipelines(pipeline->Device->VulkanDevice, VK_NULL_HANDLE, 1,
             &pipelineInfo, nullptr, &pipeline->GraphicsPipeline)

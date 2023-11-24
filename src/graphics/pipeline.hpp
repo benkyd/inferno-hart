@@ -17,7 +17,7 @@ typedef struct Pipeline {
     VkPipeline GraphicsPipeline;
     VkPipelineLayout Layout;
 
-    VkPipelineDynamicStateCreateInfo DynamicStateCreateInfo;
+    VkPipelineDynamicStateCreateInfo DynamicStates;
     VkPipelineVertexInputStateCreateInfo VertexInputInfo;
     VkPipelineInputAssemblyStateCreateInfo InputAssembly;
     VkPipelineViewportStateCreateInfo ViewportState;
