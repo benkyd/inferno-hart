@@ -17,8 +17,6 @@ typedef struct RenderPass {
 RenderPass* renderpass_create(GraphicsDevice* device);
 void renderpass_cleanup(RenderPass* renderpass);
 
-void renderpass_configure_command_buffer(RenderPass* renderpass);
-
 void renderpass_begin(RenderPass* renderpass, uint32_t imageIndex);
 void renderpass_end(RenderPass* renderpass);
 
