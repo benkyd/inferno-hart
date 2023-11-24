@@ -13,18 +13,16 @@ namespace inferno::graphics {
 static VKAPI_ATTR VkBool32 VKAPI_CALL debugCallback(
     VkDebugUtilsMessageSeverityFlagBitsEXT messageSeverity,
     VkDebugUtilsMessageTypeFlagsEXT messageType,
-    const VkDebugUtilsMessengerCallbackDataEXT* pCallbackData,
-    void* pUserData)
+    const VkDebugUtilsMessengerCallbackDataEXT* pCallbackData, void* pUserData)
 {
     yolo::warn("[VULKAN] {}", pCallbackData->pMessage);
 
     return VK_FALSE;
 }
 
-VkResult createDebugUtilsMessengerEXT(
-    VkInstance instance, const VkDebugUtilsMessengerCreateInfoEXT* pCreateInfo,
-    const VkAllocationCallbacks* pAllocator,
-    VkDebugUtilsMessengerEXT* pDebugMessenger)
+VkResult createDebugUtilsMessengerEXT(VkInstance instance,
+    const VkDebugUtilsMessengerCreateInfoEXT* pCreateInfo,
+    const VkAllocationCallbacks* pAllocator, VkDebugUtilsMessengerEXT* pDebugMessenger)
 {
     auto func = (PFN_vkCreateDebugUtilsMessengerEXT)vkGetInstanceProcAddr(
         instance, "vkCreateDebugUtilsMessengerEXT");
@@ -36,8 +34,7 @@ VkResult createDebugUtilsMessengerEXT(
 }
 
 void destroyDebugUtilsMessengerEXT(VkInstance instance,
-    VkDebugUtilsMessengerEXT debugMessenger,
-    const VkAllocationCallbacks* pAllocator)
+    VkDebugUtilsMessengerEXT debugMessenger, const VkAllocationCallbacks* pAllocator)
 {
     auto func = (PFN_vkDestroyDebugUtilsMessengerEXT)vkGetInstanceProcAddr(
         instance, "vkDestroyDebugUtilsMessengerEXT");
@@ -46,13 +43,16 @@ void destroyDebugUtilsMessengerEXT(VkInstance instance,
     }
 }
 
-void populateDebugMessengerCreateInfo(
-    VkDebugUtilsMessengerCreateInfoEXT& createInfo)
+void populateDebugMessengerCreateInfo(VkDebugUtilsMessengerCreateInfoEXT& createInfo)
 {
     createInfo = {};
     createInfo.sType = VK_STRUCTURE_TYPE_DEBUG_UTILS_MESSENGER_CREATE_INFO_EXT;
-    createInfo.messageSeverity = VK_DEBUG_UTILS_MESSAGE_SEVERITY_VERBOSE_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT;
-    createInfo.messageType = VK_DEBUG_UTILS_MESSAGE_TYPE_GENERAL_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_TYPE_VALIDATION_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_TYPE_PERFORMANCE_BIT_EXT;
+    createInfo.messageSeverity = VK_DEBUG_UTILS_MESSAGE_SEVERITY_VERBOSE_BIT_EXT
+        | VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT
+        | VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT;
+    createInfo.messageType = VK_DEBUG_UTILS_MESSAGE_TYPE_GENERAL_BIT_EXT
+        | VK_DEBUG_UTILS_MESSAGE_TYPE_VALIDATION_BIT_EXT
+        | VK_DEBUG_UTILS_MESSAGE_TYPE_PERFORMANCE_BIT_EXT;
     createInfo.pfnUserCallback = debugCallback;
 }
 
@@ -88,10 +88,11 @@ std::vector<const char*> getRequiredExtensions()
     const char** glfwExtensions;
     glfwExtensions = glfwGetRequiredInstanceExtensions(&glfwExtensionCount);
 
-    std::vector<const char*> extensions(glfwExtensions,
-        glfwExtensions + glfwExtensionCount);
+    std::vector<const char*> extensions(
+        glfwExtensions, glfwExtensions + glfwExtensionCount);
 
     if constexpr (VALIDATION_LAYERS_ENABLED) {
+        yolo::info("Validation layers enabled");
         extensions.push_back(VK_EXT_DEBUG_UTILS_EXTENSION_NAME);
     }
 
@@ -111,7 +112,8 @@ QueueFamilyIndices device_get_queue_families(GraphicsDevice* g, VkPhysicalDevice
     vkGetPhysicalDeviceQueueFamilyProperties(device, &queueFamilyCount, nullptr);
 
     std::vector<VkQueueFamilyProperties> queueFamilies(queueFamilyCount);
-    vkGetPhysicalDeviceQueueFamilyProperties(device, &queueFamilyCount, queueFamilies.data());
+    vkGetPhysicalDeviceQueueFamilyProperties(
+        device, &queueFamilyCount, queueFamilies.data());
 
     uint32_t queueFamIndex = 0;
 
@@ -121,7 +123,8 @@ QueueFamilyIndices device_get_queue_families(GraphicsDevice* g, VkPhysicalDevice
         }
 
         VkBool32 presentSupport = false;
-        vkGetPhysicalDeviceSurfaceSupportKHR(device, queueFamIndex, g->VulkanSurface, &presentSupport);
+        vkGetPhysicalDeviceSurfaceSupportKHR(
+            device, queueFamIndex, g->VulkanSurface, &presentSupport);
 
         if (presentSupport) {
             indices.presentFamily = queueFamIndex;
@@ -137,13 +140,15 @@ QueueFamilyIndices device_get_queue_families(GraphicsDevice* g, VkPhysicalDevice
     return indices;
 }
 
-bool device_evaluate_extensions(VkPhysicalDevice device, std::vector<const char*> extensions)
+bool device_evaluate_extensions(
+    VkPhysicalDevice device, std::vector<const char*> extensions)
 {
     uint32_t extensionCount;
     vkEnumerateDeviceExtensionProperties(device, nullptr, &extensionCount, nullptr);
 
     std::vector<VkExtensionProperties> availableExtensions(extensionCount);
-    vkEnumerateDeviceExtensionProperties(device, nullptr, &extensionCount, availableExtensions.data());
+    vkEnumerateDeviceExtensionProperties(
+        device, nullptr, &extensionCount, availableExtensions.data());
 
     std::set<std::string> requiredExtensions(extensions.begin(), extensions.end());
 
@@ -191,7 +196,6 @@ bool device_evaluate(GraphicsDevice* g, VkPhysicalDevice device)
     return score;
 }
 
-
 GraphicsDevice* device_create()
 {
     GraphicsDevice* device = new GraphicsDevice();
@@ -210,7 +214,8 @@ void device_cleanup(GraphicsDevice* device)
     vkDestroyDevice(device->VulkanDevice, nullptr);
 
     if constexpr (VALIDATION_LAYERS_ENABLED) {
-        destroyDebugUtilsMessengerEXT(device->VulkanInstance, device->VulkanDebugMessenger, nullptr);
+        destroyDebugUtilsMessengerEXT(
+            device->VulkanInstance, device->VulkanDebugMessenger, nullptr);
     }
 
     vkDestroySurfaceKHR(device->VulkanInstance, device->VulkanSurface, nullptr);
@@ -220,8 +225,7 @@ void device_cleanup(GraphicsDevice* device)
 void device_create_vulkan_instance(GraphicsDevice* device)
 {
     if (VALIDATION_LAYERS_ENABLED && !checkValidationLayerSupport()) {
-        yolo::error(
-            "validation layers requested, but not available!");
+        yolo::error("validation layers requested, but not available!");
     }
 
     VkApplicationInfo appInfo {};
@@ -270,8 +274,8 @@ void device_vulkan_debugger(GraphicsDevice* device)
     VkDebugUtilsMessengerCreateInfoEXT createInfo;
     populateDebugMessengerCreateInfo(createInfo);
 
-    if (createDebugUtilsMessengerEXT(device->VulkanInstance, &createInfo, nullptr,
-            &device->VulkanDebugMessenger)
+    if (createDebugUtilsMessengerEXT(
+            device->VulkanInstance, &createInfo, nullptr, &device->VulkanDebugMessenger)
         != VK_SUCCESS) {
         yolo::error("failed to set up debug messenger!");
         exit(1);
@@ -300,7 +304,8 @@ void device_create_vulkan_physical_device(GraphicsDevice* device)
         candidates.insert(std::make_pair(score, device_candidate));
     }
 
-    // as candidates is a sorted list, the last value will always be the biggest score (first element)
+    // as candidates is a sorted list, the last value will always be the biggest score
+    // (first element)
     if (candidates.rbegin()->first > 0) {
         VkPhysicalDeviceProperties deviceProperties;
         vkGetPhysicalDeviceProperties(candidates.rbegin()->second, &deviceProperties);
@@ -316,10 +321,12 @@ void device_create_vulkan_physical_device(GraphicsDevice* device)
 
 void device_create_vulkan_logical_device(GraphicsDevice* device)
 {
-    QueueFamilyIndices indices = device_get_queue_families(device, device->VulkanPhysicalDevice);
+    QueueFamilyIndices indices
+        = device_get_queue_families(device, device->VulkanPhysicalDevice);
 
     std::vector<VkDeviceQueueCreateInfo> queueCreateInfos;
-    std::set<uint32_t> uniqueQueueFamilies = { indices.graphicsFamily.value(), indices.presentFamily.value() };
+    std::set<uint32_t> uniqueQueueFamilies
+        = { indices.graphicsFamily.value(), indices.presentFamily.value() };
 
     float queuePriority = 1.0f;
     for (uint32_t queueFamily : uniqueQueueFamilies) {
@@ -355,25 +362,33 @@ void device_create_vulkan_logical_device(GraphicsDevice* device)
     createInfo.enabledLayerCount = 0;
 #endif
 
-    if (vkCreateDevice(device->VulkanPhysicalDevice, &createInfo, nullptr, &device->VulkanDevice) != VK_SUCCESS) {
+    if (vkCreateDevice(
+            device->VulkanPhysicalDevice, &createInfo, nullptr, &device->VulkanDevice)
+        != VK_SUCCESS) {
         yolo::error("failed to create logical device!");
         exit(1);
     }
 
-    vkGetDeviceQueue(device->VulkanDevice, indices.graphicsFamily.value(), 0, &device->VulkanGraphicsQueue);
-    vkGetDeviceQueue(device->VulkanDevice, indices.presentFamily.value(), 0, &device->VulkanPresentQueue);
+    vkGetDeviceQueue(device->VulkanDevice, indices.graphicsFamily.value(), 0,
+        &device->VulkanGraphicsQueue);
+    vkGetDeviceQueue(device->VulkanDevice, indices.presentFamily.value(), 0,
+        &device->VulkanPresentQueue);
 }
 
 void device_create_command_pool(GraphicsDevice* device)
 {
-    QueueFamilyIndices queueFamilyIndices = device_get_queue_families(device, device->VulkanPhysicalDevice);
+    QueueFamilyIndices queueFamilyIndices
+        = device_get_queue_families(device, device->VulkanPhysicalDevice);
 
     VkCommandPoolCreateInfo poolInfo = {};
     poolInfo.sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO;
     poolInfo.queueFamilyIndex = queueFamilyIndices.graphicsFamily.value();
-    poolInfo.flags = VK_COMMAND_POOL_CREATE_TRANSIENT_BIT | VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT;
+    poolInfo.flags = VK_COMMAND_POOL_CREATE_TRANSIENT_BIT
+        | VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT;
 
-    if (vkCreateCommandPool(device->VulkanDevice, &poolInfo, nullptr, &device->VulkanCommandPool) != VK_SUCCESS) {
+    if (vkCreateCommandPool(
+            device->VulkanDevice, &poolInfo, nullptr, &device->VulkanCommandPool)
+        != VK_SUCCESS) {
         yolo::error("failed to create command pool!");
     }
     yolo::info("Vulkan command pool created");

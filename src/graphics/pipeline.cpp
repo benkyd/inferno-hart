@@ -31,22 +31,6 @@ Pipeline* pipeline_create(GraphicsDevice* device)
     pipeline->InputAssembly.topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
     pipeline->InputAssembly.primitiveRestartEnable = VK_FALSE;
 
-    // NOTE: This is where the viewport and scissor are set
-    // In reality, these should be dynamic, so they can be changed
-
-    // VkViewport viewport = {};
-    // viewport.x = 0.f;
-    // viewport.y = 0.f;
-    // viewport.width = (float)pipeline->Swap->Extent.width;
-    // viewport.height = (float)pipeline->Swap->Extent.height;
-    // viewport.minDepth = 0.f;
-    // viewport.maxDepth = 1.f;
-    // yolo::debug("Viewport size: {}x{}", viewport.width, viewport.height);
-    //
-    // VkRect2D scissor = {};
-    // scissor.offset = { 0, 0 };
-    // scissor.extent = pipeline->Swap->Extent;
-
     pipeline->ViewportState.sType = VK_STRUCTURE_TYPE_PIPELINE_VIEWPORT_STATE_CREATE_INFO;
     pipeline->ViewportState.viewportCount = 1;
     // pipeline->ViewportState.pViewports = &viewport;

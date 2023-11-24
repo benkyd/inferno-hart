@@ -11,6 +11,12 @@ struct Pipeline;
 struct SwapChain;
 struct RenderPass;
 
+typedef struct FrameInFlight {
+    VkSemaphore ImageAvailable;
+    VkSemaphore RenderFinished;
+    VkFence InFlight;
+} FrameInFlight;
+
 typedef struct VulkanRenderer {
     GraphicsDevice* Device;
     // FIXME: THIS STRUCTURE SHOULD OWN THE SWAPCHAIN
