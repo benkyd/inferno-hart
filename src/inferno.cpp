@@ -249,7 +249,7 @@ int inferno_run(InfernoApp* app)
 
         graphics::renderer_begin_frame(app->Renderer, app->RenderPass);
 
-        vkCmdBindPipeline(app->Renderer->CommandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS,
+        vkCmdBindPipeline(app->Renderer->CommandBuffers[app->Renderer->CurrentFrame], VK_PIPELINE_BIND_POINT_GRAPHICS,
             app->RenderPass->RenderPipeline->GraphicsPipeline);
 
         VkViewport viewport {};
@@ -259,14 +259,14 @@ int inferno_run(InfernoApp* app)
         viewport.height = static_cast<float>(app->Renderer->Swap->Extent.height);
         viewport.minDepth = 0.0f;
         viewport.maxDepth = 1.0f;
-        vkCmdSetViewport(app->Renderer->CommandBuffer, 0, 1, &viewport);
+        vkCmdSetViewport(app->Renderer->CommandBuffers[app->Renderer->CurrentFrame], 0, 1, &viewport);
 
         VkRect2D scissor {};
         scissor.offset = { 0, 0 };
         scissor.extent = app->Renderer->Swap->Extent;
-        vkCmdSetScissor(app->Renderer->CommandBuffer, 0, 1, &scissor);
+        vkCmdSetScissor(app->Renderer->CommandBuffers[app->Renderer->CurrentFrame], 0, 1, &scissor);
 
-        vkCmdDraw(app->Renderer->CommandBuffer, 3, 1, 0, 0);
+        vkCmdDraw(app->Renderer->CommandBuffers[app->Renderer->CurrentFrame], 3, 1, 0, 0);
 
         graphics::renderer_draw_frame(app->Renderer, app->RenderPass);
 

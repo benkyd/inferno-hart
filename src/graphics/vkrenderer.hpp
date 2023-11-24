@@ -4,6 +4,8 @@
 
 namespace inferno::graphics {
 
+#define FRAMES_IN_FLIGHT 2
+
 struct GraphicsDevice;
 struct Pipeline;
 struct SwapChain;
@@ -17,13 +19,13 @@ typedef struct VulkanRenderer {
     SwapChain* Swap;
 
     VkCommandPool CommandPool;
-    VkCommandBuffer CommandBuffer;
-    uint32_t FrameIndex;
+    std::vector<VkCommandBuffer> CommandBuffers;
     uint32_t CurrentFrame;
+    uint32_t ImageIndex;
 
-    VkSemaphore ImageAvailableSemaphore;
-    VkSemaphore RenderFinishedSemaphore;
-    VkFence InFlightFence;
+    std::vector<VkSemaphore> ImageAvailableSemaphores;
+    std::vector<VkSemaphore> RenderFinishedSemaphores;
+    std::vector<VkFence> InFlightFences;
 } Renderer;
 
 Renderer* renderer_create(GraphicsDevice* device, SwapChain* swapchain);
