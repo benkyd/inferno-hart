@@ -6,6 +6,7 @@
 #include <graphics.hpp>
 #include <version.hpp>
 
+#include "imgui/imgui_impl_glfw.h"
 #include "yolo/yolo.hpp"
 
 #include <map>
@@ -44,7 +45,7 @@ void setupWindow(std::string title)
     Window = glfwCreateWindow(Width, Height, title.c_str(), nullptr, nullptr);
 }
 
-void setupImGui()
+void setupImGui(GraphicsDevice* device)
 {
     // // 1: create descriptor pool for IMGUI
     // //  the size of the pool is very oversize, but it's copied from imgui demo itself.
@@ -70,37 +71,37 @@ void setupImGui()
     // pool_info.pPoolSizes = pool_sizes;
     //
     // VkDescriptorPool imguiPool;
-    // VK_CHECK(vkCreateDescriptorPool(_device, &pool_info, nullptr, &imguiPool));
-    // // 2: initialize imgui library
-    //
-    // // this initializes the core structures of imgui
+    // vkCreateDescriptorPool(device->VulkanDevice, &pool_info, nullptr, &imguiPool);
+    // 2: initialize imgui librar/*  */y
+
+    // this initializes the core structures of imgui
     // ImGui::CreateContext();
-    //
-    // // this initializes imgui for SDL
-    // ImGui_ImplSDL2_InitForVulkan(_window);
-    //
-    // // this initializes imgui for Vulkan
+
+    // this initializes imgui for SDL
+    // ImGui_ImplGlfw_InitForVulkan(Window, true);
+
+    // this initializes imgui for Vulkan
     // ImGui_ImplVulkan_InitInfo init_info = {};
-    // init_info.Instance = _instance;
-    // init_info.PhysicalDevice = _chosenGPU;
-    // init_info.Device = _device;
-    // init_info.Queue = _graphicsQueue;
+    // init_info.Instance = device->VulkanInstance;
+    // init_info.PhysicalDevice = device->VulkanPhysicalDevice;
+    // init_info.Device = device->VulkanDevice;
+    // init_info.Queue = device->VulkanGraphicsQueue;
     // init_info.DescriptorPool = imguiPool;
     // init_info.MinImageCount = 3;
     // init_info.ImageCount = 3;
     // init_info.MSAASamples = VK_SAMPLE_COUNT_1_BIT;
     //
-    // ImGui_ImplVulkan_Init(&init_info, _renderPass);
-    //
+    // ImGui_ImplVulkan_Init(&init_info, device->VulkanRenderPass);
+
     // // execute a gpu command to upload imgui font textures
     // immediate_submit([&](VkCommandBuffer cmd) {
     //     ImGui_ImplVulkan_CreateFontsTexture(cmd);
     // });
-    //
-    // // clear font textures from cpu data
+
+    // clear font textures from cpu data
     // ImGui_ImplVulkan_DestroyFontUploadObjects();
-    //
-    // // add the destroy the imgui created structures
+
+    // add the destroy the imgui created structures
     // _mainDeletionQueue.push_function([=]() {
     //     vkDestroyDescriptorPool(_device, imguiPool, nullptr);
     //     ImGui_ImplVulkan_Shutdown();

@@ -56,23 +56,12 @@ add_custom_target(
 add_dependencies(inferno shaders)
 
 # Copy resources
-file(GLOB_RECURSE RES "res/*")
-foreach(RESOURCE ${RES})
-    # get_filename_component(FILENAME ${RESOURCE} NAME)
-    file(RELATIVE_PATH FILENAME ${CMAKE_CURRENT_SOURCE_DIR}/res ${RESOURCE})
-    add_custom_command(
-        TARGET inferno POST_BUILD
-        COMMAND ${CMAKE_COMMAND} -E copy ${RESOURCE} ${CMAKE_CURRENT_BINARY_DIR}/res/${FILENAME}
-        DEPENDS ${RESOURCE}
-    )
-endforeach(RESOURCE)
-
-add_custom_target(
-    resources
-    DEPENDS ${RES}
+#invole install_res.sh on compile with make
+add_custom_command(TARGET shaders POST_BUILD
+    WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
+    COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/install_res.sh
+    COMMENT "Copying resources"
 )
-
-add_dependencies(inferno resources)
 
 # "Universal" libraries
 set(THREADS_PREFER_PTHREAD_FLAD ON)
