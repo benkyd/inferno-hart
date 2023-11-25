@@ -1,8 +1,10 @@
 #pragma once
-#include <vector>
-#include <filesystem>
 
 #include <hart_graphics.hpp>
+
+#include <array>
+#include <filesystem>
+#include <vector>
 
 namespace inferno::scene {
 
@@ -10,47 +12,37 @@ class ObjLoader;
 class Material;
 
 // TODO: This should be procedural like everything else
-struct Vert
-{
+typedef struct Vert {
     glm::vec3 Position;
     glm::vec3 Normal;
     glm::vec2 UV;
-};
+} Vert;
 
-class Mesh
-{
-public:
-    Mesh();
-    ~Mesh();
+VkVertexInputBindingDescription get_vert_binding_description();
+std::array<VkVertexInputAttributeDescription, 3> get_vert_attribute_descriptions();
 
-    void loadOBJ(std::filesystem::path file);
-    void ready();
+typedef struct Mesh {
+    Material* Material;
+    glm::mat4 ModelMatrix;
 
-    int getVerticies(const float** v, const float** n);
-    int getIndicies(const uint32_t** i);
+    ObjLoader* ObjLoader;
+    std::vector<Vert> Verticies;
+} Mesh;
 
-    int getIndexCount();
+Mesh* mesh_create();
+void mesh_cleanup(Mesh* mesh);
 
-    void setMaterial(Material* mat);
-    Material* getMaterial();
+void mesh_load_obj(Mesh* mesh, std::filesystem::path file);
+void mesh_ready(Mesh* mesh);
 
-// Raster
-public:
-    GLuint getVAO();
-    GLuint getVBO();
-    GLuint getEBO();
+uint32_t mesh_get_verticies(Mesh* mesh, const float** v, const float** n);
+uint32_t mesh_get_indicies(Mesh* mesh, const uint32_t** i);
+uint32_t mesh_get_index_count(Mesh* mesh);
 
-private:
-    GLuint mVAO;
-    GLuint mVBO;
-    GLuint mEBO;
-    glm::mat4 mModel;
+void mesh_set_model_matrix(Mesh* mesh, glm::mat4 model);
+glm::mat4 mesh_get_model_matrix(Mesh* mesh);
 
-private:
-    ObjLoader* mObjLoader;
-    Material* mMaterial;
-
-    std::vector<Vert> mVerticies;
-};
+void mesh_set_material(Mesh* mesh, Material* mat);
+Material* mesh_get_material(Mesh* mesh);
 
 }

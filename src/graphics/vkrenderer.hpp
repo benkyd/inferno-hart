@@ -11,6 +11,7 @@ struct Pipeline;
 struct SwapChain;
 struct RenderPass;
 
+// TODO: Make the inflight frames work better
 typedef struct FrameInFlight {
     VkSemaphore ImageAvailable;
     VkSemaphore RenderFinished;
