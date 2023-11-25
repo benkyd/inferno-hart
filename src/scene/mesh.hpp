@@ -6,10 +6,14 @@
 #include <filesystem>
 #include <vector>
 
+namespace inferno::graphics {
+struct GraphicsDevice;
+struct VertexBuffer;
+}
+
 namespace inferno::scene {
 
 class ObjLoader;
-class Material;
 
 // TODO: This should be procedural like everything else
 typedef struct Vert {
@@ -22,14 +26,17 @@ VkVertexInputBindingDescription get_vert_binding_description();
 std::array<VkVertexInputAttributeDescription, 3> get_vert_attribute_descriptions();
 
 typedef struct Mesh {
-    Material* Material;
+    graphics::GraphicsDevice* Device;
+
     glm::mat4 ModelMatrix;
 
-    ObjLoader* ObjLoader;
+    ObjLoader* MeshObjLoader;
     std::vector<Vert> Verticies;
+
+    graphics::VertexBuffer* VertexBuffer;
 } Mesh;
 
-Mesh* mesh_create();
+Mesh* mesh_create(graphics::GraphicsDevice* device);
 void mesh_cleanup(Mesh* mesh);
 
 void mesh_load_obj(Mesh* mesh, std::filesystem::path file);
@@ -41,8 +48,5 @@ uint32_t mesh_get_index_count(Mesh* mesh);
 
 void mesh_set_model_matrix(Mesh* mesh, glm::mat4 model);
 glm::mat4 mesh_get_model_matrix(Mesh* mesh);
-
-void mesh_set_material(Mesh* mesh, Material* mat);
-Material* mesh_get_material(Mesh* mesh);
 
 }

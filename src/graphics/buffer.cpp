@@ -42,8 +42,9 @@ VertexBuffer* vertex_buffer_create(GraphicsDevice* device, void* data, uint32_t 
 
     vkBindBufferMemory(device->VulkanDevice, buffer->Handle, buffer->DeviceData, 0);
 
-    vkMapMemory(device->VulkanDevice, buffer->DeviceData, 0, size, 0, &buffer->NullableClientData);
-    memcpy(buffer->NullableClientData, data, size);
+    void* mappedData;
+    vkMapMemory(device->VulkanDevice, buffer->DeviceData, 0, size, 0, &mappedData);
+    memcpy(&mappedData, data, size);
     vkUnmapMemory(device->VulkanDevice, buffer->DeviceData);
 
     return buffer;
@@ -54,6 +55,13 @@ void vertex_buffer_cleanup(VertexBuffer* buffer)
     vkDestroyBuffer(buffer->Device->VulkanDevice, buffer->Handle, nullptr);
     vkFreeMemory(buffer->Device->VulkanDevice, buffer->DeviceData, nullptr);
     delete buffer;
+}
+
+void vertex_buffer_bind(VertexBuffer* buffer, VkCommandBuffer commandBuffer)
+{
+    VkBuffer vertexBuffers[] = { buffer->Handle };
+    VkDeviceSize offsets[] = { 0 };
+    vkCmdBindVertexBuffers(commandBuffer, 0, 1, vertexBuffers, offsets);
 }
 
 }

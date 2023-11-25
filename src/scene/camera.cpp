@@ -37,50 +37,50 @@ void camera_cleanup(Camera* camera)
 
 void camera_draw_ui(Camera* camera)
 {
-    ImGui::PushItemWidth(100);
-    ImGui::Text("Camera Position X,Y,Z");
-
-    bool positionUpdated = false;
-    ImGui::DragFloat("X", &camera->Position.x, 0.01f, -FLT_MAX, FLT_MAX, "%.2f", ImGuiSliderFlags_None);
-    ImGui::SameLine();
-    if (ImGui::IsItemEdited())
-        positionUpdated = true;
-    ImGui::DragFloat("Y", &camera->Position.y, 0.01f, -FLT_MAX, FLT_MAX, "%.2f", ImGuiSliderFlags_None);
-    ImGui::SameLine();
-    if (ImGui::IsItemEdited())
-        positionUpdated = true;
-    ImGui::DragFloat("Z", &camera->Position.z, 0.01f, -FLT_MAX, FLT_MAX, "%.2f", ImGuiSliderFlags_None);
-    if (ImGui::IsItemEdited())
-        positionUpdated = true;
-    if (positionUpdated)
-        graphics::camera_set_position(camera, graphics::camera_get_position(camera));
-
-    bool viewUpdated = false;
-    ImGui::Text("Camera Look Yaw, Pitch, Roll");
-    ImGui::DragFloat("Yaw", &camera->Yaw, 0.01f, -FLT_MAX, FLT_MAX, "%.2f", ImGuiSliderFlags_None);
-    ImGui::SameLine();
-    if (ImGui::IsItemEdited())
-        viewUpdated = true;
-    ImGui::DragFloat("Pitch", &camera->Pitch, 0.01f, -FLT_MAX, FLT_MAX, "%.2f", ImGuiSliderFlags_None);
-    ImGui::SameLine();
-    if (ImGui::IsItemEdited())
-        viewUpdated = true;
-    ImGui::DragFloat("Roll", &camera->Roll, 0.01f, -FLT_MAX, FLT_MAX, "%.2f", ImGuiSliderFlags_None);
-    if (ImGui::IsItemEdited())
-        viewUpdated = true;
-
-    ImGui::PopItemWidth();
-    ImGui::PushItemWidth(300);
-
-    ImGui::Text("Camera Zoom");
-    ImGui::DragFloat("Zoom", &camera->FOV, -0.1f, 0.01f, 180.0f, "%.2f", ImGuiSliderFlags_None);
-    ImGui::SameLine();
-    if (ImGui::IsItemEdited())
-        viewUpdated = true;
-    if (viewUpdated)
-        graphics::camera_update(camera);
-
-    ImGui::PopItemWidth();
+    // ImGui::PushItemWidth(100);
+    // ImGui::Text("Camera Position X,Y,Z");
+    //
+    // bool positionUpdated = false;
+    // ImGui::DragFloat("X", &camera->Position.x, 0.01f, -FLT_MAX, FLT_MAX, "%.2f", ImGuiSliderFlags_None);
+    // ImGui::SameLine();
+    // if (ImGui::IsItemEdited())
+    //     positionUpdated = true;
+    // ImGui::DragFloat("Y", &camera->Position.y, 0.01f, -FLT_MAX, FLT_MAX, "%.2f", ImGuiSliderFlags_None);
+    // ImGui::SameLine();
+    // if (ImGui::IsItemEdited())
+    //     positionUpdated = true;
+    // ImGui::DragFloat("Z", &camera->Position.z, 0.01f, -FLT_MAX, FLT_MAX, "%.2f", ImGuiSliderFlags_None);
+    // if (ImGui::IsItemEdited())
+    //     positionUpdated = true;
+    // if (positionUpdated)
+    //     graphics::camera_set_position(camera, graphics::camera_get_position(camera));
+    //
+    // bool viewUpdated = false;
+    // ImGui::Text("Camera Look Yaw, Pitch, Roll");
+    // ImGui::DragFloat("Yaw", &camera->Yaw, 0.01f, -FLT_MAX, FLT_MAX, "%.2f", ImGuiSliderFlags_None);
+    // ImGui::SameLine();
+    // if (ImGui::IsItemEdited())
+    //     viewUpdated = true;
+    // ImGui::DragFloat("Pitch", &camera->Pitch, 0.01f, -FLT_MAX, FLT_MAX, "%.2f", ImGuiSliderFlags_None);
+    // ImGui::SameLine();
+    // if (ImGui::IsItemEdited())
+    //     viewUpdated = true;
+    // ImGui::DragFloat("Roll", &camera->Roll, 0.01f, -FLT_MAX, FLT_MAX, "%.2f", ImGuiSliderFlags_None);
+    // if (ImGui::IsItemEdited())
+    //     viewUpdated = true;
+    //
+    // ImGui::PopItemWidth();
+    // ImGui::PushItemWidth(300);
+    //
+    // ImGui::Text("Camera Zoom");
+    // ImGui::DragFloat("Zoom", &camera->FOV, -0.1f, 0.01f, 180.0f, "%.2f", ImGuiSliderFlags_None);
+    // ImGui::SameLine();
+    // if (ImGui::IsItemEdited())
+    //     viewUpdated = true;
+    // if (viewUpdated)
+    //     graphics::camera_update(camera);
+    //
+    // ImGui::PopItemWidth();
 }
 
 void camera_update(Camera* camera)
