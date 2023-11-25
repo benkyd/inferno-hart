@@ -394,4 +394,19 @@ void device_create_command_pool(GraphicsDevice* device)
     yolo::info("Vulkan command pool created");
 }
 
+uint32_t device_find_memory_type(GraphicsDevice* g, uint32_t typeFilter, VkMemoryPropertyFlags properties) {
+    VkPhysicalDeviceMemoryProperties memProperties;
+    vkGetPhysicalDeviceMemoryProperties(g->VulkanPhysicalDevice, &memProperties);
+
+    for (uint32_t i = 0; i < memProperties.memoryTypeCount; i++) {
+        if ((typeFilter & (1 << i))
+            && (memProperties.memoryTypes[i].propertyFlags & properties) == properties) {
+            return i;
+        }
+    }
+
+    yolo::error("Failed to find suitable memory type!");
+    exit(1);
+}
+
 }

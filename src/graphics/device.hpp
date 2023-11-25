@@ -51,5 +51,6 @@ void device_create_vulkan_logical_device(GraphicsDevice* device);
 void device_create_command_pool(GraphicsDevice* device);
 
 QueueFamilyIndices device_get_queue_families(GraphicsDevice* g, VkPhysicalDevice device);
+uint32_t device_find_memory_type(GraphicsDevice* g, uint32_t typeFilter, VkMemoryPropertyFlags properties);
 
 }

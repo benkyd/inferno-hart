@@ -5,6 +5,8 @@
 #include "renderpass.hpp"
 #include "swapchain.hpp"
 
+#include "scene/mesh.hpp"
+
 #include <cstdint>
 
 #include "yolo/yolo.hpp"
@@ -18,13 +20,16 @@ Pipeline* pipeline_create(GraphicsDevice* device)
     pipeline->Device = device;
     pipeline->Swap = swapchain_create(device, device->SurfaceSize);
 
+    auto bindingDescription = scene::get_vert_binding_description();
+    auto attributeDescriptions = scene::get_vert_attribute_descriptions();
+
     pipeline->VertexInputInfo.sType
         = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO;
-    pipeline->VertexInputInfo.vertexBindingDescriptionCount = 0;
-    pipeline->VertexInputInfo.pVertexBindingDescriptions = nullptr; // Optional
-    pipeline->VertexInputInfo.vertexAttributeDescriptionCount = 0;
-    pipeline->VertexInputInfo.pVertexAttributeDescriptions
-        = nullptr; // pipeline->Vptional
+    pipeline->VertexInputInfo.vertexBindingDescriptionCount = 1;
+    pipeline->VertexInputInfo.vertexAttributeDescriptionCount
+        = static_cast<uint32_t>(attributeDescriptions.size());
+    pipeline->VertexInputInfo.pVertexBindingDescriptions = &bindingDescription;
+    pipeline->VertexInputInfo.pVertexAttributeDescriptions = attributeDescriptions.data();
 
     pipeline->InputAssembly.sType
         = VK_STRUCTURE_TYPE_PIPELINE_INPUT_ASSEMBLY_STATE_CREATE_INFO;
