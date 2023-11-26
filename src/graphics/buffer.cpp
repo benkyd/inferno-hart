@@ -2,6 +2,8 @@
 
 #include "device.hpp"
 
+#include "scene/mesh.hpp"
+
 #include "yolo/yolo.hpp"
 
 namespace inferno::graphics {
@@ -16,7 +18,7 @@ VertexBuffer* vertex_buffer_create(GraphicsDevice* device, void* data, uint32_t 
 
     VkBufferCreateInfo bufferInfo = {};
     bufferInfo.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
-    bufferInfo.size = size;
+    bufferInfo.size = size * sizeof(scene::Vert);
     bufferInfo.usage = VK_BUFFER_USAGE_VERTEX_BUFFER_BIT;
     bufferInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
 
@@ -42,10 +44,15 @@ VertexBuffer* vertex_buffer_create(GraphicsDevice* device, void* data, uint32_t 
 
     vkBindBufferMemory(device->VulkanDevice, buffer->Handle, buffer->DeviceData, 0);
 
-    void* mappedData;
-    vkMapMemory(device->VulkanDevice, buffer->DeviceData, 0, size, 0, &mappedData);
-    memcpy(&mappedData, data, size);
+    void* mData;
+    vkMapMemory(device->VulkanDevice, buffer->DeviceData, 0, bufferInfo.size, 0, &mData);
+    memcpy(mData, data, (size_t)bufferInfo.size);
     vkUnmapMemory(device->VulkanDevice, buffer->DeviceData);
+
+    // void* mappedData;
+    // vkMapMemory(device->VulkanDevice, buffer->DeviceData, 0, size, 0, &mappedData);
+    // memcpy(&mappedData, data, size);
+    // vkUnmapMemory(device->VulkanDevice, buffer->DeviceData);
 
     return buffer;
 }
