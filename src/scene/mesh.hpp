@@ -16,14 +16,13 @@ namespace inferno::scene {
 class ObjLoader;
 
 // TODO: This should be procedural like everything else
-typedef struct Vert {
+struct Vert {
     glm::vec3 Position;
     glm::vec3 Normal;
-    glm::vec2 UV;
-} Vert;
+};
 
 VkVertexInputBindingDescription get_vert_binding_description();
-std::array<VkVertexInputAttributeDescription, 3> get_vert_attribute_descriptions();
+std::array<VkVertexInputAttributeDescription, 2> get_vert_attribute_descriptions();
 
 typedef struct Mesh {
     graphics::GraphicsDevice* Device;

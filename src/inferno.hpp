@@ -3,7 +3,8 @@
 #include "graphics.hpp"
 #include "graphics/device.hpp"
 #include "scene/scene.hpp"
-#include "scene/camera.hpp"
+#include "scene/mesh.hpp"
+// #include "scene/camera.hpp"
 #include "renderer/renderer.hpp"
 #include "preview_renderer/renderer.hpp"
 
@@ -16,10 +17,12 @@ namespace graphics {
     struct GraphicsDevice;
     struct RenderPass;
     struct VulkanRenderer;
+    struct VertexBuffer;
 }
 
 namespace scene {
     struct Scene;
+    struct Vert;
 }
 
 typedef struct InfernoTimer {
@@ -51,6 +54,8 @@ typedef struct InfernoInput {
 typedef struct InfernoApp {
     InfernoInput* Input;
     scene::Scene* Scene;
+    graphics::VertexBuffer* VBuffer;
+
     // graphics::PreviewRenderer* PreviewRenderer;
     graphics::RayRenderer* RayRenderer;
 

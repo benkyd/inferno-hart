@@ -16,36 +16,26 @@ VkVertexInputBindingDescription get_vert_binding_description()
     VkVertexInputBindingDescription bindingDescription = {};
     bindingDescription.binding = 0;
     bindingDescription.stride = sizeof(Vert);
-    bindingDescription.inputRate
-        = VK_VERTEX_INPUT_RATE_VERTEX; // VK_VERTEX_INPUT_RATE_INSTANCE
+    bindingDescription.inputRate = VK_VERTEX_INPUT_RATE_VERTEX;
 
     return bindingDescription;
 }
 
-std::array<VkVertexInputAttributeDescription, 3> get_vert_attribute_descriptions()
+std::array<VkVertexInputAttributeDescription, 2> get_vert_attribute_descriptions()
 {
-    std::array<VkVertexInputAttributeDescription, 3> attributeDescriptions = {};
+    std::array<VkVertexInputAttributeDescription, 2> attributeDescriptions = {};
 
     // Position
     attributeDescriptions[0].binding = 0;
     attributeDescriptions[0].location = 0;
-    attributeDescriptions[0].format
-        = VK_FORMAT_R32G32B32_SFLOAT; // VK_FORMAT_R32G32B32A32_SFLOAT
+    attributeDescriptions[0].format = VK_FORMAT_R32G32B32_SFLOAT;
     attributeDescriptions[0].offset = offsetof(Vert, Position);
 
     // Normal
     attributeDescriptions[1].binding = 0;
     attributeDescriptions[1].location = 1;
-    attributeDescriptions[1].format
-        = VK_FORMAT_R32G32B32_SFLOAT; // VK_FORMAT_R32G32B32A32_SFLOAT
+    attributeDescriptions[1].format = VK_FORMAT_R32G32B32_SFLOAT;
     attributeDescriptions[1].offset = offsetof(Vert, Normal);
-
-    // UV
-    attributeDescriptions[2].binding = 0;
-    attributeDescriptions[2].location = 2;
-    attributeDescriptions[2].format
-        = VK_FORMAT_R32G32_SFLOAT; // VK_FORMAT_R32G32B32A32_SFLOAT
-    attributeDescriptions[2].offset = offsetof(Vert, UV);
 
     return attributeDescriptions;
 }

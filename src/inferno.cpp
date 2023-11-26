@@ -6,6 +6,7 @@
 // #include "gui/layout.hpp"
 // #include "renderer/renderer.hpp"
 // #include "scene/scene.hpp"
+#include "graphics/buffer.hpp"
 #include "graphics/device.hpp"
 #include "graphics/pipeline.hpp"
 #include "graphics/renderpass.hpp"
@@ -18,7 +19,7 @@
 // #include "preview_renderer/shader.hpp"
 // #include "scene/camera.hpp"
 // #include "scene/material.hpp"
-// #include "scene/mesh.hpp"
+#include "scene/mesh.hpp"
 // #include "scene/scene.hpp"
 
 #include <yolo/yolo.hpp>
@@ -100,6 +101,14 @@ InfernoApp* inferno_create()
     app->Renderer
         = graphics::renderer_create(app->Device, app->RenderPass->RenderPipeline->Swap);
     graphics::renderer_configure_command_buffer(app->Renderer);
+
+    std::vector<scene::Vert> verticies
+        = { { { 0.0f, -0.5f, 0.0f }, { 1.0f, 0.0f, 0.0f } },
+              { { 0.5f, 0.5f, 0.0f }, { 0.0f, 1.0f, 0.0f } },
+              { { -0.5f, 0.5f, 0.0f }, { 0.0f, 0.0f, 1.0f } } };
+
+    app->VBuffer
+        = graphics::vertex_buffer_create(app->Device, verticies.data(), verticies.size());
 
     // // setup the scene
     // scene::Material* basicMaterial = new scene::Material("basic");
@@ -269,7 +278,10 @@ int inferno_run(InfernoApp* app)
         vkCmdSetScissor(
             app->Renderer->CommandBuffers[app->Renderer->CurrentFrame], 0, 1, &scissor);
 
-        vkCmdDraw(app->Renderer->CommandBuffers[app->Renderer->CurrentFrame], 3, 1, 0, 0);
+        graphics::vertex_buffer_bind(
+                app->VBuffer, app->Renderer->CommandBuffers[app->Renderer->CurrentFrame]);
+
+        vkCmdDraw(app->Renderer->CommandBuffers[app->Renderer->CurrentFrame], app->VBuffer->Size, 1, 0, 0);
 
         graphics::renderer_draw_frame(app->Renderer, app->RenderPass);
 
