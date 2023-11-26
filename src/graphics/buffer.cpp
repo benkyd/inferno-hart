@@ -49,11 +49,6 @@ VertexBuffer* vertex_buffer_create(GraphicsDevice* device, void* data, uint32_t 
     memcpy(mData, data, (size_t)bufferInfo.size);
     vkUnmapMemory(device->VulkanDevice, buffer->DeviceData);
 
-    // void* mappedData;
-    // vkMapMemory(device->VulkanDevice, buffer->DeviceData, 0, size, 0, &mappedData);
-    // memcpy(&mappedData, data, size);
-    // vkUnmapMemory(device->VulkanDevice, buffer->DeviceData);
-
     return buffer;
 }
 
