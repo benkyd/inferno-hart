@@ -265,7 +265,8 @@ int inferno_run(InfernoApp* app)
         if (!graphics::renderer_begin_frame(app->Renderer, app->RenderPass))
             continue;
 
-        vkCmdBindPipeline(app->Renderer->CommandBuffers[app->Renderer->CurrentFrame],
+        vkCmdBindPipeline(
+            app->Renderer->CommandBuffersInFlight[app->Renderer->CurrentFrameIndex],
             VK_PIPELINE_BIND_POINT_GRAPHICS,
             app->RenderPass->RenderPipeline->GraphicsPipeline);
 
@@ -277,20 +278,23 @@ int inferno_run(InfernoApp* app)
         viewport.minDepth = 0.0f;
         viewport.maxDepth = 1.0f;
         vkCmdSetViewport(
-            app->Renderer->CommandBuffers[app->Renderer->CurrentFrame], 0, 1, &viewport);
+            app->Renderer->CommandBuffersInFlight[app->Renderer->CurrentFrameIndex], 0, 1,
+            &viewport);
 
         VkRect2D scissor {};
         scissor.offset = { 0, 0 };
         scissor.extent = app->Renderer->Swap->Extent;
         vkCmdSetScissor(
-            app->Renderer->CommandBuffers[app->Renderer->CurrentFrame], 0, 1, &scissor);
+            app->Renderer->CommandBuffersInFlight[app->Renderer->CurrentFrameIndex], 0, 1,
+            &scissor);
 
-        graphics::vertex_buffer_bind(
-            app->VBuffer, app->Renderer->CommandBuffers[app->Renderer->CurrentFrame]);
-        graphics::index_buffer_bind(
-            app->IBuffer, app->Renderer->CommandBuffers[app->Renderer->CurrentFrame]);
+        graphics::vertex_buffer_bind(app->VBuffer,
+            app->Renderer->CommandBuffersInFlight[app->Renderer->CurrentFrameIndex]);
+        graphics::index_buffer_bind(app->IBuffer,
+            app->Renderer->CommandBuffersInFlight[app->Renderer->CurrentFrameIndex]);
 
-        vkCmdDrawIndexed(app->Renderer->CommandBuffers[app->Renderer->CurrentFrame],
+        vkCmdDrawIndexed(
+            app->Renderer->CommandBuffersInFlight[app->Renderer->CurrentFrameIndex],
             app->IBuffer->GenericBuffer->Count, 1, 0, 0, 0);
 
         graphics::renderer_draw_frame(app->Renderer, app->RenderPass);

@@ -14,6 +14,7 @@ const std::vector<const char*> VALIDATION_LAYERS = {
 #endif
 
 const std::vector<const char*> DEVICE_EXTENSIONS = {
+    VK_KHR_DYNAMIC_RENDERING_EXTENSION_NAME,
     VK_KHR_SWAPCHAIN_EXTENSION_NAME,
 };
 

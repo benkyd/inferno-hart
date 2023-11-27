@@ -234,7 +234,7 @@ void device_create_vulkan_instance(GraphicsDevice* device)
     appInfo.applicationVersion = VK_MAKE_VERSION(1, 0, 0);
     appInfo.pEngineName = "No Engine";
     appInfo.engineVersion = VK_MAKE_VERSION(1, 0, 0);
-    appInfo.apiVersion = VK_API_VERSION_1_0;
+    appInfo.apiVersion = VK_API_VERSION_1_2;
 
     VkInstanceCreateInfo createInfo {};
     createInfo.sType = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO;
@@ -355,12 +355,18 @@ void device_create_vulkan_logical_device(GraphicsDevice* device)
         yolo::info("\t{}", extension);
     }
 
+    VkPhysicalDeviceDynamicRenderingFeaturesKHR dynamicCreateInfo {};
+    dynamicCreateInfo.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_DYNAMIC_RENDERING_FEATURES_KHR;
+    dynamicCreateInfo.dynamicRendering = VK_TRUE;
+    createInfo.pNext = &dynamicCreateInfo;
+
 #ifdef VALIDATION_LAYERS_ENABLED
     createInfo.enabledLayerCount = static_cast<uint32_t>(VALIDATION_LAYERS.size());
     createInfo.ppEnabledLayerNames = VALIDATION_LAYERS.data();
 #elif
     createInfo.enabledLayerCount = 0;
 #endif
+
 
     if (vkCreateDevice(
             device->VulkanPhysicalDevice, &createInfo, nullptr, &device->VulkanDevice)
@@ -402,7 +408,9 @@ void device_resize_callback(GLFWwindow* window, int width, int height)
     yolo::info("Window resized to {}x{}", width, height);
 }
 
-uint32_t device_find_memory_type(GraphicsDevice* g, uint32_t typeFilter, VkMemoryPropertyFlags properties) {
+uint32_t device_find_memory_type(
+    GraphicsDevice* g, uint32_t typeFilter, VkMemoryPropertyFlags properties)
+{
     VkPhysicalDeviceMemoryProperties memProperties;
     vkGetPhysicalDeviceMemoryProperties(g->VulkanPhysicalDevice, &memProperties);
 
