@@ -3,18 +3,18 @@
 #include "device.hpp"
 #include "graphics.hpp"
 #include "pipeline.hpp"
-#include "renderpass.hpp"
 #include "swapchain.hpp"
 
 #include "yolo/yolo.hpp"
 
 namespace inferno::graphics {
 
-VulkanRenderer* renderer_create(GraphicsDevice* device, SwapChain* swapchain)
+VulkanRenderer* renderer_create(GraphicsDevice* device)
 {
     auto renderer = new VulkanRenderer();
     renderer->Device = device;
-    renderer->Swap = swapchain;
+    renderer->Swap = swapchain_create(device, device->SurfaceSize);
+    renderer->RenderPipeline = pipeline_create(device, renderer->Swap);
 
     renderer->InFlight.resize(FRAMES_IN_FLIGHT);
 
@@ -27,7 +27,7 @@ VulkanRenderer* renderer_create(GraphicsDevice* device, SwapChain* swapchain)
     fenceInfo.flags = VK_FENCE_CREATE_SIGNALED_BIT; // Start in signaled state
 
     for (size_t i = 0; i < FRAMES_IN_FLIGHT; i++) {
-        renderer->InFlight[i] = FrameInFlight{};
+        renderer->InFlight[i] = FrameInFlight {};
         // Create the Uniform Buffer here
 
         if (vkCreateSemaphore(device->VulkanDevice, &semaphoreInfo, nullptr,
@@ -82,7 +82,7 @@ void renderer_configure_command_buffer(Renderer* renderer)
 }
 
 void renderer_record_command_buffer(
-    Renderer* renderer, RenderPass* renderpass, uint32_t imageIndex)
+    Renderer* renderer, uint32_t imageIndex)
 {
     VkCommandBufferBeginInfo beginInfo {};
     beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
@@ -95,23 +95,29 @@ void renderer_record_command_buffer(
         yolo::error("failed to begin recording command buffer!");
     }
 
-    VkRenderPassBeginInfo renderPassInfo {};
-    renderPassInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
-    renderPassInfo.renderPass = renderpass->VulkanRenderPass;
-    renderPassInfo.framebuffer
-        = renderpass->RenderPipeline->Swap->SwapFramebuffers[imageIndex];
-    renderPassInfo.renderArea.offset = { 0, 0 };
-    renderPassInfo.renderArea.extent = renderpass->RenderPipeline->Swap->Extent;
-
     VkClearValue clearColor = { { { 0.0f, 0.3f, 0.3f, 1.0f } } };
-    renderPassInfo.clearValueCount = 1;
-    renderPassInfo.pClearValues = &clearColor;
 
-    vkCmdBeginRenderPass(renderer->CommandBuffersInFlight[renderer->CurrentFrameIndex],
-        &renderPassInfo, VK_SUBPASS_CONTENTS_INLINE);
+    VkRenderingAttachmentInfoKHR attachmentInfo {};
+    attachmentInfo.sType = VK_STRUCTURE_TYPE_RENDERING_ATTACHMENT_INFO_KHR;
+    attachmentInfo.imageView = renderer->Swap->ImageViews[imageIndex];
+    attachmentInfo.imageLayout = VK_IMAGE_LAYOUT_ATTACHMENT_OPTIMAL_KHR;
+    attachmentInfo.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
+    attachmentInfo.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
+    attachmentInfo.clearValue = clearColor;
+
+    VkRenderingInfoKHR renderingInfo {};
+    renderingInfo.sType = VK_STRUCTURE_TYPE_RENDERING_INFO_KHR;
+    renderingInfo.renderArea
+        = { 0, 0, renderer->Swap->Extent.width, renderer->Swap->Extent.height };
+    renderingInfo.layerCount = 1;
+    renderingInfo.colorAttachmentCount = 1;
+    renderingInfo.pColorAttachments = &attachmentInfo;
+
+    vkCmdBeginRendering(
+        renderer->CommandBuffersInFlight[renderer->CurrentFrameIndex], &renderingInfo);
 }
 
-bool renderer_begin_frame(VulkanRenderer* renderer, RenderPass* renderpass)
+bool renderer_begin_frame(VulkanRenderer* renderer)
 {
     vkWaitForFences(renderer->Device->VulkanDevice, 1, &renderer->CurrentFrame->Fence,
         VK_TRUE, UINT64_MAX);
@@ -130,16 +136,18 @@ bool renderer_begin_frame(VulkanRenderer* renderer, RenderPass* renderpass)
         yolo::error("failed to acquire swap chain image!");
     }
 
-    vkResetFences(renderer->Device->VulkanDevice, 1,
-        &renderer->CurrentFrame->Fence);
-    vkResetCommandBuffer(renderer->CommandBuffersInFlight[renderer->CurrentFrameIndex], 0);
-    renderer_record_command_buffer(renderer, renderpass, imageIndex);
+    vkResetFences(renderer->Device->VulkanDevice, 1, &renderer->CurrentFrame->Fence);
+    vkResetCommandBuffer(
+        renderer->CommandBuffersInFlight[renderer->CurrentFrameIndex], 0);
+    renderer_record_command_buffer(renderer, imageIndex);
     return true;
 }
 
-bool renderer_draw_frame(Renderer* renderer, RenderPass* renderpass)
+bool renderer_draw_frame(Renderer* renderer)
 {
-    vkCmdEndRenderPass(renderer->CommandBuffersInFlight[renderer->CurrentFrameIndex]);
+    vkCmdEndRendering(
+        renderer->CommandBuffersInFlight[renderer->CurrentFrameIndex]);
+
     if (vkEndCommandBuffer(renderer->CommandBuffersInFlight[renderer->CurrentFrameIndex])
         != VK_SUCCESS) {
         yolo::error("failed to record command buffer!");
@@ -148,8 +156,7 @@ bool renderer_draw_frame(Renderer* renderer, RenderPass* renderpass)
     VkSubmitInfo submitInfo = {};
     submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
 
-    VkSemaphore waitSemaphores[]
-        = { renderer->CurrentFrame->ImageAvailable };
+    VkSemaphore waitSemaphores[] = { renderer->CurrentFrame->ImageAvailable };
     VkPipelineStageFlags waitStages[] = { VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT };
     submitInfo.waitSemaphoreCount = 1;
     submitInfo.pWaitSemaphores = waitSemaphores;
@@ -158,10 +165,10 @@ bool renderer_draw_frame(Renderer* renderer, RenderPass* renderpass)
                       // renderpass to finish, not the color attachment stage
 
     submitInfo.commandBufferCount = 1;
-    submitInfo.pCommandBuffers = &renderer->CommandBuffersInFlight[renderer->CurrentFrameIndex];
+    submitInfo.pCommandBuffers
+        = &renderer->CommandBuffersInFlight[renderer->CurrentFrameIndex];
 
-    VkSemaphore signalSemaphores[]
-        = { renderer->CurrentFrame->RenderFinished };
+    VkSemaphore signalSemaphores[] = { renderer->CurrentFrame->RenderFinished };
     submitInfo.signalSemaphoreCount = 1;
     submitInfo.pSignalSemaphores = signalSemaphores;
 

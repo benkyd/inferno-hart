@@ -9,7 +9,6 @@
 #include "graphics/buffer.hpp"
 #include "graphics/device.hpp"
 #include "graphics/pipeline.hpp"
-#include "graphics/renderpass.hpp"
 #include "graphics/swapchain.hpp"
 #include "graphics/vkrenderer.hpp"
 #include "window.hpp"
@@ -97,9 +96,7 @@ InfernoApp* inferno_create()
     // Create window
     graphics::window_create("Inferno v" INFERNO_VERSION, 1920, 1080);
     app->Device = graphics::device_create();
-    app->RenderPass = graphics::renderpass_create(app->Device);
-    app->Renderer
-        = graphics::renderer_create(app->Device, app->RenderPass->RenderPipeline->Swap);
+    app->Renderer = graphics::renderer_create(app->Device);
     graphics::renderer_configure_command_buffer(app->Renderer);
 
     std::vector<scene::Vert> verticies
@@ -262,13 +259,13 @@ int inferno_run(InfernoApp* app)
         if (!inferno_pre(app))
             break;
 
-        if (!graphics::renderer_begin_frame(app->Renderer, app->RenderPass))
+        if (!graphics::renderer_begin_frame(app->Renderer))
             continue;
 
         vkCmdBindPipeline(
             app->Renderer->CommandBuffersInFlight[app->Renderer->CurrentFrameIndex],
             VK_PIPELINE_BIND_POINT_GRAPHICS,
-            app->RenderPass->RenderPipeline->GraphicsPipeline);
+            app->Renderer->RenderPipeline->GraphicsPipeline);
 
         VkViewport viewport {};
         viewport.x = 0.0f;
@@ -297,7 +294,7 @@ int inferno_run(InfernoApp* app)
             app->Renderer->CommandBuffersInFlight[app->Renderer->CurrentFrameIndex],
             app->IBuffer->GenericBuffer->Count, 1, 0, 0, 0);
 
-        graphics::renderer_draw_frame(app->Renderer, app->RenderPass);
+        graphics::renderer_draw_frame(app->Renderer);
 
         //
         //     if (glm::length(app->Input->MouseDelta) > 0.0f)

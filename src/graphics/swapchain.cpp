@@ -3,7 +3,6 @@
 #include "graphics.hpp"
 
 #include "device.hpp"
-#include "renderpass.hpp"
 
 #include "yolo/yolo.hpp"
 
@@ -169,9 +168,6 @@ SwapChain* swapchain_create(GraphicsDevice* device, glm::ivec2 surface_size)
 
 void swapchain_cleanup(SwapChain* swapchain)
 {
-    for (auto framebuffer : swapchain->SwapFramebuffers) {
-        vkDestroyFramebuffer(swapchain->Device->VulkanDevice, framebuffer, nullptr);
-    }
     for (auto imageView : swapchain->ImageViews) {
         vkDestroyImageView(swapchain->Device->VulkanDevice, imageView, nullptr);
     }
@@ -210,43 +206,13 @@ void swapchain_image_view_create(SwapChain* swapchain)
     }
 }
 
-void swapchain_framebuffers_create(SwapChain* swapchain, RenderPass* renderpass)
-{
-    swapchain->SwapFramebuffers.resize(swapchain->ImageViews.size());
-    swapchain->SRenderPass = renderpass;
-
-    for (size_t i = 0; i < swapchain->ImageViews.size(); i++) {
-        VkImageView attachments[] = { swapchain->ImageViews[i] };
-
-        VkFramebufferCreateInfo framebufferInfo = {};
-        framebufferInfo.sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO;
-        framebufferInfo.renderPass = renderpass->VulkanRenderPass;
-        framebufferInfo.attachmentCount = 1;
-        framebufferInfo.pAttachments = attachments;
-        framebufferInfo.width = swapchain->Extent.width;
-        framebufferInfo.height = swapchain->Extent.height;
-        framebufferInfo.layers = 1;
-
-        if (vkCreateFramebuffer(swapchain->Device->VulkanDevice, &framebufferInfo,
-                nullptr, &swapchain->SwapFramebuffers[i])
-            != VK_SUCCESS) {
-            yolo::error("failed to create framebuffer!");
-            exit(1);
-        }
-    }
-    yolo::info("Swap chain Framebuffers created");
-}
-
 void swapchain_recreate(SwapChain* swapchain)
 {
     vkDeviceWaitIdle(swapchain->Device->VulkanDevice);
     GraphicsDevice* device = swapchain->Device;
-    RenderPass* renderpass = swapchain->SRenderPass;
-
 
     swapchain_cleanup(swapchain);
     swapchain = swapchain_create(device, device->SurfaceSize);
-    swapchain_framebuffers_create(swapchain, renderpass);
 }
 
 }

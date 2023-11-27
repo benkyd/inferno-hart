@@ -11,11 +11,10 @@ struct Shader;
 
 typedef struct Pipeline {
     GraphicsDevice* Device;
-    // TODO: Pipeline should not need to know about the swapchain
     SwapChain* Swap;
 
     VkPipeline GraphicsPipeline;
-    VkDescriptorSetLayout DescriptorSetLayout; // WHY 
+    VkDescriptorSetLayout DescriptorSetLayout; // WHY
     VkPipelineLayout Layout;
 
     VkPipelineDynamicStateCreateInfo DynamicStates;
@@ -28,10 +27,9 @@ typedef struct Pipeline {
     VkPipelineColorBlendStateCreateInfo ColorBlending;
 } Pipeline;
 
-Pipeline* pipeline_create(GraphicsDevice* device);
+Pipeline* pipeline_create(GraphicsDevice* device, SwapChain* swap);
 void pipeline_cleanup(Pipeline* pipeline);
 
 void pipeline_create_descriptor_set_layout(Pipeline* pipeline);
-void pipeline_configure_to_renderpass(Pipeline* pipeline, Shader* shader, RenderPass* renderpass);
 
 }

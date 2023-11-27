@@ -23,10 +23,10 @@ typedef struct FrameInFlight {
 
 typedef struct VulkanRenderer {
     GraphicsDevice* Device;
-    // FIXME: THIS STRUCTURE SHOULD OWN THE SWAPCHAIN
-    // AS EVERY PIPELINE WE CONFIGURE WILL NEED ACCESS
-    // IT MAKES NO SENSE FOR THE PIPELINE TO OWN IT
     SwapChain* Swap;
+
+    // NOTE: TEMPORARY
+    Pipeline* RenderPipeline;
 
     // TODO: This is really fucking annoying, how can we
     // not do this? CommandBuffers need to be *sequential*
@@ -39,13 +39,13 @@ typedef struct VulkanRenderer {
     uint32_t ImageIndex;
 } Renderer;
 
-Renderer* renderer_create(GraphicsDevice* device, SwapChain* swapchain);
+Renderer* renderer_create(GraphicsDevice* device);
 void renderer_cleanup(Renderer* renderer);
 
-void renderer_configure_command_buffer(Renderer* renderpass);
+void renderer_configure_command_buffer(Renderer* renderer);
 
-bool renderer_begin_frame(Renderer* renderer, RenderPass* renderpass);
-bool renderer_draw_frame(Renderer* renderer, RenderPass* renderpass);
+bool renderer_begin_frame(Renderer* renderer);
+bool renderer_draw_frame(Renderer* renderer);
 
 }
 
