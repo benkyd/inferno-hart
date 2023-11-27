@@ -17,7 +17,7 @@ namespace graphics {
     struct GraphicsDevice;
     struct RenderPass;
     struct VulkanRenderer;
-    struct VertexBuffer;
+    struct Buffer;
 }
 
 namespace scene {
@@ -54,7 +54,7 @@ typedef struct InfernoInput {
 typedef struct InfernoApp {
     InfernoInput* Input;
     scene::Scene* Scene;
-    graphics::VertexBuffer* VBuffer;
+    graphics::Buffer* VBuffer;
 
     // graphics::PreviewRenderer* PreviewRenderer;
     graphics::RayRenderer* RayRenderer;

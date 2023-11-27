@@ -8,7 +8,7 @@
 
 namespace inferno::graphics {
 struct GraphicsDevice;
-struct VertexBuffer;
+struct Buffer;
 }
 
 namespace inferno::scene {
@@ -32,7 +32,7 @@ typedef struct Mesh {
     ObjLoader* MeshObjLoader;
     std::vector<Vert> Verticies;
 
-    graphics::VertexBuffer* VertexBuffer;
+    graphics::Buffer* VertexBuffer;
 } Mesh;
 
 Mesh* mesh_create(graphics::GraphicsDevice* device);

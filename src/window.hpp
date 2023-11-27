@@ -22,7 +22,7 @@ enum WINDOW_MODE {
 void window_create(std::string title, int width, int height);
 void window_cleanup();
 
-void window_set_surface(GraphicsDevice* device);
+void window_init_device(GraphicsDevice* device, GLFWframebuffersizefun resizeCallback);
 
 void window_set_title(std::string title);
 

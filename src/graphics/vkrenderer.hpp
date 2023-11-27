@@ -25,7 +25,6 @@ typedef struct VulkanRenderer {
     // IT MAKES NO SENSE FOR THE PIPELINE TO OWN IT
     SwapChain* Swap;
 
-    VkCommandPool CommandPool;
     std::vector<VkCommandBuffer> CommandBuffers;
     uint32_t CurrentFrame;
     uint32_t ImageIndex;
@@ -40,8 +39,8 @@ void renderer_cleanup(Renderer* renderer);
 
 void renderer_configure_command_buffer(Renderer* renderpass);
 
-void renderer_begin_frame(Renderer* renderer, RenderPass* renderpass);
-void renderer_draw_frame(Renderer* renderer, RenderPass* renderpass);
+bool renderer_begin_frame(Renderer* renderer, RenderPass* renderpass);
+bool renderer_draw_frame(Renderer* renderer, RenderPass* renderpass);
 
 }
 

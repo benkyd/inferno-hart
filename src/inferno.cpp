@@ -62,7 +62,7 @@ void inferno_timer_end(InfernoTimer* timer)
     timer->EndTime = std::chrono::high_resolution_clock::now();
     timer->Time = timer->EndTime - timer->StartTime;
     timer->Times.push_back(timer->Time);
-    inferno_timer_rolling_average(timer, 100);
+    inferno_timer_rolling_average(timer, 1000);
 }
 
 void inferno_timer_print(InfernoTimer* timer, bool time)
@@ -256,7 +256,8 @@ int inferno_run(InfernoApp* app)
         if (!inferno_pre(app))
             break;
 
-        graphics::renderer_begin_frame(app->Renderer, app->RenderPass);
+        if (!graphics::renderer_begin_frame(app->Renderer, app->RenderPass))
+            continue;
 
         vkCmdBindPipeline(app->Renderer->CommandBuffers[app->Renderer->CurrentFrame],
             VK_PIPELINE_BIND_POINT_GRAPHICS,
@@ -279,9 +280,10 @@ int inferno_run(InfernoApp* app)
             app->Renderer->CommandBuffers[app->Renderer->CurrentFrame], 0, 1, &scissor);
 
         graphics::vertex_buffer_bind(
-                app->VBuffer, app->Renderer->CommandBuffers[app->Renderer->CurrentFrame]);
+            app->VBuffer, app->Renderer->CommandBuffers[app->Renderer->CurrentFrame]);
 
-        vkCmdDraw(app->Renderer->CommandBuffers[app->Renderer->CurrentFrame], app->VBuffer->Size, 1, 0, 0);
+        vkCmdDraw(app->Renderer->CommandBuffers[app->Renderer->CurrentFrame],
+            app->VBuffer->GenericBuffer->Size, 1, 0, 0);
 
         graphics::renderer_draw_frame(app->Renderer, app->RenderPass);
 

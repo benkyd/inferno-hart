@@ -40,7 +40,7 @@ void setupWindow(std::string title)
     glfwInit();
 
     glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
-    glfwWindowHint(GLFW_RESIZABLE, GLFW_FALSE);
+    glfwWindowHint(GLFW_RESIZABLE, GLFW_TRUE);
 
     Window = glfwCreateWindow(Width, Height, title.c_str(), nullptr, nullptr);
 }
@@ -123,13 +123,16 @@ void window_create(std::string title, int width, int height)
     // setupImGui();
 }
 
-void window_set_surface(GraphicsDevice* device)
+void window_init_device(GraphicsDevice* device, GLFWframebuffersizefun resizeCallback)
 {
      if (glfwCreateWindowSurface(device->VulkanInstance, Window, nullptr, &device->VulkanSurface) != VK_SUCCESS) {
          yolo::error("failed to create window surface!");
          exit(1);
     }
     yolo::info("Vulkan surface created");
+
+    glfwSetWindowUserPointer(Window, device);
+    glfwSetFramebufferSizeCallback(Window, (GLFWframebuffersizefun)resizeCallback);
 }
 
 void window_cleanup()

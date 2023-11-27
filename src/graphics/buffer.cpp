@@ -5,21 +5,22 @@
 #include "scene/mesh.hpp"
 
 #include "yolo/yolo.hpp"
+#include <vulkan/vulkan_core.h>
 
 namespace inferno::graphics {
 
-VertexBuffer* vertex_buffer_create(GraphicsDevice* device, void* data, uint32_t size)
+GenBuffer* generic_buffer_create(GraphicsDevice* device, VkDeviceSize size,
+    VkBufferUsageFlags usage, VkMemoryPropertyFlags properties)
 {
-    VertexBuffer* buffer = new VertexBuffer;
+    GenBuffer* buffer = new GenBuffer;
 
     buffer->Device = device;
     buffer->Size = size;
-    buffer->NullableClientData = data;
 
     VkBufferCreateInfo bufferInfo = {};
     bufferInfo.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
-    bufferInfo.size = size * sizeof(scene::Vert);
-    bufferInfo.usage = VK_BUFFER_USAGE_VERTEX_BUFFER_BIT;
+    bufferInfo.size = size;
+    bufferInfo.usage = usage;
     bufferInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
 
     if (vkCreateBuffer(device->VulkanDevice, &bufferInfo, nullptr, &buffer->Handle)
@@ -34,8 +35,7 @@ VertexBuffer* vertex_buffer_create(GraphicsDevice* device, void* data, uint32_t 
     allocInfo.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
     allocInfo.allocationSize = memRequirements.size;
     allocInfo.memoryTypeIndex
-        = device_find_memory_type(device, memRequirements.memoryTypeBits,
-            VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
+        = device_find_memory_type(device, memRequirements.memoryTypeBits, properties);
 
     if (vkAllocateMemory(device->VulkanDevice, &allocInfo, nullptr, &buffer->DeviceData)
         != VK_SUCCESS) {
@@ -44,24 +44,88 @@ VertexBuffer* vertex_buffer_create(GraphicsDevice* device, void* data, uint32_t 
 
     vkBindBufferMemory(device->VulkanDevice, buffer->Handle, buffer->DeviceData, 0);
 
-    void* mData;
-    vkMapMemory(device->VulkanDevice, buffer->DeviceData, 0, bufferInfo.size, 0, &mData);
-    memcpy(mData, data, (size_t)bufferInfo.size);
-    vkUnmapMemory(device->VulkanDevice, buffer->DeviceData);
-
     return buffer;
 }
 
-void vertex_buffer_cleanup(VertexBuffer* buffer)
+void generic_buffer_cleanup(GenBuffer* buffer)
 {
     vkDestroyBuffer(buffer->Device->VulkanDevice, buffer->Handle, nullptr);
     vkFreeMemory(buffer->Device->VulkanDevice, buffer->DeviceData, nullptr);
     delete buffer;
 }
 
-void vertex_buffer_bind(VertexBuffer* buffer, VkCommandBuffer commandBuffer)
+void buffer_copy(Buffer* buffer, GraphicsDevice* device)
 {
-    VkBuffer vertexBuffers[] = { buffer->Handle };
+    VkCommandBufferAllocateInfo allocInfo = {};
+    allocInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
+    allocInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
+    // shit this needs command pool access
+    allocInfo.commandPool = device->VulkanCommandPool;
+    allocInfo.commandBufferCount = 1;
+
+    VkCommandBuffer commandBuffer;
+    vkAllocateCommandBuffers(device->VulkanDevice, &allocInfo, &commandBuffer);
+
+    VkCommandBufferBeginInfo beginInfo = {};
+    beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
+    beginInfo.flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT;
+
+    vkBeginCommandBuffer(commandBuffer, &beginInfo);
+
+    VkBufferCopy copyRegion = {};
+    copyRegion.srcOffset = 0;
+    copyRegion.dstOffset = 0;
+    copyRegion.size = buffer->StagingBuffer->Size;
+
+    vkCmdCopyBuffer(commandBuffer, buffer->StagingBuffer->Handle, buffer->GenericBuffer->Handle, 1, &copyRegion);
+    vkEndCommandBuffer(commandBuffer);
+
+    VkSubmitInfo submitInfo = {};
+    submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
+    submitInfo.commandBufferCount = 1;
+    submitInfo.pCommandBuffers = &commandBuffer;
+
+    vkQueueSubmit(device->VulkanGraphicsQueue, 1, &submitInfo, VK_NULL_HANDLE);
+    vkQueueWaitIdle(device->VulkanGraphicsQueue);
+
+    vkFreeCommandBuffers(device->VulkanDevice, device->VulkanCommandPool, 1, &commandBuffer);
+}
+
+Buffer* vertex_buffer_create(GraphicsDevice* device, void* data, uint32_t size)
+{
+    VkDeviceSize bufferSize = size * sizeof(scene::Vert);
+    Buffer* buffer = new Buffer;
+    buffer->StagingBuffer
+        = generic_buffer_create(device, bufferSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
+            VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
+
+    buffer->NullableClientData = data;
+
+    void* mData;
+    vkMapMemory(device->VulkanDevice, buffer->StagingBuffer->DeviceData, 0, bufferSize, 0,
+        &mData);
+    memcpy(mData, data, bufferSize);
+    vkUnmapMemory(device->VulkanDevice, buffer->StagingBuffer->DeviceData);
+
+    buffer->GenericBuffer = generic_buffer_create(device, bufferSize,
+        VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT,
+        VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
+
+    buffer_copy(buffer, device);
+
+    return buffer;
+}
+
+void vertex_buffer_cleanup(Buffer* buffer)
+{
+    generic_buffer_cleanup(buffer->GenericBuffer);
+    generic_buffer_cleanup(buffer->StagingBuffer);
+    delete buffer;
+}
+
+void vertex_buffer_bind(Buffer* buffer, VkCommandBuffer commandBuffer)
+{
+    VkBuffer vertexBuffers[] = { buffer->GenericBuffer->Handle };
     VkDeviceSize offsets[] = { 0 };
     vkCmdBindVertexBuffers(commandBuffer, 0, 1, vertexBuffers, offsets);
 }

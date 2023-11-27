@@ -201,7 +201,7 @@ GraphicsDevice* device_create()
     GraphicsDevice* device = new GraphicsDevice();
     device_create_vulkan_instance(device);
     device_vulkan_debugger(device);
-    window_set_surface(device);
+    window_init_device(device, &device_resize_callback);
     device->SurfaceSize = window_get_size();
     device_create_vulkan_physical_device(device);
     device_create_vulkan_logical_device(device);
@@ -392,6 +392,14 @@ void device_create_command_pool(GraphicsDevice* device)
         yolo::error("failed to create command pool!");
     }
     yolo::info("Vulkan command pool created");
+}
+
+void device_resize_callback(GLFWwindow* window, int width, int height)
+{
+    auto device = (GraphicsDevice*)glfwGetWindowUserPointer(window);
+    device->Resized = true;
+    device->SurfaceSize = glm::ivec2(width, height);
+    yolo::info("Window resized to {}x{}", width, height);
 }
 
 uint32_t device_find_memory_type(GraphicsDevice* g, uint32_t typeFilter, VkMemoryPropertyFlags properties) {

@@ -6,7 +6,7 @@
 
 namespace inferno::graphics {
 
-#define VALIDATION_LAYERS_ENABLED 0
+#define VALIDATION_LAYERS_ENABLED 1
 #ifdef VALIDATION_LAYERS_ENABLED
 const std::vector<const char*> VALIDATION_LAYERS = {
     "VK_LAYER_KHRONOS_validation",
@@ -28,6 +28,7 @@ typedef struct GraphicsDevice {
     VkCommandPool VulkanCommandPool;
 
     glm::ivec2 SurfaceSize;
+    bool Resized = false;
 } GraphicsDevice;
 
 struct QueueFamilyIndices {
@@ -49,6 +50,8 @@ void device_vulkan_debugger(GraphicsDevice* device);
 void device_create_vulkan_physical_device(GraphicsDevice* device);
 void device_create_vulkan_logical_device(GraphicsDevice* device);
 void device_create_command_pool(GraphicsDevice* device);
+
+void device_resize_callback(GLFWwindow* device, int width, int height);
 
 QueueFamilyIndices device_get_queue_families(GraphicsDevice* g, VkPhysicalDevice device);
 uint32_t device_find_memory_type(GraphicsDevice* g, uint32_t typeFilter, VkMemoryPropertyFlags properties);

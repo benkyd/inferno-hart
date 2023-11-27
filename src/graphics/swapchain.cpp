@@ -1,5 +1,7 @@
 #include "swapchain.hpp"
 
+#include "graphics.hpp"
+
 #include "device.hpp"
 #include "renderpass.hpp"
 
@@ -167,13 +169,13 @@ SwapChain* swapchain_create(GraphicsDevice* device, glm::ivec2 surface_size)
 
 void swapchain_cleanup(SwapChain* swapchain)
 {
-    vkDestroySwapchainKHR(swapchain->Device->VulkanDevice, swapchain->Handle, nullptr);
-    for (auto imageView : swapchain->ImageViews) {
-        vkDestroyImageView(swapchain->Device->VulkanDevice, imageView, nullptr);
-    }
     for (auto framebuffer : swapchain->SwapFramebuffers) {
         vkDestroyFramebuffer(swapchain->Device->VulkanDevice, framebuffer, nullptr);
     }
+    for (auto imageView : swapchain->ImageViews) {
+        vkDestroyImageView(swapchain->Device->VulkanDevice, imageView, nullptr);
+    }
+    vkDestroySwapchainKHR(swapchain->Device->VulkanDevice, swapchain->Handle, nullptr);
     delete swapchain;
 }
 
@@ -211,6 +213,7 @@ void swapchain_image_view_create(SwapChain* swapchain)
 void swapchain_framebuffers_create(SwapChain* swapchain, RenderPass* renderpass)
 {
     swapchain->SwapFramebuffers.resize(swapchain->ImageViews.size());
+    swapchain->SRenderPass = renderpass;
 
     for (size_t i = 0; i < swapchain->ImageViews.size(); i++) {
         VkImageView attachments[] = { swapchain->ImageViews[i] };
@@ -220,8 +223,6 @@ void swapchain_framebuffers_create(SwapChain* swapchain, RenderPass* renderpass)
         framebufferInfo.renderPass = renderpass->VulkanRenderPass;
         framebufferInfo.attachmentCount = 1;
         framebufferInfo.pAttachments = attachments;
-        yolo::info("SwapChain Framebuffer size: {}x{}", swapchain->Extent.width,
-            swapchain->Extent.height);
         framebufferInfo.width = swapchain->Extent.width;
         framebufferInfo.height = swapchain->Extent.height;
         framebufferInfo.layers = 1;
@@ -232,8 +233,20 @@ void swapchain_framebuffers_create(SwapChain* swapchain, RenderPass* renderpass)
             yolo::error("failed to create framebuffer!");
             exit(1);
         }
-        yolo::info("SwapChain Framebuffers created");
     }
+    yolo::info("Swap chain Framebuffers created");
+}
+
+void swapchain_recreate(SwapChain* swapchain)
+{
+    vkDeviceWaitIdle(swapchain->Device->VulkanDevice);
+    GraphicsDevice* device = swapchain->Device;
+    RenderPass* renderpass = swapchain->SRenderPass;
+
+
+    swapchain_cleanup(swapchain);
+    swapchain = swapchain_create(device, device->SurfaceSize);
+    swapchain_framebuffers_create(swapchain, renderpass);
 }
 
 }

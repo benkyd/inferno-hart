@@ -48,7 +48,7 @@ VulkanRenderer* renderer_create(GraphicsDevice* device, SwapChain* swapchain)
 
 void renderer_cleanup(VulkanRenderer* renderer)
 {
-    vkDestroyCommandPool(renderer->Device->VulkanDevice, renderer->CommandPool, nullptr);
+    vkDestroyCommandPool(renderer->Device->VulkanDevice, renderer->Device->VulkanCommandPool, nullptr);
     for (size_t i = 0; i < FRAMES_IN_FLIGHT; i++) {
         vkDestroySemaphore(renderer->Device->VulkanDevice,
             renderer->ImageAvailableSemaphores[i], nullptr);
@@ -61,23 +61,10 @@ void renderer_cleanup(VulkanRenderer* renderer)
 
 void renderer_configure_command_buffer(Renderer* renderer)
 {
-    QueueFamilyIndices i = device_get_queue_families(
-        renderer->Device, renderer->Device->VulkanPhysicalDevice);
-    VkCommandPoolCreateInfo poolInfo {};
-    poolInfo.sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO;
-    poolInfo.queueFamilyIndex = i.graphicsFamily.value();
-    poolInfo.flags = VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT;
-
-    if (vkCreateCommandPool(
-            renderer->Device->VulkanDevice, &poolInfo, nullptr, &renderer->CommandPool)
-        != VK_SUCCESS) {
-        yolo::error("failed to create command pool!");
-    }
-
     renderer->CommandBuffers.resize(FRAMES_IN_FLIGHT);
     VkCommandBufferAllocateInfo allocInfo {};
     allocInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
-    allocInfo.commandPool = renderer->CommandPool;
+    allocInfo.commandPool = renderer->Device->VulkanCommandPool;
     allocInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
     allocInfo.commandBufferCount = (uint32_t)renderer->CommandBuffers.size();
 
@@ -98,7 +85,8 @@ void renderer_record_command_buffer(
     beginInfo.flags = 0; // Optional
     beginInfo.pInheritanceInfo = nullptr; // Optional
 
-    if (vkBeginCommandBuffer(renderer->CommandBuffers[renderer->CurrentFrame], &beginInfo) != VK_SUCCESS) {
+    if (vkBeginCommandBuffer(renderer->CommandBuffers[renderer->CurrentFrame], &beginInfo)
+        != VK_SUCCESS) {
         yolo::error("failed to begin recording command buffer!");
     }
 
@@ -114,36 +102,50 @@ void renderer_record_command_buffer(
     renderPassInfo.clearValueCount = 1;
     renderPassInfo.pClearValues = &clearColor;
 
-    vkCmdBeginRenderPass(
-        renderer->CommandBuffers[renderer->CurrentFrame], &renderPassInfo, VK_SUBPASS_CONTENTS_INLINE);
+    vkCmdBeginRenderPass(renderer->CommandBuffers[renderer->CurrentFrame],
+        &renderPassInfo, VK_SUBPASS_CONTENTS_INLINE);
 }
 
-void renderer_begin_frame(VulkanRenderer* renderer, RenderPass* renderpass)
+bool renderer_begin_frame(VulkanRenderer* renderer, RenderPass* renderpass)
 {
-    vkWaitForFences(
-        renderer->Device->VulkanDevice, 1, &renderer->InFlightFences[renderer->CurrentFrame], VK_TRUE, UINT64_MAX);
-    vkResetFences(renderer->Device->VulkanDevice, 1, &renderer->InFlightFences[renderer->CurrentFrame]);
+    vkWaitForFences(renderer->Device->VulkanDevice, 1,
+        &renderer->InFlightFences[renderer->CurrentFrame], VK_TRUE, UINT64_MAX);
 
     uint32_t imageIndex;
-    vkAcquireNextImageKHR(renderer->Device->VulkanDevice, renderer->Swap->Handle,
-        UINT64_MAX, renderer->ImageAvailableSemaphores[renderer->CurrentFrame], VK_NULL_HANDLE, &imageIndex);
+    auto swapStatus
+        = vkAcquireNextImageKHR(renderer->Device->VulkanDevice, renderer->Swap->Handle,
+            UINT64_MAX, renderer->ImageAvailableSemaphores[renderer->CurrentFrame],
+            VK_NULL_HANDLE, &imageIndex);
     renderer->ImageIndex = imageIndex;
 
+    if (swapStatus == VK_ERROR_OUT_OF_DATE_KHR || renderer->Device->Resized) {
+        yolo::info("Swapchain out of date");
+        swapchain_recreate(renderer->Swap);
+        return false;
+    } else if (swapStatus != VK_SUCCESS) {
+        yolo::error("failed to acquire swap chain image!");
+    }
+
+    vkResetFences(renderer->Device->VulkanDevice, 1,
+        &renderer->InFlightFences[renderer->CurrentFrame]);
     vkResetCommandBuffer(renderer->CommandBuffers[renderer->CurrentFrame], 0);
     renderer_record_command_buffer(renderer, renderpass, imageIndex);
+    return true;
 }
 
-void renderer_draw_frame(Renderer* renderer, RenderPass* renderpass)
+bool renderer_draw_frame(Renderer* renderer, RenderPass* renderpass)
 {
     vkCmdEndRenderPass(renderer->CommandBuffers[renderer->CurrentFrame]);
-    if (vkEndCommandBuffer(renderer->CommandBuffers[renderer->CurrentFrame]) != VK_SUCCESS) {
+    if (vkEndCommandBuffer(renderer->CommandBuffers[renderer->CurrentFrame])
+        != VK_SUCCESS) {
         yolo::error("failed to record command buffer!");
     }
 
     VkSubmitInfo submitInfo = {};
     submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
 
-    VkSemaphore waitSemaphores[] = { renderer->ImageAvailableSemaphores[renderer->CurrentFrame] };
+    VkSemaphore waitSemaphores[]
+        = { renderer->ImageAvailableSemaphores[renderer->CurrentFrame] };
     VkPipelineStageFlags waitStages[] = { VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT };
     submitInfo.waitSemaphoreCount = 1;
     submitInfo.pWaitSemaphores = waitSemaphores;
@@ -154,7 +156,8 @@ void renderer_draw_frame(Renderer* renderer, RenderPass* renderpass)
     submitInfo.commandBufferCount = 1;
     submitInfo.pCommandBuffers = &renderer->CommandBuffers[renderer->CurrentFrame];
 
-    VkSemaphore signalSemaphores[] = { renderer->RenderFinishedSemaphores[renderer->CurrentFrame] };
+    VkSemaphore signalSemaphores[]
+        = { renderer->RenderFinishedSemaphores[renderer->CurrentFrame] };
     submitInfo.signalSemaphoreCount = 1;
     submitInfo.pSignalSemaphores = signalSemaphores;
 
@@ -175,9 +178,19 @@ void renderer_draw_frame(Renderer* renderer, RenderPass* renderpass)
 
     presentInfo.pImageIndices = &renderer->ImageIndex;
 
-    vkQueuePresentKHR(renderer->Device->VulkanPresentQueue, &presentInfo);
+    auto swapStatus
+        = vkQueuePresentKHR(renderer->Device->VulkanPresentQueue, &presentInfo);
+
+    if (swapStatus == VK_ERROR_OUT_OF_DATE_KHR || swapStatus == VK_SUBOPTIMAL_KHR
+        || renderer->Device->Resized) {
+        yolo::info("Swapchain out of date");
+        swapchain_recreate(renderer->Swap);
+    } else if (swapStatus != VK_SUCCESS) {
+        yolo::error("failed to present swap chain image!");
+    }
 
     renderer->CurrentFrame = (renderer->CurrentFrame + 1) % FRAMES_IN_FLIGHT;
+    return true;
 }
 
 }
