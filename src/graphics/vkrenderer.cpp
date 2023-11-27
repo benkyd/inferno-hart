@@ -16,10 +16,7 @@ VulkanRenderer* renderer_create(GraphicsDevice* device, SwapChain* swapchain)
     renderer->Device = device;
     renderer->Swap = swapchain;
 
-    renderer->CommandBuffers.resize(FRAMES_IN_FLIGHT);
-    renderer->ImageAvailableSemaphores.resize(FRAMES_IN_FLIGHT);
-    renderer->RenderFinishedSemaphores.resize(FRAMES_IN_FLIGHT);
-    renderer->InFlightFences.resize(FRAMES_IN_FLIGHT);
+    renderer->InFlight.resize(FRAMES_IN_FLIGHT);
 
     // Creating the synchronization objects
     VkSemaphoreCreateInfo semaphoreInfo = {};
@@ -30,46 +27,53 @@ VulkanRenderer* renderer_create(GraphicsDevice* device, SwapChain* swapchain)
     fenceInfo.flags = VK_FENCE_CREATE_SIGNALED_BIT; // Start in signaled state
 
     for (size_t i = 0; i < FRAMES_IN_FLIGHT; i++) {
+        renderer->InFlight[i] = FrameInFlight{};
+        // Create the Uniform Buffer here
+
         if (vkCreateSemaphore(device->VulkanDevice, &semaphoreInfo, nullptr,
-                &renderer->ImageAvailableSemaphores[i])
+                &renderer->InFlight[i].ImageAvailable)
                 != VK_SUCCESS
             || vkCreateSemaphore(device->VulkanDevice, &semaphoreInfo, nullptr,
-                   &renderer->RenderFinishedSemaphores[i])
+                   &renderer->InFlight[i].RenderFinished)
                 != VK_SUCCESS
             || vkCreateFence(device->VulkanDevice, &fenceInfo, nullptr,
-                   &renderer->InFlightFences[i])
+                   &renderer->InFlight[i].Fence)
                 != VK_SUCCESS) {
             yolo::error("failed to create synchronization objects for a frame!");
         }
     }
+
+    renderer->CurrentFrameIndex = 0;
+    renderer->CurrentFrame = &renderer->InFlight[0];
 
     return renderer;
 }
 
 void renderer_cleanup(VulkanRenderer* renderer)
 {
-    vkDestroyCommandPool(renderer->Device->VulkanDevice, renderer->Device->VulkanCommandPool, nullptr);
+    vkDestroyCommandPool(
+        renderer->Device->VulkanDevice, renderer->Device->VulkanCommandPool, nullptr);
     for (size_t i = 0; i < FRAMES_IN_FLIGHT; i++) {
         vkDestroySemaphore(renderer->Device->VulkanDevice,
-            renderer->ImageAvailableSemaphores[i], nullptr);
+            renderer->InFlight[i].ImageAvailable, nullptr);
         vkDestroySemaphore(renderer->Device->VulkanDevice,
-            renderer->RenderFinishedSemaphores[i], nullptr);
+            renderer->InFlight[i].RenderFinished, nullptr);
         vkDestroyFence(
-            renderer->Device->VulkanDevice, renderer->InFlightFences[i], nullptr);
+            renderer->Device->VulkanDevice, renderer->InFlight[i].Fence, nullptr);
     }
 }
 
 void renderer_configure_command_buffer(Renderer* renderer)
 {
-    renderer->CommandBuffers.resize(FRAMES_IN_FLIGHT);
+    renderer->CommandBuffersInFlight.resize(FRAMES_IN_FLIGHT);
     VkCommandBufferAllocateInfo allocInfo {};
     allocInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
     allocInfo.commandPool = renderer->Device->VulkanCommandPool;
     allocInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
-    allocInfo.commandBufferCount = (uint32_t)renderer->CommandBuffers.size();
+    allocInfo.commandBufferCount = (uint32_t)FRAMES_IN_FLIGHT;
 
-    if (vkAllocateCommandBuffers(
-            renderer->Device->VulkanDevice, &allocInfo, &renderer->CommandBuffers[0])
+    if (vkAllocateCommandBuffers(renderer->Device->VulkanDevice, &allocInfo,
+            &renderer->CommandBuffersInFlight[0])
         != VK_SUCCESS) {
         yolo::error("failed to allocate command buffers!");
     }
@@ -85,7 +89,8 @@ void renderer_record_command_buffer(
     beginInfo.flags = 0; // Optional
     beginInfo.pInheritanceInfo = nullptr; // Optional
 
-    if (vkBeginCommandBuffer(renderer->CommandBuffers[renderer->CurrentFrame], &beginInfo)
+    if (vkBeginCommandBuffer(
+            renderer->CommandBuffersInFlight[renderer->CurrentFrameIndex], &beginInfo)
         != VK_SUCCESS) {
         yolo::error("failed to begin recording command buffer!");
     }
@@ -102,20 +107,19 @@ void renderer_record_command_buffer(
     renderPassInfo.clearValueCount = 1;
     renderPassInfo.pClearValues = &clearColor;
 
-    vkCmdBeginRenderPass(renderer->CommandBuffers[renderer->CurrentFrame],
+    vkCmdBeginRenderPass(renderer->CommandBuffersInFlight[renderer->CurrentFrameIndex],
         &renderPassInfo, VK_SUBPASS_CONTENTS_INLINE);
 }
 
 bool renderer_begin_frame(VulkanRenderer* renderer, RenderPass* renderpass)
 {
-    vkWaitForFences(renderer->Device->VulkanDevice, 1,
-        &renderer->InFlightFences[renderer->CurrentFrame], VK_TRUE, UINT64_MAX);
+    vkWaitForFences(renderer->Device->VulkanDevice, 1, &renderer->CurrentFrame->Fence,
+        VK_TRUE, UINT64_MAX);
 
     uint32_t imageIndex;
-    auto swapStatus
-        = vkAcquireNextImageKHR(renderer->Device->VulkanDevice, renderer->Swap->Handle,
-            UINT64_MAX, renderer->ImageAvailableSemaphores[renderer->CurrentFrame],
-            VK_NULL_HANDLE, &imageIndex);
+    auto swapStatus = vkAcquireNextImageKHR(renderer->Device->VulkanDevice,
+        renderer->Swap->Handle, UINT64_MAX, renderer->CurrentFrame->ImageAvailable,
+        VK_NULL_HANDLE, &imageIndex);
     renderer->ImageIndex = imageIndex;
 
     if (swapStatus == VK_ERROR_OUT_OF_DATE_KHR || renderer->Device->Resized) {
@@ -127,16 +131,16 @@ bool renderer_begin_frame(VulkanRenderer* renderer, RenderPass* renderpass)
     }
 
     vkResetFences(renderer->Device->VulkanDevice, 1,
-        &renderer->InFlightFences[renderer->CurrentFrame]);
-    vkResetCommandBuffer(renderer->CommandBuffers[renderer->CurrentFrame], 0);
+        &renderer->CurrentFrame->Fence);
+    vkResetCommandBuffer(renderer->CommandBuffersInFlight[renderer->CurrentFrameIndex], 0);
     renderer_record_command_buffer(renderer, renderpass, imageIndex);
     return true;
 }
 
 bool renderer_draw_frame(Renderer* renderer, RenderPass* renderpass)
 {
-    vkCmdEndRenderPass(renderer->CommandBuffers[renderer->CurrentFrame]);
-    if (vkEndCommandBuffer(renderer->CommandBuffers[renderer->CurrentFrame])
+    vkCmdEndRenderPass(renderer->CommandBuffersInFlight[renderer->CurrentFrameIndex]);
+    if (vkEndCommandBuffer(renderer->CommandBuffersInFlight[renderer->CurrentFrameIndex])
         != VK_SUCCESS) {
         yolo::error("failed to record command buffer!");
     }
@@ -145,7 +149,7 @@ bool renderer_draw_frame(Renderer* renderer, RenderPass* renderpass)
     submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
 
     VkSemaphore waitSemaphores[]
-        = { renderer->ImageAvailableSemaphores[renderer->CurrentFrame] };
+        = { renderer->CurrentFrame->ImageAvailable };
     VkPipelineStageFlags waitStages[] = { VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT };
     submitInfo.waitSemaphoreCount = 1;
     submitInfo.pWaitSemaphores = waitSemaphores;
@@ -154,15 +158,15 @@ bool renderer_draw_frame(Renderer* renderer, RenderPass* renderpass)
                       // renderpass to finish, not the color attachment stage
 
     submitInfo.commandBufferCount = 1;
-    submitInfo.pCommandBuffers = &renderer->CommandBuffers[renderer->CurrentFrame];
+    submitInfo.pCommandBuffers = &renderer->CommandBuffersInFlight[renderer->CurrentFrameIndex];
 
     VkSemaphore signalSemaphores[]
-        = { renderer->RenderFinishedSemaphores[renderer->CurrentFrame] };
+        = { renderer->CurrentFrame->RenderFinished };
     submitInfo.signalSemaphoreCount = 1;
     submitInfo.pSignalSemaphores = signalSemaphores;
 
     if (vkQueueSubmit(renderer->Device->VulkanGraphicsQueue, 1, &submitInfo,
-            renderer->InFlightFences[renderer->CurrentFrame])
+            renderer->CurrentFrame->Fence)
         != VK_SUCCESS) {
         yolo::error("failed to submit draw command buffer!");
     }
@@ -189,7 +193,8 @@ bool renderer_draw_frame(Renderer* renderer, RenderPass* renderpass)
         yolo::error("failed to present swap chain image!");
     }
 
-    renderer->CurrentFrame = (renderer->CurrentFrame + 1) % FRAMES_IN_FLIGHT;
+    renderer->CurrentFrameIndex = (renderer->CurrentFrameIndex + 1) % FRAMES_IN_FLIGHT;
+    renderer->CurrentFrame = &renderer->InFlight[renderer->CurrentFrameIndex];
     return true;
 }
 

@@ -103,12 +103,18 @@ InfernoApp* inferno_create()
     graphics::renderer_configure_command_buffer(app->Renderer);
 
     std::vector<scene::Vert> verticies
-        = { { { 0.0f, -0.5f, 0.0f }, { 1.0f, 0.0f, 0.0f } },
-              { { 0.5f, 0.5f, 0.0f }, { 0.0f, 1.0f, 0.0f } },
-              { { -0.5f, 0.5f, 0.0f }, { 0.0f, 0.0f, 1.0f } } };
+        = { { { -0.5f, -0.5f, 0.0f }, { 1.0f, 0.0f, 0.0f } },
+              { { 0.5f, -0.5f, 0.0f }, { 0.0f, 1.0f, 0.0f } },
+              { { 0.5f, 0.5, 0.0f }, { 0.0f, 0.0f, 1.0f } },
+              { { -0.5f, 0.5f, 0.0f }, { 1.0f, 1.0f, 1.0f } } };
 
     app->VBuffer
         = graphics::vertex_buffer_create(app->Device, verticies.data(), verticies.size());
+
+    std::vector<scene::Index> indicies = { 0, 1, 2, 2, 3, 0 };
+
+    app->IBuffer
+        = graphics::index_buffer_create(app->Device, indicies.data(), indicies.size());
 
     // // setup the scene
     // scene::Material* basicMaterial = new scene::Material("basic");
@@ -281,9 +287,11 @@ int inferno_run(InfernoApp* app)
 
         graphics::vertex_buffer_bind(
             app->VBuffer, app->Renderer->CommandBuffers[app->Renderer->CurrentFrame]);
+        graphics::index_buffer_bind(
+            app->IBuffer, app->Renderer->CommandBuffers[app->Renderer->CurrentFrame]);
 
-        vkCmdDraw(app->Renderer->CommandBuffers[app->Renderer->CurrentFrame],
-            app->VBuffer->GenericBuffer->Size, 1, 0, 0);
+        vkCmdDrawIndexed(app->Renderer->CommandBuffers[app->Renderer->CurrentFrame],
+            app->IBuffer->GenericBuffer->Count, 1, 0, 0, 0);
 
         graphics::renderer_draw_frame(app->Renderer, app->RenderPass);
 

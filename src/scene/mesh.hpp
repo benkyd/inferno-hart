@@ -21,6 +21,8 @@ struct Vert {
     glm::vec3 Normal;
 };
 
+using Index = uint32_t;
+
 VkVertexInputBindingDescription get_vert_binding_description();
 std::array<VkVertexInputAttributeDescription, 2> get_vert_attribute_descriptions();
 

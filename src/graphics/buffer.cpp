@@ -9,12 +9,13 @@
 
 namespace inferno::graphics {
 
-GenBuffer* generic_buffer_create(GraphicsDevice* device, VkDeviceSize size,
-    VkBufferUsageFlags usage, VkMemoryPropertyFlags properties)
+GenBuffer* generic_buffer_create(GraphicsDevice* device, uint32_t count,
+    VkDeviceSize size, VkBufferUsageFlags usage, VkMemoryPropertyFlags properties)
 {
     GenBuffer* buffer = new GenBuffer;
 
     buffer->Device = device;
+    buffer->Count = count;
     buffer->Size = size;
 
     VkBufferCreateInfo bufferInfo = {};
@@ -77,7 +78,8 @@ void buffer_copy(Buffer* buffer, GraphicsDevice* device)
     copyRegion.dstOffset = 0;
     copyRegion.size = buffer->StagingBuffer->Size;
 
-    vkCmdCopyBuffer(commandBuffer, buffer->StagingBuffer->Handle, buffer->GenericBuffer->Handle, 1, &copyRegion);
+    vkCmdCopyBuffer(commandBuffer, buffer->StagingBuffer->Handle,
+        buffer->GenericBuffer->Handle, 1, &copyRegion);
     vkEndCommandBuffer(commandBuffer);
 
     VkSubmitInfo submitInfo = {};
@@ -88,16 +90,17 @@ void buffer_copy(Buffer* buffer, GraphicsDevice* device)
     vkQueueSubmit(device->VulkanGraphicsQueue, 1, &submitInfo, VK_NULL_HANDLE);
     vkQueueWaitIdle(device->VulkanGraphicsQueue);
 
-    vkFreeCommandBuffers(device->VulkanDevice, device->VulkanCommandPool, 1, &commandBuffer);
+    vkFreeCommandBuffers(
+        device->VulkanDevice, device->VulkanCommandPool, 1, &commandBuffer);
 }
 
 Buffer* vertex_buffer_create(GraphicsDevice* device, void* data, uint32_t size)
 {
     VkDeviceSize bufferSize = size * sizeof(scene::Vert);
     Buffer* buffer = new Buffer;
-    buffer->StagingBuffer
-        = generic_buffer_create(device, bufferSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
-            VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
+    buffer->StagingBuffer = generic_buffer_create(device, size, bufferSize,
+        VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
+        VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
 
     buffer->NullableClientData = data;
 
@@ -107,7 +110,7 @@ Buffer* vertex_buffer_create(GraphicsDevice* device, void* data, uint32_t size)
     memcpy(mData, data, bufferSize);
     vkUnmapMemory(device->VulkanDevice, buffer->StagingBuffer->DeviceData);
 
-    buffer->GenericBuffer = generic_buffer_create(device, bufferSize,
+    buffer->GenericBuffer = generic_buffer_create(device, size, bufferSize,
         VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT,
         VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
 
@@ -128,6 +131,65 @@ void vertex_buffer_bind(Buffer* buffer, VkCommandBuffer commandBuffer)
     VkBuffer vertexBuffers[] = { buffer->GenericBuffer->Handle };
     VkDeviceSize offsets[] = { 0 };
     vkCmdBindVertexBuffers(commandBuffer, 0, 1, vertexBuffers, offsets);
+}
+
+Buffer* index_buffer_create(GraphicsDevice* device, void* data, uint32_t size)
+{
+    VkDeviceSize bufferSize = size * sizeof(scene::Index);
+    Buffer* buffer = new Buffer;
+    buffer->StagingBuffer = generic_buffer_create(device, size, bufferSize,
+        VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
+        VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
+
+    buffer->NullableClientData = data;
+
+    void* mData;
+    vkMapMemory(device->VulkanDevice, buffer->StagingBuffer->DeviceData, 0, bufferSize, 0,
+        &mData);
+    memcpy(mData, data, bufferSize);
+    vkUnmapMemory(device->VulkanDevice, buffer->StagingBuffer->DeviceData);
+
+    buffer->GenericBuffer = generic_buffer_create(device, size, bufferSize,
+        VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_INDEX_BUFFER_BIT,
+        VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
+
+    buffer_copy(buffer, device);
+
+    return buffer;
+}
+
+void index_buffer_cleanup(Buffer* buffer)
+{
+    generic_buffer_cleanup(buffer->GenericBuffer);
+    generic_buffer_cleanup(buffer->StagingBuffer);
+    delete buffer;
+}
+
+void index_buffer_bind(Buffer* buffer, VkCommandBuffer commandBuffer)
+{
+    vkCmdBindIndexBuffer(
+        commandBuffer, buffer->GenericBuffer->Handle, 0, VK_INDEX_TYPE_UINT32);
+}
+
+template <typename T> GenBuffer* uniform_buffer_create(GraphicsDevice* device)
+{
+    GenBuffer* buffer
+        = generic_buffer_create(device, 0, sizeof(T), VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT,
+            VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
+
+    vkMapMemory(device->VulkanDevice, buffer->DeviceData, 0, buffer->Size, 0,
+        &buffer->MappedData);
+
+    return buffer;
+}
+
+void uniform_buffer_cleanup(GenBuffer* buffer) { generic_buffer_cleanup(buffer); }
+
+void uniform_buffer_bind(GenBuffer* buffer, VkCommandBuffer commandBuffer) { }
+
+template<typename T> void uniform_buffer_update(GenBuffer *buffer, T *data)
+{
+    memcpy(buffer->MappedData, (void*)data, sizeof(T));
 }
 
 }

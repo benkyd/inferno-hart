@@ -1,5 +1,7 @@
 #pragma once
 
+#include "hart_graphics.hpp"
+
 #include "scene/object.hpp"
 
 #include <memory>
@@ -13,6 +15,12 @@ namespace inferno::scene {
 
 class SceneObject;
 class Mesh;
+
+typedef struct UniformBufferObject {
+    glm::mat4 Model;
+    glm::mat4 View;
+    glm::mat4 Projection;
+} SceneUniformBufferObject;
 
 typedef struct Scene {
     std::vector<SceneObject*> Objects;

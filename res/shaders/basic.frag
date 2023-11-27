@@ -1,9 +1,9 @@
 #version 450 core
 
-layout(location = 0) out vec4 outColour;
+layout (location = 0) in vec3 vNormal;
+layout (location = 1) in vec3 vFragPos;
 
-in vec3 vNormal;
-in vec3 vFragPos;
+layout(location = 0) out vec4 outColour;
 
 vec3 lightColour = {1.0, 1.0, 1.0};
 vec3 lightPos = {12.0, 2.0, 4.0};

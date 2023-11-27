@@ -15,6 +15,9 @@ typedef struct GenBuffer {
     VkBuffer Handle;
     VkDeviceMemory DeviceData;
 
+    void* MappedData;
+
+    uint32_t Count;
     VkDeviceSize Size;
 } GenBuffer;
 
@@ -27,8 +30,8 @@ typedef struct Buffer {
     void* NullableClientData;
 } Buffer;
 
-GenBuffer* generic_buffer_create(GraphicsDevice* device, VkDeviceSize size,
-    VkBufferUsageFlags usage, VkMemoryPropertyFlags properties);
+GenBuffer* generic_buffer_create(GraphicsDevice* device, uint32_t count,
+    VkDeviceSize size, VkBufferUsageFlags usage, VkMemoryPropertyFlags properties);
 void generic_buffer_cleanup(GenBuffer* buffer);
 
 void buffer_copy(Buffer* buffer, GraphicsDevice* device);
@@ -40,5 +43,13 @@ void vertex_buffer_bind(Buffer* buffer, VkCommandBuffer commandBuffer);
 Buffer* index_buffer_create(GraphicsDevice* device, void* data, uint32_t size);
 void index_buffer_cleanup(Buffer* buffer);
 void index_buffer_bind(Buffer* buffer, VkCommandBuffer commandBuffer);
+
+// NOTE: Uniform buffers don't need staging buffers (?)
+// We also *do* want universally mapped memory to act as a "uniform buffer"
+template<typename T> GenBuffer* uniform_buffer_create(GraphicsDevice* device);
+void uniform_buffer_cleanup(GenBuffer* buffer);
+
+template<typename T> void uniform_buffer_update(GenBuffer* buffer, T* data);
+void uniform_buffer_bind(GenBuffer* buffer, VkCommandBuffer commandBuffer);
 
 }

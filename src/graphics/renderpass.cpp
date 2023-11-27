@@ -9,6 +9,7 @@
 #include "yolo/yolo.hpp"
 #include <vulkan/vulkan_core.h>
 
+
 namespace inferno::graphics {
 
 RenderPass* renderpass_create(GraphicsDevice* device)
@@ -52,7 +53,7 @@ RenderPass* renderpass_create(GraphicsDevice* device)
     }
 
     Shader* shader = shader_create(device);
-    shader_load(shader, "res/shaders/vulkan_test");
+    shader_load(shader, "res/shaders/basic");
 
     pipeline_configure_to_renderpass(renderpass->RenderPipeline, shader, renderpass);
     return renderpass;

@@ -10,12 +10,15 @@ struct GraphicsDevice;
 struct Pipeline;
 struct SwapChain;
 struct RenderPass;
+struct GenBuffer;
 
 // TODO: Make the inflight frames work better
 typedef struct FrameInFlight {
     VkSemaphore ImageAvailable;
     VkSemaphore RenderFinished;
-    VkFence InFlight;
+    VkFence Fence;
+
+    GenBuffer* UniformBuffer;
 } FrameInFlight;
 
 typedef struct VulkanRenderer {
@@ -25,13 +28,15 @@ typedef struct VulkanRenderer {
     // IT MAKES NO SENSE FOR THE PIPELINE TO OWN IT
     SwapChain* Swap;
 
-    std::vector<VkCommandBuffer> CommandBuffers;
-    uint32_t CurrentFrame;
-    uint32_t ImageIndex;
+    // TODO: This is really fucking annoying, how can we
+    // not do this? CommandBuffers need to be *sequential*
+    // in client memory
+    std::vector<VkCommandBuffer> CommandBuffersInFlight;
+    std::vector<FrameInFlight> InFlight;
 
-    std::vector<VkSemaphore> ImageAvailableSemaphores;
-    std::vector<VkSemaphore> RenderFinishedSemaphores;
-    std::vector<VkFence> InFlightFences;
+    FrameInFlight* CurrentFrame;
+    uint32_t CurrentFrameIndex;
+    uint32_t ImageIndex;
 } Renderer;
 
 Renderer* renderer_create(GraphicsDevice* device, SwapChain* swapchain);

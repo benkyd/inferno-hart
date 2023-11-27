@@ -15,6 +15,7 @@ typedef struct Pipeline {
     SwapChain* Swap;
 
     VkPipeline GraphicsPipeline;
+    VkDescriptorSetLayout DescriptorSetLayout; // WHY 
     VkPipelineLayout Layout;
 
     VkPipelineDynamicStateCreateInfo DynamicStates;
@@ -30,6 +31,7 @@ typedef struct Pipeline {
 Pipeline* pipeline_create(GraphicsDevice* device);
 void pipeline_cleanup(Pipeline* pipeline);
 
+void pipeline_create_descriptor_set_layout(Pipeline* pipeline);
 void pipeline_configure_to_renderpass(Pipeline* pipeline, Shader* shader, RenderPass* renderpass);
 
 }

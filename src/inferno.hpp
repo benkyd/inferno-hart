@@ -55,6 +55,7 @@ typedef struct InfernoApp {
     InfernoInput* Input;
     scene::Scene* Scene;
     graphics::Buffer* VBuffer;
+    graphics::Buffer* IBuffer;
 
     // graphics::PreviewRenderer* PreviewRenderer;
     graphics::RayRenderer* RayRenderer;

@@ -14,9 +14,33 @@
 
 namespace inferno::graphics {
 
+void pipeline_create_descriptor_set_layout(Pipeline* pipeline)
+{
+    VkDescriptorSetLayoutBinding uboLayoutBinding {};
+    uboLayoutBinding.binding = 0;
+    uboLayoutBinding.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+    uboLayoutBinding.descriptorCount = 1;
+
+    uboLayoutBinding.stageFlags = VK_SHADER_STAGE_VERTEX_BIT;
+    uboLayoutBinding.pImmutableSamplers = nullptr;
+
+    VkDescriptorSetLayoutCreateInfo layoutInfo {};
+    layoutInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO;
+    layoutInfo.bindingCount = 1;
+    layoutInfo.pBindings = &uboLayoutBinding;
+
+    if (vkCreateDescriptorSetLayout(
+            pipeline->Device->VulkanDevice, &layoutInfo, nullptr, &pipeline->DescriptorSetLayout)
+        != VK_SUCCESS) {
+        yolo::error("failed to create descriptor set layout!");
+    }
+}
+
 Pipeline* pipeline_create(GraphicsDevice* device)
 {
     Pipeline* pipeline = new Pipeline();
+
+    pipeline_create_descriptor_set_layout(pipeline);
 
     pipeline->Device = device;
     pipeline->Swap = swapchain_create(device, device->SurfaceSize);
@@ -98,8 +122,8 @@ Pipeline* pipeline_create(GraphicsDevice* device)
 
     VkPipelineLayoutCreateInfo pipelineLayoutInfo {};
     pipelineLayoutInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
-    pipelineLayoutInfo.setLayoutCount = 0; // Optional
-    pipelineLayoutInfo.pSetLayouts = nullptr; // Optional
+    pipelineLayoutInfo.setLayoutCount = 1;
+    pipelineLayoutInfo.pSetLayouts = &pipeline->DescriptorSetLayout;
     pipelineLayoutInfo.pushConstantRangeCount = 0; // Optional
     pipelineLayoutInfo.pPushConstantRanges = nullptr; // Optional
 
