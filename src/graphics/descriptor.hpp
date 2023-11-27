@@ -6,30 +6,24 @@ namespace inferno::graphics {
 
 struct GraphicsDevice;
 
+// NOTE: THIS IS NOT THE RIGHT WAY TO DO THIS
+
 typedef struct DescriptorSet {
-    VkDescriptorSet Set;
+    GraphicsDevice* Device;
+    VkDescriptorSet Handle;
     VkDescriptorSetLayout Layout;
 } DescriptorSet;
 
 typedef struct DescriptorPool {
-    VkDescriptorPool Pool;
-    std::vector<VkDescriptorSet> Sets;
+    GraphicsDevice* Device;
+    VkDescriptorPool Handle;
+    std::vector<DescriptorSet> Sets;
 } DescriptorPool;
 
-typedef struct Descriptor {
-    VkDescriptorType Type;
-    VkShaderStageFlags StageFlags;
-    uint32_t Binding;
-    uint32_t Count;
-} Descriptor;
-
-// reading docs ...
-
-DescriptorPool* descriptor_pool_create(GraphicsDevice* device, uint32_t max_sets, std::vector<Descriptor> descriptors);
+DescriptorPool* descriptor_pool_create(GraphicsDevice* device, uint32_t max_sets);
 void descriptor_pool_cleanup(DescriptorPool* pool);
 
-DescriptorSet* descriptor_set_create(GraphicsDevice* device, DescriptorPool* pool, std::vector<Descriptor> descriptors);
+DescriptorSet* descriptor_set_create(GraphicsDevice* device, DescriptorPool* pool);
 void descriptor_set_cleanup(DescriptorSet* set);
 
 }
-
