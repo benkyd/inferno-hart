@@ -6,6 +6,7 @@
 #include "swapchain.hpp"
 
 #include "yolo/yolo.hpp"
+#include <vulkan/vulkan_core.h>
 
 namespace inferno::graphics {
 
@@ -81,8 +82,7 @@ void renderer_configure_command_buffer(Renderer* renderer)
     yolo::debug("Command buffer created");
 }
 
-void renderer_record_command_buffer(
-    Renderer* renderer, uint32_t imageIndex)
+void renderer_record_command_buffer(Renderer* renderer, uint32_t imageIndex)
 {
     VkCommandBufferBeginInfo beginInfo {};
     beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
@@ -95,8 +95,24 @@ void renderer_record_command_buffer(
         yolo::error("failed to begin recording command buffer!");
     }
 
-    VkClearValue clearColor = { { { 0.0f, 0.3f, 0.3f, 1.0f } } };
+    VkImageMemoryBarrier imageMemoryBarrier {};
+    imageMemoryBarrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
+    imageMemoryBarrier.dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
+    imageMemoryBarrier.oldLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+    imageMemoryBarrier.newLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
+    imageMemoryBarrier.image = renderer->Swap->Images[renderer->ImageIndex];
+    imageMemoryBarrier.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+    imageMemoryBarrier.subresourceRange.baseMipLevel = 0;
+    imageMemoryBarrier.subresourceRange.layerCount = 1;
+    imageMemoryBarrier.subresourceRange.baseArrayLayer = 0;
+    imageMemoryBarrier.subresourceRange.levelCount = 1;
 
+    vkCmdPipelineBarrier(renderer->CommandBuffersInFlight[renderer->CurrentFrameIndex],
+        VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT,
+        VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT, 0, 0, nullptr, 0, nullptr, 1,
+        &imageMemoryBarrier);
+
+    VkClearValue clearColor = { { { 0.0f, 0.3f, 0.3f, 1.0f } } };
     VkRenderingAttachmentInfoKHR attachmentInfo {};
     attachmentInfo.sType = VK_STRUCTURE_TYPE_RENDERING_ATTACHMENT_INFO_KHR;
     attachmentInfo.imageView = renderer->Swap->ImageViews[imageIndex];
@@ -122,11 +138,9 @@ bool renderer_begin_frame(VulkanRenderer* renderer)
     vkWaitForFences(renderer->Device->VulkanDevice, 1, &renderer->CurrentFrame->Fence,
         VK_TRUE, UINT64_MAX);
 
-    uint32_t imageIndex;
     auto swapStatus = vkAcquireNextImageKHR(renderer->Device->VulkanDevice,
         renderer->Swap->Handle, UINT64_MAX, renderer->CurrentFrame->ImageAvailable,
-        VK_NULL_HANDLE, &imageIndex);
-    renderer->ImageIndex = imageIndex;
+        VK_NULL_HANDLE, &renderer->ImageIndex);
 
     if (swapStatus == VK_ERROR_OUT_OF_DATE_KHR || renderer->Device->Resized) {
         yolo::info("Swapchain out of date");
@@ -139,14 +153,30 @@ bool renderer_begin_frame(VulkanRenderer* renderer)
     vkResetFences(renderer->Device->VulkanDevice, 1, &renderer->CurrentFrame->Fence);
     vkResetCommandBuffer(
         renderer->CommandBuffersInFlight[renderer->CurrentFrameIndex], 0);
-    renderer_record_command_buffer(renderer, imageIndex);
+    renderer_record_command_buffer(renderer, renderer->ImageIndex);
     return true;
 }
 
 bool renderer_draw_frame(Renderer* renderer)
 {
-    vkCmdEndRendering(
-        renderer->CommandBuffersInFlight[renderer->CurrentFrameIndex]);
+    vkCmdEndRendering(renderer->CommandBuffersInFlight[renderer->CurrentFrameIndex]);
+
+    VkImageMemoryBarrier imageMemoryBarrier {};
+    imageMemoryBarrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
+    imageMemoryBarrier.srcAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
+    imageMemoryBarrier.oldLayout = VK_IMAGE_LAYOUT_ATTACHMENT_OPTIMAL;
+    imageMemoryBarrier.newLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
+    imageMemoryBarrier.image = renderer->Swap->Images[renderer->ImageIndex];
+    imageMemoryBarrier.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+    imageMemoryBarrier.subresourceRange.baseMipLevel = 0;
+    imageMemoryBarrier.subresourceRange.layerCount = 1;
+    imageMemoryBarrier.subresourceRange.baseArrayLayer = 0;
+    imageMemoryBarrier.subresourceRange.levelCount = 1;
+
+    vkCmdPipelineBarrier(renderer->CommandBuffersInFlight[renderer->CurrentFrameIndex],
+        VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT,
+        VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT, 0, 0, nullptr, 0, nullptr, 1,
+        &imageMemoryBarrier);
 
     if (vkEndCommandBuffer(renderer->CommandBuffersInFlight[renderer->CurrentFrameIndex])
         != VK_SUCCESS) {

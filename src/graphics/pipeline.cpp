@@ -141,10 +141,16 @@ Pipeline* pipeline_create(GraphicsDevice* device, SwapChain* swap)
     Shader* shader = shader_create(pipeline->Device);
     shader_load(shader, "res/shaders/vulkan_test");
 
+    VkPipelineRenderingCreateInfoKHR renderingPipelineInfo = {};
+    renderingPipelineInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_RENDERING_CREATE_INFO_KHR;
+    renderingPipelineInfo.colorAttachmentCount = 1;
+    renderingPipelineInfo.pColorAttachmentFormats = &pipeline->Swap->ImageFormat;
+
     VkGraphicsPipelineCreateInfo pipelineInfo = {};
     pipelineInfo.sType = VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO;
     pipelineInfo.stageCount = 2;
     pipelineInfo.pStages = shader->ShaderStages;
+    pipelineInfo.pNext = &renderingPipelineInfo;
 
     std::vector<VkDynamicState> dynamicStates
         = { VK_DYNAMIC_STATE_VIEWPORT, VK_DYNAMIC_STATE_SCISSOR };
