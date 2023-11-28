@@ -36,20 +36,17 @@ void generic_buffer_cleanup(GenBuffer* buffer);
 
 void buffer_copy(Buffer* buffer, GraphicsDevice* device);
 
-Buffer* vertex_buffer_create(GraphicsDevice* device, void* data, uint32_t size);
+Buffer* vertex_buffer_create(GraphicsDevice* device, void* data, uint32_t size, bool bind = false);
 void vertex_buffer_cleanup(Buffer* buffer);
 void vertex_buffer_bind(Buffer* buffer, VkCommandBuffer commandBuffer);
 
-Buffer* index_buffer_create(GraphicsDevice* device, void* data, uint32_t size);
+Buffer* index_buffer_create(GraphicsDevice* device, void* data, uint32_t size, bool bind = false);
 void index_buffer_cleanup(Buffer* buffer);
 void index_buffer_bind(Buffer* buffer, VkCommandBuffer commandBuffer);
 
-// NOTE: Uniform buffers don't need staging buffers (?)
-// We also *do* want universally mapped memory to act as a "uniform buffer"
-template<typename T> GenBuffer* uniform_buffer_create(GraphicsDevice* device);
+// We *do* want universally mapped memory to act as a "uniform buffer"
+template<typename T> GenBuffer* uniform_buffer_create(GraphicsDevice* device, bool bind = false);
 void uniform_buffer_cleanup(GenBuffer* buffer);
-
 template<typename T> void uniform_buffer_update(GenBuffer* buffer, T* data);
-void uniform_buffer_bind(GenBuffer* buffer, VkCommandBuffer commandBuffer);
 
 }

@@ -4,13 +4,13 @@
 
 namespace inferno::graphics {
 
-#define FRAMES_IN_FLIGHT 2
-
 struct GraphicsDevice;
 struct Pipeline;
 struct SwapChain;
 struct RenderPass;
 struct GenBuffer;
+struct Shader;
+
 
 // TODO: Make the inflight frames work better
 typedef struct FrameInFlight {
@@ -24,9 +24,6 @@ typedef struct FrameInFlight {
 typedef struct VulkanRenderer {
     GraphicsDevice* Device;
     SwapChain* Swap;
-
-    // NOTE: TEMPORARY
-    Pipeline* RenderPipeline;
 
     // TODO: This is really fucking annoying, how can we
     // not do this? CommandBuffers need to be *sequential*

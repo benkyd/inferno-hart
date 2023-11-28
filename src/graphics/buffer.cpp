@@ -171,7 +171,7 @@ void index_buffer_bind(Buffer* buffer, VkCommandBuffer commandBuffer)
         commandBuffer, buffer->GenericBuffer->Handle, 0, VK_INDEX_TYPE_UINT32);
 }
 
-template <typename T> GenBuffer* uniform_buffer_create(GraphicsDevice* device)
+template <typename T> GenBuffer* uniform_buffer_create(GraphicsDevice* device, bool bind)
 {
     GenBuffer* buffer
         = generic_buffer_create(device, 0, sizeof(T), VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT,
@@ -185,9 +185,7 @@ template <typename T> GenBuffer* uniform_buffer_create(GraphicsDevice* device)
 
 void uniform_buffer_cleanup(GenBuffer* buffer) { generic_buffer_cleanup(buffer); }
 
-void uniform_buffer_bind(GenBuffer* buffer, VkCommandBuffer commandBuffer) { }
-
-template<typename T> void uniform_buffer_update(GenBuffer *buffer, T *data)
+template <typename T> void uniform_buffer_update(GenBuffer* buffer, T* data)
 {
     memcpy(buffer->MappedData, (void*)data, sizeof(T));
 }

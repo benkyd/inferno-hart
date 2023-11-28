@@ -16,11 +16,12 @@ namespace inferno::scene {
 class SceneObject;
 class Mesh;
 
-typedef struct UniformBufferObject {
-    glm::mat4 Model;
-    glm::mat4 View;
+typedef struct GlobalUniformObject {
     glm::mat4 Projection;
-} SceneUniformBufferObject;
+    glm::mat4 View;
+    glm::mat4 _padding0; // Fuck you nvidia!
+    glm::mat4 _padding1;
+} GlobalUniformObject;
 
 typedef struct Scene {
     std::vector<SceneObject*> Objects;

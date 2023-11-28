@@ -12,9 +12,9 @@ struct Shader;
 typedef struct Pipeline {
     GraphicsDevice* Device;
     SwapChain* Swap;
+    Shader* RelaventShader;
 
     VkPipeline GraphicsPipeline;
-    VkDescriptorSetLayout DescriptorSetLayout; // WHY
     VkPipelineLayout Layout;
 
     VkPipelineDynamicStateCreateInfo DynamicStates;
@@ -27,9 +27,8 @@ typedef struct Pipeline {
     VkPipelineColorBlendStateCreateInfo ColorBlending;
 } Pipeline;
 
-Pipeline* pipeline_create(GraphicsDevice* device, SwapChain* swap);
+Pipeline* pipeline_create(GraphicsDevice* device, SwapChain* swap, Shader* shader,
+    uint32_t descriptorSetLayoutCount, VkDescriptorSetLayout* layouts);
 void pipeline_cleanup(Pipeline* pipeline);
-
-void pipeline_create_descriptor_set_layout(Pipeline* pipeline);
 
 }

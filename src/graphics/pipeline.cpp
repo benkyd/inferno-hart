@@ -1,7 +1,7 @@
 #include "pipeline.hpp"
 
 #include "device.hpp"
-#include "preview_renderer/shader.hpp"
+#include "shader.hpp"
 #include "swapchain.hpp"
 
 #include "scene/mesh.hpp"
@@ -13,36 +13,16 @@
 
 namespace inferno::graphics {
 
-void pipeline_create_descriptor_set_layout(Pipeline* pipeline)
-{
-    VkDescriptorSetLayoutBinding uboLayoutBinding {};
-    uboLayoutBinding.binding = 0;
-    uboLayoutBinding.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
-    uboLayoutBinding.descriptorCount = 1;
-
-    uboLayoutBinding.stageFlags = VK_SHADER_STAGE_VERTEX_BIT;
-    uboLayoutBinding.pImmutableSamplers = nullptr;
-
-    VkDescriptorSetLayoutCreateInfo layoutInfo {};
-    layoutInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO;
-    layoutInfo.bindingCount = 1;
-    layoutInfo.pBindings = &uboLayoutBinding;
-
-    if (vkCreateDescriptorSetLayout(pipeline->Device->VulkanDevice, &layoutInfo, nullptr,
-            &pipeline->DescriptorSetLayout)
-        != VK_SUCCESS) {
-        yolo::error("failed to create descriptor set layout!");
-    }
-}
-
-Pipeline* pipeline_create(GraphicsDevice* device, SwapChain* swap)
+Pipeline* pipeline_create(GraphicsDevice* device, SwapChain* swap, Shader* shader,
+    uint32_t descriptorSetLayoutCount, VkDescriptorSetLayout* layouts)
 {
     Pipeline* pipeline = new Pipeline();
 
     pipeline->Device = device;
     pipeline->Swap = swap;
+    pipeline->RelaventShader = shader;
 
-    pipeline_create_descriptor_set_layout(pipeline);
+    // pipeline_create_descriptor_set_layout(pipeline, descriptorSetLayoutCount, layouts);
 
     auto bindingDescription
         = new VkVertexInputBindingDescription(scene::get_vert_binding_description());
@@ -51,12 +31,6 @@ Pipeline* pipeline_create(GraphicsDevice* device, SwapChain* swap)
 
     yolo::debug("All Binding Description: {} stride: {}", bindingDescription->binding,
         bindingDescription->stride);
-    // yolo::debug("All Attribute Description0: {} location: {} format: {} offset: {}",
-    //     attributeDescriptions[0].binding, attributeDescriptions[0].location,
-    //     attributeDescriptions[0].format, attributeDescriptions[0].offset);
-    // yolo::debug("All Attribute Description1: {} location: {} format: {} offset: {}",
-    //     attributeDescriptions[1].binding, attributeDescriptions[1].location,
-    //     attributeDescriptions[1].format, attributeDescriptions[1].offset);
 
     pipeline->VertexInputInfo.sType
         = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO;
@@ -124,8 +98,8 @@ Pipeline* pipeline_create(GraphicsDevice* device, SwapChain* swap)
 
     VkPipelineLayoutCreateInfo pipelineLayoutInfo {};
     pipelineLayoutInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
-    pipelineLayoutInfo.setLayoutCount = 1;
-    pipelineLayoutInfo.pSetLayouts = &pipeline->DescriptorSetLayout;
+    pipelineLayoutInfo.setLayoutCount = descriptorSetLayoutCount;
+    pipelineLayoutInfo.pSetLayouts = layouts;
     pipelineLayoutInfo.pushConstantRangeCount = 0; // Optional
     pipelineLayoutInfo.pPushConstantRanges = nullptr; // Optional
 
@@ -137,9 +111,6 @@ Pipeline* pipeline_create(GraphicsDevice* device, SwapChain* swap)
     }
 
     yolo::info("Created pipeline layout");
-
-    Shader* shader = shader_create(pipeline->Device);
-    shader_load(shader, "res/shaders/vulkan_test");
 
     VkPipelineRenderingCreateInfoKHR renderingPipelineInfo = {};
     renderingPipelineInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_RENDERING_CREATE_INFO_KHR;

@@ -262,11 +262,12 @@ int inferno_run(InfernoApp* app)
         if (!graphics::renderer_begin_frame(app->Renderer))
             continue;
 
-        vkCmdBindPipeline(
-            app->Renderer->CommandBuffersInFlight[app->Renderer->CurrentFrameIndex],
-            VK_PIPELINE_BIND_POINT_GRAPHICS,
-            app->Renderer->RenderPipeline->GraphicsPipeline);
+        VkCommandBuffer commandBuffer
+            = app->Renderer->CommandBuffersInFlight[app->Renderer->CurrentFrameIndex];
 
+        // shader bind
+
+        // Put these two in the bloody pipeline code
         VkViewport viewport {};
         viewport.x = 0.0f;
         viewport.y = 0.0f;

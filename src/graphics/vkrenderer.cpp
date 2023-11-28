@@ -15,7 +15,6 @@ VulkanRenderer* renderer_create(GraphicsDevice* device)
     auto renderer = new VulkanRenderer();
     renderer->Device = device;
     renderer->Swap = swapchain_create(device, device->SurfaceSize);
-    renderer->RenderPipeline = pipeline_create(device, renderer->Swap);
 
     renderer->InFlight.resize(FRAMES_IN_FLIGHT);
 

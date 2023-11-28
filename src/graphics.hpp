@@ -1,6 +1,8 @@
 #pragma once
 
 // easy include for graphics shit
+#define FRAMES_IN_FLIGHT 3
+#define SHADER_STAGES 2
 
 // Include GLFW and ImGUI
 #ifdef _WIN32
