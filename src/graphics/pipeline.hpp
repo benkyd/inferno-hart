@@ -25,6 +25,7 @@ typedef struct Pipeline {
     VkPipelineMultisampleStateCreateInfo Multisampling;
     VkPipelineColorBlendAttachmentState ColorBlendAttachment;
     VkPipelineColorBlendStateCreateInfo ColorBlending;
+    VkPipelineDepthStencilStateCreateInfo DepthState;
 } Pipeline;
 
 Pipeline* pipeline_create(GraphicsDevice* device, SwapChain* swap, Shader* shader,

@@ -94,6 +94,18 @@ Pipeline* pipeline_create(GraphicsDevice* device, SwapChain* swap, Shader* shade
     pipeline->ColorBlending.blendConstants[2] = 0.0f; // Optional
     pipeline->ColorBlending.blendConstants[3] = 0.0f; // pipeline->Optional
 
+    pipeline->DepthState.sType
+        = VK_STRUCTURE_TYPE_PIPELINE_DEPTH_STENCIL_STATE_CREATE_INFO;
+    pipeline->DepthState.depthTestEnable = VK_TRUE;
+    pipeline->DepthState.depthWriteEnable = VK_TRUE;
+    pipeline->DepthState.depthCompareOp = VK_COMPARE_OP_LESS;
+    pipeline->DepthState.depthBoundsTestEnable = VK_FALSE;
+    pipeline->DepthState.minDepthBounds = 0.0f;
+    pipeline->DepthState.maxDepthBounds = 1.0f;
+    pipeline->DepthState.stencilTestEnable = VK_FALSE;
+    pipeline->DepthState.front = {};
+    pipeline->DepthState.back = {};
+
     VkPipelineLayoutCreateInfo pipelineLayoutInfo {};
     pipelineLayoutInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
     pipelineLayoutInfo.setLayoutCount = descriptorSetLayoutCount;
@@ -135,6 +147,7 @@ Pipeline* pipeline_create(GraphicsDevice* device, SwapChain* swap, Shader* shade
     pipelineInfo.pMultisampleState = &pipeline->Multisampling;
     pipelineInfo.pColorBlendState = &pipeline->ColorBlending;
     pipelineInfo.pDynamicState = &pipeline->DynamicStates;
+    pipelineInfo.pDepthStencilState = &pipeline->DepthState;
     pipelineInfo.layout = pipeline->Layout;
     pipelineInfo.subpass = 0;
     pipelineInfo.basePipelineHandle = VK_NULL_HANDLE; // Optional

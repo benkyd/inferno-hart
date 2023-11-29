@@ -128,9 +128,11 @@ VkFormat find_format(GraphicsDevice* device, const std::vector<VkFormat>& candid
 
 VkFormat find_depth_format(GraphicsDevice* device)
 {
-    return find_format(device, { VK_FORMAT_D32_SFLOAT, VK_FORMAT_D32_SFLOAT_S8_UINT,
-                                   VK_FORMAT_D24_UNORM_S8_UINT },
-        VK_IMAGE_TILING_OPTIMAL, VK_FORMAT_FEATURE_DEPTH_STENCIL_ATTACHMENT_BIT);
+    // depth and stencil format
+    return VK_FORMAT_D32_SFLOAT_S8_UINT;
+    // return find_format(device, { VK_FORMAT_D, VK_FORMAT_D32_SFLOAT_S8_UINT,
+    //                                VK_FORMAT_D24_UNORM_S8_UINT },
+    //     VK_IMAGE_TILING_OPTIMAL, VK_FORMAT_FEATURE_DEPTH_STENCIL_ATTACHMENT_BIT);
 }
 
 VkSurfaceFormatKHR device_choose_swap_surface_format(

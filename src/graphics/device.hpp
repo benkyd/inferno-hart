@@ -16,6 +16,7 @@ const std::vector<const char*> VALIDATION_LAYERS = {
 const std::vector<const char*> DEVICE_EXTENSIONS = {
     VK_KHR_SWAPCHAIN_EXTENSION_NAME,
     VK_KHR_DYNAMIC_RENDERING_EXTENSION_NAME,
+    VK_EXT_DYNAMIC_RENDERING_UNUSED_ATTACHMENTS_EXTENSION_NAME,
 };
 
 typedef struct GraphicsDevice {

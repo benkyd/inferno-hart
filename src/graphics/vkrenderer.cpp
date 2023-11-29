@@ -112,7 +112,7 @@ void renderer_record_command_buffer(Renderer* renderer, uint32_t imageIndex)
         &imageMemoryBarrier);
 
     VkClearValue clearColor = { { { 0.0f, 0.0f, 0.0f, 1.0f } } };
-    VkRenderingAttachmentInfoKHR attachmentInfo {};
+    VkRenderingAttachmentInfo attachmentInfo {};
     attachmentInfo.sType = VK_STRUCTURE_TYPE_RENDERING_ATTACHMENT_INFO_KHR;
     attachmentInfo.imageView = renderer->Swap->ImageViews[imageIndex];
     attachmentInfo.imageLayout = VK_IMAGE_LAYOUT_ATTACHMENT_OPTIMAL_KHR;
@@ -120,17 +120,19 @@ void renderer_record_command_buffer(Renderer* renderer, uint32_t imageIndex)
     attachmentInfo.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
     attachmentInfo.clearValue = clearColor;
 
-    VkRenderingAttachmentInfoKHR depthAttachmentInfo;
+    VkRenderingAttachmentInfo depthAttachmentInfo;
     depthAttachmentInfo.sType = VK_STRUCTURE_TYPE_RENDERING_ATTACHMENT_INFO_KHR;
     depthAttachmentInfo.imageView = renderer->Swap->DepthImageView;
     depthAttachmentInfo.imageLayout = VK_IMAGE_LAYOUT_ATTACHMENT_OPTIMAL_KHR;
     depthAttachmentInfo.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
     depthAttachmentInfo.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
     depthAttachmentInfo.clearValue.depthStencil = { 1.0f, 0 };
+    depthAttachmentInfo.resolveMode = VK_RESOLVE_MODE_NONE;
     depthAttachmentInfo.resolveImageView = VK_NULL_HANDLE;
     depthAttachmentInfo.resolveImageLayout = VK_IMAGE_LAYOUT_GENERAL;
+    depthAttachmentInfo.pNext = VK_NULL_HANDLE;
 
-    VkRenderingInfoKHR renderingInfo {};
+    VkRenderingInfo renderingInfo {};
     renderingInfo.sType = VK_STRUCTURE_TYPE_RENDERING_INFO_KHR;
     renderingInfo.renderArea
         = { 0, 0, renderer->Swap->Extent.width, renderer->Swap->Extent.height };
