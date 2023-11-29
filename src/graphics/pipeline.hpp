@@ -14,6 +14,9 @@ typedef struct Pipeline {
     SwapChain* Swap;
     Shader* RelaventShader;
 
+    uint32_t DescriptorSetLayoutCount;
+    VkDescriptorSetLayout* DescriptorSetLayouts;
+
     VkPipeline GraphicsPipeline;
     VkPipelineLayout Layout;
 
@@ -31,5 +34,7 @@ typedef struct Pipeline {
 Pipeline* pipeline_create(GraphicsDevice* device, SwapChain* swap, Shader* shader,
     uint32_t descriptorSetLayoutCount, VkDescriptorSetLayout* layouts);
 void pipeline_cleanup(Pipeline* pipeline);
+
+void pipeline_recreate(Pipeline* pipeline);
 
 }

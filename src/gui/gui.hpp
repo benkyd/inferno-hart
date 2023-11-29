@@ -5,12 +5,12 @@
 #include "graphics/device.hpp"
 #include "window.hpp"
 
-namespace inferno {
+#include "yolo/yolo.hpp"
 
-inline void setupImGui(graphics::GraphicsDevice* device)
+namespace inferno::gui {
+
+inline void imgui_init(graphics::GraphicsDevice* device)
 {
-    // 1: create descriptor pool for IMGUI
-    //  the size of the pool is very oversize, but it's copied from imgui demo itself.
     VkDescriptorPoolSize pool_sizes[] = {
         { VK_DESCRIPTOR_TYPE_SAMPLER, 1000 },
         { VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, 1000 },
@@ -38,8 +38,7 @@ inline void setupImGui(graphics::GraphicsDevice* device)
     // this initializes the core structures of imgui
     ImGui::CreateContext();
 
-    // this initializes imgui for SDL
-    ImGui_ImplGlfw_InitForVulkan(graphics::Window, true);
+    ImGui_ImplGlfw_InitForVulkan(graphics::Window, false);
 
     // this initializes imgui for Vulkan
     ImGui_ImplVulkan_InitInfo init_info = {};
@@ -67,6 +66,8 @@ inline void setupImGui(graphics::GraphicsDevice* device)
     //     vkDestroyDescriptorPool(_device, imguiPool, nullptr);
     //     ImGui_ImplVulkan_Shutdown();
     // });
+
+    yolo::info("Initialized ImGUI");
 }
 
 }

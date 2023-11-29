@@ -3,7 +3,7 @@
 #include <graphics.hpp>
 #include <version.hpp>
 
-// #include "gui/layout.hpp"
+#include "gui/gui.hpp"
 // #include "renderer/renderer.hpp"
 // #include "scene/scene.hpp"
 #include "graphics/buffer.hpp"
@@ -96,6 +96,8 @@ InfernoApp* inferno_create()
     app->Device = graphics::device_create();
     app->Renderer = graphics::renderer_create(app->Device);
     graphics::renderer_configure_command_buffer(app->Renderer);
+
+    gui::imgui_init(app->Device);
 
     app->Shader = graphics::shader_create(app->Device, app->Renderer->Swap);
     graphics::shader_load(app->Shader, "res/shaders/basic");

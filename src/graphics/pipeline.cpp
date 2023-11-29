@@ -22,6 +22,9 @@ Pipeline* pipeline_create(GraphicsDevice* device, SwapChain* swap, Shader* shade
     pipeline->Swap = swap;
     pipeline->RelaventShader = shader;
 
+    pipeline->DescriptorSetLayoutCount = descriptorSetLayoutCount;
+    pipeline->DescriptorSetLayouts = layouts;
+
     auto bindingDescription
         = new VkVertexInputBindingDescription(scene::get_vert_binding_description());
     auto attributeDescriptions = new std::array<VkVertexInputAttributeDescription, 2>(
@@ -56,7 +59,7 @@ Pipeline* pipeline_create(GraphicsDevice* device, SwapChain* swap, Shader* shade
     pipeline->Rasterizer.rasterizerDiscardEnable = VK_FALSE;
     pipeline->Rasterizer.polygonMode = VK_POLYGON_MODE_FILL;
     pipeline->Rasterizer.lineWidth = 1.f;
-    pipeline->Rasterizer.cullMode = VK_CULL_MODE_NONE;
+    pipeline->Rasterizer.cullMode = VK_CULL_MODE_BACK_BIT;
     pipeline->Rasterizer.frontFace = VK_FRONT_FACE_COUNTER_CLOCKWISE;
     pipeline->Rasterizer.depthBiasEnable = VK_FALSE;
     pipeline->Rasterizer.depthBiasConstantFactor = 0.f; // Optional
@@ -185,6 +188,22 @@ void pipeline_cleanup(Pipeline* pipeline)
         pipeline->Device->VulkanDevice, pipeline->GraphicsPipeline, nullptr);
     vkDestroyPipelineLayout(pipeline->Device->VulkanDevice, pipeline->Layout, nullptr);
     delete pipeline;
+}
+
+void pipeline_recreate(Pipeline* pipeline)
+{
+    vkDeviceWaitIdle(pipeline->Device->VulkanDevice);
+    GraphicsDevice* device = pipeline->Device;
+    SwapChain* swap = pipeline->Swap;
+
+    swapchain_recreate(swap);
+
+    Shader* shader = pipeline->RelaventShader;
+    uint32_t descriptorSetLayoutCount = pipeline->DescriptorSetLayoutCount;
+    VkDescriptorSetLayout* layouts = pipeline->DescriptorSetLayouts;
+
+    pipeline_cleanup(pipeline);
+    pipeline = pipeline_create(device, swap, shader, descriptorSetLayoutCount, layouts);
 }
 
 } // namespace inferno::graphics
