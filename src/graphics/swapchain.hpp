@@ -31,4 +31,6 @@ void swapchain_framebuffers_create(SwapChain* swapchain);
 
 void swapchain_recreate(SwapChain* swapchain);
 
+VkFormat find_depth_format(GraphicsDevice* device);
+
 }

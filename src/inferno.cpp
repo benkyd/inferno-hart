@@ -307,7 +307,6 @@ int inferno_run(InfernoApp* app)
                 inferno_timer_get_time(app->MainTimer).count());
 
         inferno_move_input(app, inferno_timer_get_time(app->MainTimer));
-        exit(0);
 
         //     // Menu Bar
         //     static bool showPreview = true;

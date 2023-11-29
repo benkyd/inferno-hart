@@ -126,6 +126,8 @@ Pipeline* pipeline_create(GraphicsDevice* device, SwapChain* swap, Shader* shade
     renderingPipelineInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_RENDERING_CREATE_INFO_KHR;
     renderingPipelineInfo.colorAttachmentCount = 1;
     renderingPipelineInfo.pColorAttachmentFormats = &pipeline->Swap->ImageFormat;
+    renderingPipelineInfo.depthAttachmentFormat = find_depth_format(device);
+    renderingPipelineInfo.pNext = nullptr;
 
     VkGraphicsPipelineCreateInfo pipelineInfo = {};
     pipelineInfo.sType = VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO;
