@@ -11,6 +11,8 @@ namespace inferno::graphics {
 
 struct GraphicsDevice;
 
+static GLFWwindow* Window;
+
 typedef void (*KeyCallback)(int key, int scan, int action, int mod);
 typedef void (*MouseCallback)(double x, double y);
 
