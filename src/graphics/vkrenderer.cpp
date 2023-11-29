@@ -111,7 +111,7 @@ void renderer_record_command_buffer(Renderer* renderer, uint32_t imageIndex)
         VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT, 0, 0, nullptr, 0, nullptr, 1,
         &imageMemoryBarrier);
 
-    VkClearValue clearColor = { { { 0.0f, 0.3f, 0.3f, 1.0f } } };
+    VkClearValue clearColor = { { { 0.0f, 0.0f, 0.0f, 1.0f } } };
     VkRenderingAttachmentInfoKHR attachmentInfo {};
     attachmentInfo.sType = VK_STRUCTURE_TYPE_RENDERING_ATTACHMENT_INFO_KHR;
     attachmentInfo.imageView = renderer->Swap->ImageViews[imageIndex];
@@ -163,7 +163,7 @@ bool renderer_draw_frame(Renderer* renderer)
     VkImageMemoryBarrier imageMemoryBarrier {};
     imageMemoryBarrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
     imageMemoryBarrier.srcAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
-    imageMemoryBarrier.oldLayout = VK_IMAGE_LAYOUT_ATTACHMENT_OPTIMAL;
+    imageMemoryBarrier.oldLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
     imageMemoryBarrier.newLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
     imageMemoryBarrier.image = renderer->Swap->Images[renderer->ImageIndex];
     imageMemoryBarrier.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;

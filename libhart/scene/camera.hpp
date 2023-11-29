@@ -55,8 +55,8 @@ glm::ivec2 camera_raster_get_viewport(Camera* camera);
 void camera_ray_set_viewport(Camera* camera, glm::ivec2 viewport);
 glm::ivec2 camera_ray_get_viewport(Camera* camera);
 
-void camera_move(Camera* camera, uint8_t movement_delta);
-void camera_mouse_move(Camera* camera, glm::vec2 mouse_delta);
+void camera_move(Camera* camera, uint8_t movement_delta, float delta_time);
+void camera_mouse_move(Camera* camera, glm::vec2 mouse_delta, float delta_time);
 
 void camera_set_position(Camera* camera, glm::vec3 position);
 void camera_set_euler_look(Camera* camera, float roll,

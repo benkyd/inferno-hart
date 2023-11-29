@@ -45,7 +45,7 @@ typedef struct Shader {
     VkPipelineVertexInputStateCreateInfo VertexInputInfo;
 } Shader;
 
-Shader* shader_create(GraphicsDevice* device);
+Shader* shader_create(GraphicsDevice* device, SwapChain* swapchain);
 void shader_cleanup(Shader* shader);
 
 void shader_load(Shader* shader, std::filesystem::path path);

@@ -2,6 +2,8 @@
 
 #include "graphics.hpp"
 
+#include "device.hpp"
+
 namespace inferno::scene {
 struct Vert;
 }
@@ -45,8 +47,23 @@ void index_buffer_cleanup(Buffer* buffer);
 void index_buffer_bind(Buffer* buffer, VkCommandBuffer commandBuffer);
 
 // We *do* want universally mapped memory to act as a "uniform buffer"
-template<typename T> GenBuffer* uniform_buffer_create(GraphicsDevice* device, bool bind = false);
-void uniform_buffer_cleanup(GenBuffer* buffer);
-template<typename T> void uniform_buffer_update(GenBuffer* buffer, T* data);
+template<typename T> GenBuffer* uniform_buffer_create(GraphicsDevice* device, bool bind = false)
+{
+    GenBuffer* buffer
+        = generic_buffer_create(device, 0, sizeof(T), VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT,
+            VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
+
+    vkMapMemory(device->VulkanDevice, buffer->DeviceData, 0, buffer->Size, 0,
+        &buffer->MappedData);
+
+    return buffer;
+}
+
+inline void uniform_buffer_cleanup(GenBuffer* buffer) { generic_buffer_cleanup(buffer); }
+
+template<typename T> void uniform_buffer_update(GenBuffer* buffer, T* data)
+{
+    memcpy(buffer->MappedData, (void*)data, sizeof(T));
+}
 
 }

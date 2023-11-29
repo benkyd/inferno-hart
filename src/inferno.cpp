@@ -9,25 +9,22 @@
 #include "graphics/buffer.hpp"
 #include "graphics/device.hpp"
 #include "graphics/pipeline.hpp"
+#include "graphics/shader.hpp"
 #include "graphics/swapchain.hpp"
 #include "graphics/vkrenderer.hpp"
 #include "window.hpp"
 
 // #include "preview_renderer/debug.hpp"
 // #include "preview_renderer/renderer.hpp"
-// #include "preview_renderer/shader.hpp"
-// #include "scene/camera.hpp"
+#include "scene/camera.hpp"
 // #include "scene/material.hpp"
 #include "scene/mesh.hpp"
-// #include "scene/scene.hpp"
+#include "scene/scene.hpp"
 
 #include <yolo/yolo.hpp>
 
 #include <chrono>
-#include <iostream>
-#include <memory>
 #include <numeric>
-#include <set>
 
 namespace inferno {
 
@@ -87,11 +84,12 @@ InfernoApp* inferno_create()
     yolo::info("INFERNO HART v" INFERNO_VERSION);
 
     InfernoApp* app = new InfernoApp;
-    // app->Input = new InfernoInput;
-    // app->Scene = scene::scene_create();
+    app->Input = new InfernoInput;
+    app->Scene = scene::scene_create();
     app->MainTimer = inferno_timer_create();
 
-    // graphics::camera_set_position(app->Scene->Camera, { 0.0f, 1.0f, 3.1f });
+    app->Camera = graphics::camera_create();
+    graphics::camera_set_position(app->Camera, { 0.0f, 1.0f, 3.1f });
 
     // Create window
     graphics::window_create("Inferno v" INFERNO_VERSION, 1920, 1080);
@@ -99,42 +97,47 @@ InfernoApp* inferno_create()
     app->Renderer = graphics::renderer_create(app->Device);
     graphics::renderer_configure_command_buffer(app->Renderer);
 
-    std::vector<scene::Vert> verticies
-        = { { { -0.5f, -0.5f, 0.0f }, { 1.0f, 0.0f, 0.0f } },
-              { { 0.5f, -0.5f, 0.0f }, { 0.0f, 1.0f, 0.0f } },
-              { { 0.5f, 0.5, 0.0f }, { 0.0f, 0.0f, 1.0f } },
-              { { -0.5f, 0.5f, 0.0f }, { 1.0f, 1.0f, 1.0f } } };
+    app->Shader = graphics::shader_create(app->Device, app->Renderer->Swap);
+    graphics::shader_load(app->Shader, "res/shaders/basic");
+    graphics::shader_build(app->Shader);
 
-    app->VBuffer
-        = graphics::vertex_buffer_create(app->Device, verticies.data(), verticies.size());
+    // std::vector<scene::Vert> verticies
+    //     = { { { -0.5f, -0.5f, 0.0f }, { 1.0f, 0.0f, 0.0f } },
+    //           { { 0.5f, -0.5f, 0.0f }, { 0.0f, 1.0f, 0.0f } },
+    //           { { 0.5f, 0.5, 0.0f }, { 0.0f, 0.0f, 1.0f } },
+    //           { { -0.5f, 0.5f, 0.0f }, { 1.0f, 1.0f, 1.0f } } };
+    //
+    // app->VBuffer
+    //     = graphics::vertex_buffer_create(app->Device, verticies.data(),
+    //     verticies.size());
+    //
+    // std::vector<scene::Index> indicies = { 0, 1, 2, 2, 3, 0 };
+    //
+    // app->IBuffer
+    //     = graphics::index_buffer_create(app->Device, indicies.data(), indicies.size());
 
-    std::vector<scene::Index> indicies = { 0, 1, 2, 2, 3, 0 };
-
-    app->IBuffer
-        = graphics::index_buffer_create(app->Device, indicies.data(), indicies.size());
-
-    // // setup the scene
+    // setup the scene
     // scene::Material* basicMaterial = new scene::Material("basic");
     // graphics::Shader* basicShader = graphics::shader_create();
     // graphics::shader_load(basicShader, "res/shaders/basic.glsl");
     // graphics::shader_link(basicShader);
     // basicMaterial->setGlShader(basicShader);
-    //
-    // scene::Mesh* mesh = new scene::Mesh;
-    // mesh->loadOBJ("res/cornell.obj");
-    // mesh->ready();
+
+    scene::Mesh* mesh = scene::mesh_create(app->Device);
+    scene::mesh_load_obj(mesh, "res/cornell.obj");
+    scene::mesh_ready(mesh);
     // mesh->setMaterial(basicMaterial);
-    // scene::SceneObject* object = scene::scene_object_create();
-    // scene::scene_object_add_mesh(object, mesh);
-    // scene::scene_add_object(app->Scene, object);
-    //
-    // // scene::Mesh* box = new scene::Mesh;
-    // // box->loadOBJ("res/cornell.obj");
-    // // box->ready();
-    // // box->setMaterial(basicMaterial);
-    // // scene::SceneObject* box_object = scene::scene_object_create();
-    // // scene::scene_object_add_mesh(box_object, box);
-    // // scene::scene_add_object(app->Scene, box_object);
+    scene::SceneObject* object = scene::scene_object_create();
+    scene::scene_object_add_mesh(object, mesh);
+    scene::scene_add_object(app->Scene, object);
+
+    // scene::Mesh* box = new scene::Mesh;
+    // box->loadOBJ("res/cornell.obj");
+    // box->ready();
+    // box->setMaterial(basicMaterial);
+    // scene::SceneObject* box_object = scene::scene_object_create();
+    // scene::scene_object_add_mesh(box_object, box);
+    // scene::scene_add_object(app->Scene, box_object);
     //
     // app->PreviewRenderer = graphics::preview_create();
     // graphics::preview_set_viewport(app->PreviewRenderer, app->Scene->Camera);
@@ -264,46 +267,47 @@ int inferno_run(InfernoApp* app)
 
         VkCommandBuffer commandBuffer
             = app->Renderer->CommandBuffersInFlight[app->Renderer->CurrentFrameIndex];
+        uint32_t frameIndex = app->Renderer->CurrentFrameIndex;
 
         // shader bind
+        graphics::shader_use(app->Shader, commandBuffer);
+        scene::GlobalUniformObject globalUniformObject {
+            .Projection = graphics::camera_get_projection(app->Camera),
+            .View = graphics::camera_get_view(app->Camera),
+        };
 
-        // Put these two in the bloody pipeline code
-        VkViewport viewport {};
-        viewport.x = 0.0f;
-        viewport.y = 0.0f;
-        viewport.width = static_cast<float>(app->Renderer->Swap->Extent.width);
-        viewport.height = static_cast<float>(app->Renderer->Swap->Extent.height);
-        viewport.minDepth = 0.0f;
-        viewport.maxDepth = 1.0f;
-        vkCmdSetViewport(
-            app->Renderer->CommandBuffersInFlight[app->Renderer->CurrentFrameIndex], 0, 1,
-            &viewport);
+        graphics::shader_update_state(
+            app->Shader, commandBuffer, globalUniformObject, frameIndex);
 
-        VkRect2D scissor {};
-        scissor.offset = { 0, 0 };
-        scissor.extent = app->Renderer->Swap->Extent;
-        vkCmdSetScissor(
-            app->Renderer->CommandBuffersInFlight[app->Renderer->CurrentFrameIndex], 0, 1,
-            &scissor);
+        for (auto& object : scene::scene_get_renderables(app->Scene)) {
+            graphics::vertex_buffer_bind(object->Meshs[0]->VertexBuffer, commandBuffer);
+            graphics::index_buffer_bind(object->Meshs[0]->IndexBuffer, commandBuffer);
 
-        graphics::vertex_buffer_bind(app->VBuffer,
-            app->Renderer->CommandBuffersInFlight[app->Renderer->CurrentFrameIndex]);
-        graphics::index_buffer_bind(app->IBuffer,
-            app->Renderer->CommandBuffersInFlight[app->Renderer->CurrentFrameIndex]);
+            vkCmdDrawIndexed(commandBuffer,
+                object->Meshs[0]->IndexBuffer->GenericBuffer->Count, 1, 0, 0, 0);
+        }
 
-        vkCmdDrawIndexed(
-            app->Renderer->CommandBuffersInFlight[app->Renderer->CurrentFrameIndex],
-            app->IBuffer->GenericBuffer->Count, 1, 0, 0, 0);
+        // graphics::shader_update_state(
+        //     app->Shader, commandBuffer, globalUniformObject, frameIndex);
+        //
+        // // Put these two in the bloody mesh code
+        // graphics::vertex_buffer_bind(app->VBuffer, commandBuffer);
+        // graphics::index_buffer_bind(app->IBuffer, commandBuffer);
+
+        // vkCmdDrawIndexed(commandBuffer, app->IBuffer->GenericBuffer->Count, 1, 0, 0,
+        // 0);
 
         graphics::renderer_draw_frame(app->Renderer);
 
-        //
-        //     if (glm::length(app->Input->MouseDelta) > 0.0f)
-        //         graphics::camera_mouse_move(app->Scene->Camera,
-        //         app->Input->MouseDelta);
-        //     if (app->Input->MovementDelta != 0b00000000)
-        //         graphics::camera_move(app->Scene->Camera, app->Input->MovementDelta);
-        //
+        if (glm::length(app->Input->MouseDelta) > 0.0f)
+            graphics::camera_mouse_move(app->Camera, app->Input->MouseDelta,
+                inferno_timer_get_time(app->MainTimer).count());
+        if (app->Input->MovementDelta != 0b00000000)
+            graphics::camera_move(app->Camera, app->Input->MovementDelta,
+                inferno_timer_get_time(app->MainTimer).count());
+
+        inferno_move_input(app, inferno_timer_get_time(app->MainTimer));
+
         //     // Menu Bar
         //     static bool showPreview = true;
         //     static bool showRenderSettings = true;

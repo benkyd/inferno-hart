@@ -3,6 +3,7 @@
 #include "buffer.hpp"
 #include "device.hpp"
 #include "pipeline.hpp"
+#include "swapchain.hpp"
 
 #include "scene/scene.hpp"
 
@@ -20,10 +21,11 @@ std::string textFromFile(const std::filesystem::path& path)
         (std::istreambuf_iterator<char>(input)), std::istreambuf_iterator<char>());
 }
 
-Shader* shader_create(GraphicsDevice* device)
+Shader* shader_create(GraphicsDevice* device, SwapChain* swapchain)
 {
     Shader* shader = new Shader;
     shader->Device = device;
+    shader->GraphicsSwapchain = swapchain;
 
     return shader;
 }
@@ -174,6 +176,20 @@ void shader_use(Shader* shader, VkCommandBuffer commandBuffer)
 {
     vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS,
         shader->GraphicsPipeline->GraphicsPipeline);
+
+    VkViewport viewport {};
+    viewport.x = 0.0f;
+    viewport.y = static_cast<float>(shader->GraphicsPipeline->Swap->Extent.height);
+    viewport.width = static_cast<float>(shader->GraphicsPipeline->Swap->Extent.width);
+    viewport.height = -static_cast<float>(shader->GraphicsPipeline->Swap->Extent.height);
+    viewport.minDepth = 0.0f;
+    viewport.maxDepth = 1.0f;
+    vkCmdSetViewport(commandBuffer, 0, 1, &viewport);
+
+    VkRect2D scissor {};
+    scissor.offset = { 0, 0 };
+    scissor.extent = shader->GraphicsPipeline->Swap->Extent;
+    vkCmdSetScissor(commandBuffer, 0, 1, &scissor);
 }
 
 void shader_unuse(Shader* shader, VkCommandBuffer commandBuffer)

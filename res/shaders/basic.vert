@@ -6,6 +6,8 @@ layout (location = 1) in vec3 normal;
 layout (binding = 0) uniform SceneUniformBufferObject {
     mat4 proj;
     mat4 view;
+    mat4 unused0;
+    mat4 unused1;
 } ubo;
 
 // mat4 model;

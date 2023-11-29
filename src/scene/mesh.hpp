@@ -35,6 +35,7 @@ typedef struct Mesh {
     std::vector<Vert> Verticies;
 
     graphics::Buffer* VertexBuffer;
+    graphics::Buffer* IndexBuffer;
 } Mesh;
 
 Mesh* mesh_create(graphics::GraphicsDevice* device);

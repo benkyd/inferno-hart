@@ -94,7 +94,7 @@ void buffer_copy(Buffer* buffer, GraphicsDevice* device)
         device->VulkanDevice, device->VulkanCommandPool, 1, &commandBuffer);
 }
 
-Buffer* vertex_buffer_create(GraphicsDevice* device, void* data, uint32_t size)
+Buffer* vertex_buffer_create(GraphicsDevice* device, void* data, uint32_t size, bool bind)
 {
     VkDeviceSize bufferSize = size * sizeof(scene::Vert);
     Buffer* buffer = new Buffer;
@@ -133,7 +133,7 @@ void vertex_buffer_bind(Buffer* buffer, VkCommandBuffer commandBuffer)
     vkCmdBindVertexBuffers(commandBuffer, 0, 1, vertexBuffers, offsets);
 }
 
-Buffer* index_buffer_create(GraphicsDevice* device, void* data, uint32_t size)
+Buffer* index_buffer_create(GraphicsDevice* device, void* data, uint32_t size, bool bind)
 {
     VkDeviceSize bufferSize = size * sizeof(scene::Index);
     Buffer* buffer = new Buffer;
@@ -169,25 +169,6 @@ void index_buffer_bind(Buffer* buffer, VkCommandBuffer commandBuffer)
 {
     vkCmdBindIndexBuffer(
         commandBuffer, buffer->GenericBuffer->Handle, 0, VK_INDEX_TYPE_UINT32);
-}
-
-template <typename T> GenBuffer* uniform_buffer_create(GraphicsDevice* device, bool bind)
-{
-    GenBuffer* buffer
-        = generic_buffer_create(device, 0, sizeof(T), VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT,
-            VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
-
-    vkMapMemory(device->VulkanDevice, buffer->DeviceData, 0, buffer->Size, 0,
-        &buffer->MappedData);
-
-    return buffer;
-}
-
-void uniform_buffer_cleanup(GenBuffer* buffer) { generic_buffer_cleanup(buffer); }
-
-template <typename T> void uniform_buffer_update(GenBuffer* buffer, T* data)
-{
-    memcpy(buffer->MappedData, (void*)data, sizeof(T));
 }
 
 }

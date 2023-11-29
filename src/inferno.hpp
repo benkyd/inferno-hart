@@ -2,11 +2,11 @@
 
 #include "graphics.hpp"
 #include "graphics/device.hpp"
-#include "scene/scene.hpp"
 #include "scene/mesh.hpp"
+#include "scene/scene.hpp"
 // #include "scene/camera.hpp"
-#include "renderer/renderer.hpp"
 #include "preview_renderer/renderer.hpp"
+#include "renderer/renderer.hpp"
 
 #include <memory>
 
@@ -17,6 +17,7 @@ namespace graphics {
     struct GraphicsDevice;
     struct VulkanRenderer;
     struct Buffer;
+    struct Shader;
 }
 
 namespace scene {
@@ -46,15 +47,18 @@ std::chrono::duration<double> inferno_timer_get_time(InfernoTimer* timer);
 std::chrono::duration<double> inferno_timer_get_average(InfernoTimer* timer);
 
 typedef struct InfernoInput {
-    glm::vec2 MouseDelta = {0.0f, 0.0f};
+    glm::vec2 MouseDelta = { 0.0f, 0.0f };
     uint8_t MovementDelta = 0;
 } InfernoInput;
 
 typedef struct InfernoApp {
     InfernoInput* Input;
     scene::Scene* Scene;
+
     graphics::Buffer* VBuffer;
     graphics::Buffer* IBuffer;
+    graphics::Shader* Shader;
+    graphics::Camera* Camera;
 
     // graphics::PreviewRenderer* PreviewRenderer;
     graphics::RayRenderer* RayRenderer;

@@ -177,7 +177,7 @@ glm::ivec2 camera_ray_get_viewport(Camera* camera)
     return camera->Views.Ray;
 }
 
-void camera_move(Camera* camera, uint8_t movement_delta)
+void camera_move(Camera* camera, uint8_t movement_delta, float delta_time)
 {
     if (movement_delta == 0)
         return;
@@ -223,16 +223,17 @@ void camera_move(Camera* camera, uint8_t movement_delta)
 
     // forward vector must be negative to look forward.
     // read :http://in2gpu.com/2015/05/17/view-matrix/
-    camera->Position += delta * camera->Speed;
+    camera->Position += delta * camera->Speed * (delta_time * 100);
 
     // update the view matrix
     camera_update(camera);
 }
 
-void camera_mouse_move(Camera* camera, glm::vec2 mouse_delta)
+void camera_mouse_move(Camera* camera, glm::vec2 mouse_delta, float delta_time)
 {
     if (glm::length(mouse_delta) == 0)
         return;
+
     // note that yaw and pitch must be converted to radians.
     // this is done in update() by glm::rotate
     camera->Yaw += camera->MouseSensitivity * (mouse_delta.x / 100);
