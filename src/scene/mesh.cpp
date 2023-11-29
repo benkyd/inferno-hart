@@ -82,7 +82,8 @@ void mesh_ready(Mesh* mesh)
     void* data = mesh->Verticies.data();
     void* indexData = (void*)mesh->MeshObjLoader->getFaces();
 
-    uint32_t size = mesh->Verticies.size() * sizeof(Vert);
+    uint32_t size = mesh->Verticies.size();
+    // yolo::debug("Mesh size: {}", size);
 
     mesh->VertexBuffer = graphics::vertex_buffer_create(mesh->Device, data, size);
     mesh->IndexBuffer = graphics::index_buffer_create(
