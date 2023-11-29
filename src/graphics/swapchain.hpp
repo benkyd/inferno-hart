@@ -16,6 +16,10 @@ typedef struct SwapChain {
     std::vector<VkImage> Images;
     std::vector<VkImageView> ImageViews;
 
+    VkImage depthImage;
+    VkDeviceMemory depthImageMemory;
+    VkImageView DepthImageView;
+
     GraphicsDevice* Device;
 } SwapChain;
 

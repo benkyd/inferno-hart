@@ -3,7 +3,7 @@ let s:so_save = &g:so | let s:siso_save = &g:siso | setg so=0 siso=0 | setl so=-
 let v:this_session=expand("<sfile>:p")
 silent only
 silent tabonly
-cd ~/programming/inferno-hart
+cd ~/dprog/active/inferno-hart
 if expand('%') == '' && !&modified && line('$') <= 1 && getline(1) == ''
   let s:wipebuf = bufnr('%')
 endif
@@ -13,47 +13,47 @@ if &shortmess =~ 'A'
 else
   set shortmess=aoO
 endif
-badd +114 src/inferno.cpp
-badd +21 src/graphics/renderpass.cpp
-badd +17 src/graphics/renderpass.hpp
-badd +2 src/graphics/swapchain.hpp
-badd +65 src/inferno.hpp
-badd +1 src/main.cpp
-badd +693 ~/dprog/active/inferno-hart/src/graphics/vulkan_tutorial.cpp
-badd +1 ~/dprog/active/inferno-hart/src/graphics/descriptor.cpp
-badd +66 src/graphics/vkrenderer.cpp
-badd +28 src/graphics/vkrenderer.hpp
-badd +42 src/renderer/renderer.hpp
-badd +213 src/graphics/swapchain.cpp
-badd +54 src/graphics/buffer.hpp
-badd +134 src/graphics/buffer.cpp
-badd +66 src/graphics/pipeline.cpp
-badd +5 src/scene/mesh.cpp
-badd +24 src/scene/mesh.hpp
-badd +28 src/graphics/device.hpp
+badd +693 src/graphics/vulkan_tutorial.cpp
+badd +304 src/inferno.cpp
+badd +45 src/scene/mesh.hpp
+badd +75 src/scene/mesh.cpp
+badd +58 src/graphics/pipeline.cpp
+badd +124 src/graphics/vkrenderer.cpp
+badd +23 src/graphics/pipeline.hpp
 badd +1 src/graphics/device.cpp
-badd +1 src/graphics.hpp
-badd +26 src/scene/scene.hpp
-badd +5 ~/programming/inferno-hart/res/shaders/basic.vert
-badd +1 res/shaders/basic.frag
-badd +43 CMakeLists.txt
-badd +15 src/graphics/pipeline.hpp
-badd +30 ~/programming/inferno-hart/src/graphics/descriptor.cpp
-badd +29 src/graphics/descriptor.hpp
-badd +33 src/graphics/shader.hpp
-badd +114 src/graphics/shader.cpp
+badd +19 src/graphics/device.hpp
+badd +54 src/graphics/renderpass.cpp
+badd +20 src/graphics/renderpass.hpp
+badd +26 src/graphics/swapchain.hpp
+badd +56 src/inferno.hpp
+badd +1 src/main.cpp
+badd +1 ~/dprog/active/inferno-hart/src/graphics/descriptor.cpp
+badd +12 src/graphics/vkrenderer.hpp
+badd +42 src/renderer/renderer.hpp
+badd +28 src/scene/scene.cpp
+badd +173 src/graphics/buffer.cpp
+badd +5 res/shaders/vulkan_test.vert
+badd +46 src/graphics/buffer.hpp
+badd +54 src/renderer/renderer.cpp
+badd +182 src/graphics/swapchain.cpp
+badd +22 res/shaders/basic.vert
+badd +181 src/graphics/shader.cpp
+badd +51 src/graphics/shader.hpp
+badd +1 src/scene/scene.hpp
+badd +240 src/scene/camera.cpp
+badd +59 libhart/scene/camera.hpp
+badd +30 src/graphics.hpp
 argglobal
 %argdel
-edit src/graphics/shader.hpp
+edit src/inferno.cpp
 let s:save_splitbelow = &splitbelow
 let s:save_splitright = &splitright
 set splitbelow splitright
 wincmd _ | wincmd |
 vsplit
-1wincmd h
 wincmd _ | wincmd |
-split
-1wincmd k
+vsplit
+2wincmd h
 wincmd w
 wincmd w
 wincmd _ | wincmd |
@@ -69,9 +69,14 @@ set winminheight=0
 set winheight=1
 set winminwidth=0
 set winwidth=1
-wincmd =
+exe 'vert 1resize ' . ((&columns * 112 + 191) / 383)
+exe 'vert 2resize ' . ((&columns * 132 + 191) / 383)
+exe '3resize ' . ((&lines * 21 + 35) / 70)
+exe 'vert 3resize ' . ((&columns * 137 + 191) / 383)
+exe '4resize ' . ((&lines * 45 + 35) / 70)
+exe 'vert 4resize ' . ((&columns * 137 + 191) / 383)
 argglobal
-balt src/graphics/vkrenderer.cpp
+balt res/shaders/basic.vert
 setlocal fdm=manual
 setlocal fde=0
 setlocal fmr={{{,}}}
@@ -82,17 +87,40 @@ setlocal fdn=20
 setlocal fen
 silent! normal! zE
 let &fdl = &fdl
-let s:l = 32 - ((18 * winheight(0) + 20) / 40)
+let s:l = 304 - ((33 * winheight(0) + 33) / 67)
 if s:l < 1 | let s:l = 1 | endif
 keepjumps exe s:l
 normal! zt
-keepjumps 32
-normal! 032|
+keepjumps 304
+normal! 09|
 wincmd w
 argglobal
-if bufexists(fnamemodify("src/graphics/pipeline.hpp", ":p")) | buffer src/graphics/pipeline.hpp | else | edit src/graphics/pipeline.hpp | endif
+if bufexists(fnamemodify("src/graphics/vkrenderer.cpp", ":p")) | buffer src/graphics/vkrenderer.cpp | else | edit src/graphics/vkrenderer.cpp | endif
 if &buftype ==# 'terminal'
-  silent file src/graphics/pipeline.hpp
+  silent file src/graphics/vkrenderer.cpp
+endif
+balt src/graphics.hpp
+setlocal fdm=manual
+setlocal fde=0
+setlocal fmr={{{,}}}
+setlocal fdi=#
+setlocal fdl=0
+setlocal fml=1
+setlocal fdn=20
+setlocal fen
+silent! normal! zE
+let &fdl = &fdl
+let s:l = 124 - ((43 * winheight(0) + 33) / 67)
+if s:l < 1 | let s:l = 1 | endif
+keepjumps exe s:l
+normal! zt
+keepjumps 124
+normal! 0
+wincmd w
+argglobal
+if bufexists(fnamemodify("src/scene/scene.hpp", ":p")) | buffer src/scene/scene.hpp | else | edit src/scene/scene.hpp | endif
+if &buftype ==# 'terminal'
+  silent file src/scene/scene.hpp
 endif
 balt src/graphics/shader.hpp
 setlocal fdm=manual
@@ -105,61 +133,43 @@ setlocal fdn=20
 setlocal fen
 silent! normal! zE
 let &fdl = &fdl
-let s:l = 15 - ((6 * winheight(0) + 10) / 21)
+let s:l = 2 - ((1 * winheight(0) + 10) / 21)
 if s:l < 1 | let s:l = 1 | endif
 keepjumps exe s:l
 normal! zt
-keepjumps 15
+keepjumps 2
+normal! 0
+wincmd w
+argglobal
+if bufexists(fnamemodify("src/scene/mesh.hpp", ":p")) | buffer src/scene/mesh.hpp | else | edit src/scene/mesh.hpp | endif
+if &buftype ==# 'terminal'
+  silent file src/scene/mesh.hpp
+endif
+balt libhart/scene/camera.hpp
+setlocal fdm=manual
+setlocal fde=0
+setlocal fmr={{{,}}}
+setlocal fdi=#
+setlocal fdl=0
+setlocal fml=1
+setlocal fdn=20
+setlocal fen
+silent! normal! zE
+let &fdl = &fdl
+let s:l = 45 - ((22 * winheight(0) + 22) / 45)
+if s:l < 1 | let s:l = 1 | endif
+keepjumps exe s:l
+normal! zt
+keepjumps 45
 normal! 027|
 wincmd w
-argglobal
-if bufexists(fnamemodify("src/graphics/shader.cpp", ":p")) | buffer src/graphics/shader.cpp | else | edit src/graphics/shader.cpp | endif
-if &buftype ==# 'terminal'
-  silent file src/graphics/shader.cpp
-endif
-balt src/graphics/pipeline.cpp
-setlocal fdm=manual
-setlocal fde=0
-setlocal fmr={{{,}}}
-setlocal fdi=#
-setlocal fdl=0
-setlocal fml=1
-setlocal fdn=20
-setlocal fen
-silent! normal! zE
-let &fdl = &fdl
-let s:l = 114 - ((16 * winheight(0) + 11) / 22)
-if s:l < 1 | let s:l = 1 | endif
-keepjumps exe s:l
-normal! zt
-keepjumps 114
-normal! 096|
-wincmd w
-argglobal
-if bufexists(fnamemodify("src/graphics/pipeline.cpp", ":p")) | buffer src/graphics/pipeline.cpp | else | edit src/graphics/pipeline.cpp | endif
-if &buftype ==# 'terminal'
-  silent file src/graphics/pipeline.cpp
-endif
-balt src/graphics/shader.cpp
-setlocal fdm=manual
-setlocal fde=0
-setlocal fmr={{{,}}}
-setlocal fdi=#
-setlocal fdl=0
-setlocal fml=1
-setlocal fdn=20
-setlocal fen
-silent! normal! zE
-let &fdl = &fdl
-let s:l = 66 - ((23 * winheight(0) + 19) / 39)
-if s:l < 1 | let s:l = 1 | endif
-keepjumps exe s:l
-normal! zt
-keepjumps 66
-normal! 063|
-wincmd w
-4wincmd w
-wincmd =
+2wincmd w
+exe 'vert 1resize ' . ((&columns * 112 + 191) / 383)
+exe 'vert 2resize ' . ((&columns * 132 + 191) / 383)
+exe '3resize ' . ((&lines * 21 + 35) / 70)
+exe 'vert 3resize ' . ((&columns * 137 + 191) / 383)
+exe '4resize ' . ((&lines * 45 + 35) / 70)
+exe 'vert 4resize ' . ((&columns * 137 + 191) / 383)
 tabnext 1
 if exists('s:wipebuf') && len(win_findbuf(s:wipebuf)) == 0 && getbufvar(s:wipebuf, '&buftype') isnot# 'terminal'
   silent exe 'bwipe ' . s:wipebuf
