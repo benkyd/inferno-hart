@@ -5,7 +5,10 @@
 #include "pipeline.hpp"
 #include "swapchain.hpp"
 
+#include "gui/gui.hpp"
+
 #include "yolo/yolo.hpp"
+#include <functional>
 #include <vulkan/vulkan_core.h>
 
 namespace inferno::graphics {
@@ -46,6 +49,8 @@ VulkanRenderer* renderer_create(GraphicsDevice* device)
     renderer->CurrentFrameIndex = 0;
     renderer->CurrentFrame = &renderer->InFlight[0];
 
+    gui::imgui_init(renderer);
+
     return renderer;
 }
 
@@ -63,7 +68,7 @@ void renderer_cleanup(VulkanRenderer* renderer)
     }
 }
 
-void renderer_configure_command_buffer(Renderer* renderer)
+void renderer_configure_command_buffer(VulkanRenderer* renderer)
 {
     renderer->CommandBuffersInFlight.resize(FRAMES_IN_FLIGHT);
     VkCommandBufferAllocateInfo allocInfo {};
@@ -81,7 +86,7 @@ void renderer_configure_command_buffer(Renderer* renderer)
     yolo::debug("Command buffer created");
 }
 
-void renderer_record_command_buffer(Renderer* renderer, uint32_t imageIndex)
+void renderer_record_command_buffer(VulkanRenderer* renderer, uint32_t imageIndex)
 {
     VkCommandBufferBeginInfo beginInfo {};
     beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
@@ -93,6 +98,9 @@ void renderer_record_command_buffer(Renderer* renderer, uint32_t imageIndex)
         != VK_SUCCESS) {
         yolo::error("failed to begin recording command buffer!");
     }
+
+    renderer->CommandBufferInFlight
+        = &renderer->CommandBuffersInFlight[renderer->CurrentFrameIndex];
 
     VkImageMemoryBarrier imageMemoryBarrier {};
     imageMemoryBarrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
@@ -107,9 +115,8 @@ void renderer_record_command_buffer(Renderer* renderer, uint32_t imageIndex)
     imageMemoryBarrier.subresourceRange.levelCount = 1;
 
     vkCmdPipelineBarrier(renderer->CommandBuffersInFlight[renderer->CurrentFrameIndex],
-        VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT,
-        VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT, 0, 0, nullptr, 0, nullptr, 1,
-        &imageMemoryBarrier);
+        VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT, VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT,
+        0, 0, nullptr, 0, nullptr, 1, &imageMemoryBarrier);
 
     VkClearValue clearColor = { { { 0.0f, 0.0f, 0.0f, 1.0f } } };
     VkRenderingAttachmentInfo attachmentInfo {};
@@ -145,6 +152,70 @@ void renderer_record_command_buffer(Renderer* renderer, uint32_t imageIndex)
         renderer->CommandBuffersInFlight[renderer->CurrentFrameIndex], &renderingInfo);
 }
 
+void renderer_submit_oneoff(VulkanRenderer* renderer,
+    std::function<void(VulkanRenderer*, VkCommandBuffer*)> callback, bool post)
+{
+    if (post) {
+        renderer->SubmitQueueOneOffPostFrame.push_back(callback);
+    } else {
+        renderer->SubmitQueueOneOffPreFrame.push_back(callback);
+    }
+}
+
+void renderer_submit_repeat(VulkanRenderer* renderer,
+    std::function<void(VulkanRenderer*, VkCommandBuffer*)> callback, bool post)
+{
+    if (post) {
+        renderer->SubmitQueuePostFrame.push_back(callback);
+    } else {
+        renderer->SubmitQueuePreFrame.push_back(callback);
+    }
+}
+
+void work_queue(VulkanRenderer* renderer,
+    std::vector<std::function<void(VulkanRenderer*, VkCommandBuffer*)>>* queue,
+    bool clear)
+{
+    for (auto& callback : *queue) {
+        callback(renderer, renderer->CommandBufferInFlight);
+    }
+    if (clear) {
+        queue->clear();
+    }
+}
+
+void renderer_submit_now(VulkanRenderer* renderer,
+    std::function<void(VulkanRenderer*, VkCommandBuffer*)> callback)
+{
+    VkCommandBufferAllocateInfo allocInfo {};
+    allocInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
+    allocInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
+    allocInfo.commandPool = renderer->Device->VulkanCommandPool;
+    allocInfo.commandBufferCount = 1;
+
+    VkCommandBuffer commandBuffer;
+    vkAllocateCommandBuffers(renderer->Device->VulkanDevice, &allocInfo, &commandBuffer);
+
+    VkCommandBufferBeginInfo beginInfo {};
+    beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
+    beginInfo.flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT;
+
+    vkBeginCommandBuffer(commandBuffer, &beginInfo);
+
+    callback(renderer, &commandBuffer);
+
+    vkEndCommandBuffer(commandBuffer);
+    VkSubmitInfo submitInfo {};
+    submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
+    submitInfo.commandBufferCount = 1;
+    submitInfo.pCommandBuffers = &commandBuffer;
+
+    vkQueueSubmit(renderer->Device->VulkanGraphicsQueue, 1, &submitInfo, VK_NULL_HANDLE);
+    vkQueueWaitIdle(renderer->Device->VulkanGraphicsQueue);
+
+    vkFreeCommandBuffers(renderer->Device->VulkanDevice, renderer->Device->VulkanCommandPool, 1, &commandBuffer);
+}
+
 bool renderer_begin_frame(VulkanRenderer* renderer)
 {
     vkWaitForFences(renderer->Device->VulkanDevice, 1, &renderer->CurrentFrame->Fence,
@@ -166,12 +237,30 @@ bool renderer_begin_frame(VulkanRenderer* renderer)
     vkResetCommandBuffer(
         renderer->CommandBuffersInFlight[renderer->CurrentFrameIndex], 0);
     renderer_record_command_buffer(renderer, renderer->ImageIndex);
+
+    work_queue(renderer, &renderer->SubmitQueueOneOffPreFrame, true);
+    work_queue(renderer, &renderer->SubmitQueuePreFrame, false);
+
+    gui::imgui_new_frame();
+
+    ImGui::Begin("main", nullptr, WINDOW_FLAGS);
+    // ImGui::SetWindowPos(Im)
+
     return true;
 }
 
-bool renderer_draw_frame(Renderer* renderer)
+bool renderer_draw_frame(VulkanRenderer* renderer)
 {
-    vkCmdEndRendering(renderer->CommandBuffersInFlight[renderer->CurrentFrameIndex]);
+    work_queue(renderer, &renderer->SubmitQueueOneOffPreFrame, true);
+    work_queue(renderer, &renderer->SubmitQueuePreFrame, false);
+
+    ImGui::End();
+    ImGui::Render();
+    auto io = ImGui::GetIO();
+    ImGui_ImplVulkan_RenderDrawData(
+        ImGui::GetDrawData(), *renderer->CommandBufferInFlight);
+
+    vkCmdEndRendering(*renderer->CommandBufferInFlight);
 
     VkImageMemoryBarrier imageMemoryBarrier {};
     imageMemoryBarrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;

@@ -2,6 +2,9 @@
 
 #include "graphics.hpp"
 
+#include <functional>
+#include <vector>
+
 namespace inferno::graphics {
 
 struct GraphicsDevice;
@@ -10,7 +13,6 @@ struct SwapChain;
 struct RenderPass;
 struct GenBuffer;
 struct Shader;
-
 
 // TODO: Make the inflight frames work better
 typedef struct FrameInFlight {
@@ -29,20 +31,38 @@ typedef struct VulkanRenderer {
     // not do this? CommandBuffers need to be *sequential*
     // in client memory
     std::vector<VkCommandBuffer> CommandBuffersInFlight;
-    std::vector<FrameInFlight> InFlight;
+    VkCommandBuffer* CommandBufferInFlight;
 
+    std::vector<FrameInFlight> InFlight;
     FrameInFlight* CurrentFrame;
+
     uint32_t CurrentFrameIndex;
     uint32_t ImageIndex;
-} Renderer;
 
-Renderer* renderer_create(GraphicsDevice* device);
-void renderer_cleanup(Renderer* renderer);
+    std::vector<std::function<void(VulkanRenderer*, VkCommandBuffer*)>>
+        SubmitQueueOneOffPreFrame;
+    std::vector<std::function<void(VulkanRenderer*, VkCommandBuffer*)>>
+        SubmitQueueOneOffPostFrame;
+    std::vector<std::function<void(VulkanRenderer*, VkCommandBuffer*)>>
+        SubmitQueuePreFrame;
+    std::vector<std::function<void(VulkanRenderer*, VkCommandBuffer*)>>
+        SubmitQueuePostFrame;
+} VulkanRenderer;
 
-void renderer_configure_command_buffer(Renderer* renderer);
+VulkanRenderer* renderer_create(GraphicsDevice* device);
+void renderer_cleanup(VulkanRenderer* renderer);
 
-bool renderer_begin_frame(Renderer* renderer);
-bool renderer_draw_frame(Renderer* renderer);
+void renderer_configure_command_buffer(VulkanRenderer* renderer);
+
+void renderer_submit_oneoff(VulkanRenderer* renderer,
+    std::function<void(VulkanRenderer*, VkCommandBuffer*)> callback, bool post = false);
+void renderer_submit_repeat(VulkanRenderer* renderer,
+    std::function<void(VulkanRenderer*, VkCommandBuffer*)> callback, bool post = false);
+void renderer_submit_now(VulkanRenderer* renderer,
+    std::function<void(VulkanRenderer*, VkCommandBuffer*)> callback);
+
+
+bool renderer_begin_frame(VulkanRenderer* renderer);
+bool renderer_draw_frame(VulkanRenderer* renderer);
 
 }
-

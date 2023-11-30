@@ -97,8 +97,6 @@ InfernoApp* inferno_create()
     app->Renderer = graphics::renderer_create(app->Device);
     graphics::renderer_configure_command_buffer(app->Renderer);
 
-    gui::imgui_init(app->Device);
-
     app->Shader = graphics::shader_create(app->Device, app->Renderer->Swap);
     graphics::shader_load(app->Shader, "res/shaders/basic");
     graphics::shader_build(app->Shader);
@@ -400,7 +398,6 @@ int inferno_run(InfernoApp* app)
         inferno_end(app);
         inferno_timer_end(app->MainTimer);
     }
-    //
     return 1;
 }
 

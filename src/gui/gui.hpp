@@ -3,16 +3,18 @@
 #include "graphics.hpp"
 
 #include "graphics/device.hpp"
+#include "graphics/vkrenderer.hpp"
+
 #include "window.hpp"
 
 #include "yolo/yolo.hpp"
 
 namespace inferno::gui {
 
-inline void imgui_init(graphics::GraphicsDevice* device)
+inline void imgui_init(graphics::VulkanRenderer* renderer)
 {
-    VkDescriptorPoolSize pool_sizes[] = {
-        { VK_DESCRIPTOR_TYPE_SAMPLER, 1000 },
+    graphics::GraphicsDevice* device = renderer->Device;
+    VkDescriptorPoolSize pool_sizes[] = { { VK_DESCRIPTOR_TYPE_SAMPLER, 1000 },
         { VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, 1000 },
         { VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE, 1000 },
         { VK_DESCRIPTOR_TYPE_STORAGE_IMAGE, 1000 },
@@ -22,8 +24,7 @@ inline void imgui_init(graphics::GraphicsDevice* device)
         { VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, 1000 },
         { VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC, 1000 },
         { VK_DESCRIPTOR_TYPE_STORAGE_BUFFER_DYNAMIC, 1000 },
-        { VK_DESCRIPTOR_TYPE_INPUT_ATTACHMENT, 1000 }
-    };
+        { VK_DESCRIPTOR_TYPE_INPUT_ATTACHMENT, 1000 } };
 
     VkDescriptorPoolCreateInfo pool_info = {};
     pool_info.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
@@ -54,20 +55,34 @@ inline void imgui_init(graphics::GraphicsDevice* device)
     ImGui_ImplVulkan_Init(&init_info, VK_NULL_HANDLE);
 
     // execute a gpu command to upload imgui font textures
-    // immediate_submit([&](VkCommandBuffer cmd) {
-    //     ImGui_ImplVulkan_CreateFontsTexture(cmd);
-    // });
-
-    // clear font textures from cpu data
-    // ImGui_ImplVulkan_DestroyFontUploadObjects();
-
-    // add the destroy the imgui created structures
-    // _mainDeletionQueue.push_function([=]() {
-    //     vkDestroyDescriptorPool(_device, imguiPool, nullptr);
-    //     ImGui_ImplVulkan_Shutdown();
-    // });
+    graphics::renderer_submit_now(
+        renderer, [](graphics::VulkanRenderer* renderer, VkCommandBuffer* cmd) {
+            ImGui_ImplVulkan_CreateFontsTexture(*cmd);
+            yolo::debug("Submit ImGui fonts");
+        });
 
     yolo::info("Initialized ImGUI");
+}
+
+inline void imgui_new_frame()
+{
+    ImGui_ImplVulkan_NewFrame();
+    ImGui_ImplGlfw_NewFrame();
+    ImGui::NewFrame();
+}
+
+inline void imgui_render_frame(VkCommandBuffer command_buffer)
+{
+    ImGui::Render();
+    ImDrawData* draw_data = ImGui::GetDrawData();
+    ImGui_ImplVulkan_RenderDrawData(draw_data, command_buffer);
+}
+
+inline void imgui_shutdown()
+{
+    ImGui_ImplVulkan_Shutdown();
+    ImGui_ImplGlfw_Shutdown();
+    ImGui::DestroyContext();
 }
 
 }

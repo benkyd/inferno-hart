@@ -6,7 +6,6 @@
 #include <graphics.hpp>
 #include <version.hpp>
 
-#include "imgui/imgui_impl_glfw.h"
 #include "yolo/yolo.hpp"
 
 #include <map>
@@ -122,24 +121,12 @@ bool window_new_frame()
 
     glfwGetWindowSize(Window, &Width, &Height);
 
-    // ImGui_ImplVulkan_NewFrame();
-    // ImGui_ImplGlfw_NewFrame();
-    // ImGui::NewFrame();
-    //
-    // ImGui::Begin("main", nullptr, WINDOW_FLAGS);
-    // ImGui::SetWindowPos(ImVec2(0, 0));
-    // ImGui::SetWindowSize(ImVec2(Width, Height));
-
     return true;
 }
 
 void window_render()
 {
-    // ImGui::End();
-    // ImGui::Render();
-    // auto io = ImGui::GetIO();
-    // ImGui_ImplVulkan_RenderDrawData(ImGui::GetDrawData());
-    // glfwSwapBuffers(Window);
-    // ImGui::UpdatePlatformWindows();
+    glfwSwapBuffers(Window);
+    ImGui::UpdatePlatformWindows();
 }
 }
