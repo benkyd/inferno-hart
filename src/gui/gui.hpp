@@ -39,7 +39,7 @@ inline void imgui_init(graphics::VulkanRenderer* renderer)
     // this initializes the core structures of imgui
     ImGui::CreateContext();
 
-    ImGui_ImplGlfw_InitForVulkan(graphics::Window, false);
+    ImGui_ImplGlfw_InitForVulkan(graphics::window_get_glfw_window(), false);
 
     // this initializes imgui for Vulkan
     ImGui_ImplVulkan_InitInfo init_info = {};

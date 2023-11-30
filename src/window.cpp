@@ -16,6 +16,7 @@
 
 namespace inferno::graphics {
 
+static GLFWwindow* Window;
 static WINDOW_MODE WinMode = WINDOW_MODE::WIN_MODE_DEFAULT;
 static KeyCallback UserKeyCallback = nullptr;
 static int Width, Height;
@@ -65,7 +66,6 @@ void window_init_device(GraphicsDevice* device, GLFWframebuffersizefun resizeCal
          yolo::error("failed to create window surface!");
          exit(1);
     }
-    yolo::info("Vulkan surface created");
 
     glfwSetWindowUserPointer(Window, device);
     glfwSetFramebufferSizeCallback(Window, (GLFWframebuffersizefun)resizeCallback);

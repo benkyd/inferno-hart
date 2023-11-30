@@ -165,9 +165,9 @@ void shader_build(Shader* shader)
         yolo::error("failed to allocate descriptor sets!");
     }
 
-    shader->GraphicsPipeline = pipeline_create(shader->Device, shader->GraphicsSwapchain,
-        shader, layouts.size(), layouts.data());
 
+    shader->GraphicsPipeline = pipeline_create(shader->Device, shader->GraphicsSwapchain,
+            shader, layouts.size(), layouts.data());
     shader->GlobalUniformBuffer
         = uniform_buffer_create<scene::GlobalUniformObject>(shader->Device, true);
 }

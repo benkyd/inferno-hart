@@ -213,7 +213,8 @@ void renderer_submit_now(VulkanRenderer* renderer,
     vkQueueSubmit(renderer->Device->VulkanGraphicsQueue, 1, &submitInfo, VK_NULL_HANDLE);
     vkQueueWaitIdle(renderer->Device->VulkanGraphicsQueue);
 
-    vkFreeCommandBuffers(renderer->Device->VulkanDevice, renderer->Device->VulkanCommandPool, 1, &commandBuffer);
+    vkFreeCommandBuffers(renderer->Device->VulkanDevice,
+        renderer->Device->VulkanCommandPool, 1, &commandBuffer);
 }
 
 bool renderer_begin_frame(VulkanRenderer* renderer)
@@ -254,11 +255,7 @@ bool renderer_draw_frame(VulkanRenderer* renderer)
     work_queue(renderer, &renderer->SubmitQueueOneOffPreFrame, true);
     work_queue(renderer, &renderer->SubmitQueuePreFrame, false);
 
-    ImGui::End();
-    ImGui::Render();
-    auto io = ImGui::GetIO();
-    ImGui_ImplVulkan_RenderDrawData(
-        ImGui::GetDrawData(), *renderer->CommandBufferInFlight);
+    gui::imgui_render_frame(*renderer->CommandBufferInFlight);
 
     vkCmdEndRendering(*renderer->CommandBufferInFlight);
 

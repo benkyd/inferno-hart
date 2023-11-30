@@ -261,7 +261,6 @@ void device_create_vulkan_instance(GraphicsDevice* device)
         yolo::error("failed to create instance!");
         exit(1);
     }
-    yolo::info("Vulkan instance created");
 }
 
 void device_vulkan_debugger(GraphicsDevice* device)
@@ -280,7 +279,6 @@ void device_vulkan_debugger(GraphicsDevice* device)
         yolo::error("failed to set up debug messenger!");
         exit(1);
     }
-    yolo::info("Vulkan debugger created");
 }
 
 void device_create_vulkan_physical_device(GraphicsDevice* device)
@@ -397,7 +395,6 @@ void device_create_command_pool(GraphicsDevice* device)
         != VK_SUCCESS) {
         yolo::error("failed to create command pool!");
     }
-    yolo::info("Vulkan command pool created");
 }
 
 void device_resize_callback(GLFWwindow* window, int width, int height)

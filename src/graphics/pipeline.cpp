@@ -30,9 +30,6 @@ Pipeline* pipeline_create(GraphicsDevice* device, SwapChain* swap, Shader* shade
     auto attributeDescriptions = new std::array<VkVertexInputAttributeDescription, 2>(
         scene::get_vert_attribute_descriptions());
 
-    yolo::debug("All Binding Description: {} stride: {}", bindingDescription->binding,
-        bindingDescription->stride);
-
     pipeline->VertexInputInfo.sType
         = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO;
     pipeline->VertexInputInfo.vertexBindingDescriptionCount = 1;
@@ -123,8 +120,6 @@ Pipeline* pipeline_create(GraphicsDevice* device, SwapChain* swap, Shader* shade
         return nullptr;
     }
 
-    yolo::info("Created pipeline layout");
-
     VkPipelineRenderingCreateInfoKHR renderingPipelineInfo = {};
     renderingPipelineInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_RENDERING_CREATE_INFO_KHR;
     renderingPipelineInfo.colorAttachmentCount = 1;
@@ -153,31 +148,30 @@ Pipeline* pipeline_create(GraphicsDevice* device, SwapChain* swap, Shader* shade
     pipelineInfo.pColorBlendState = &pipeline->ColorBlending;
     pipelineInfo.pDynamicState = &pipeline->DynamicStates;
     pipelineInfo.pDepthStencilState = &pipeline->DepthState;
+    pipelineInfo.pTessellationState = VK_NULL_HANDLE; // Optional
     pipelineInfo.layout = pipeline->Layout;
     pipelineInfo.subpass = 0;
-    pipelineInfo.basePipelineHandle = VK_NULL_HANDLE; // Optional
+    // pipelineInfo.basePipelineHandle = VK_NULL_HANDLE; // Optional
 
-    yolo::debug("All Binding Description: {} stride: {}",
-        pipeline->VertexInputInfo.pVertexBindingDescriptions->binding,
-        pipeline->VertexInputInfo.pVertexBindingDescriptions->stride);
-    yolo::debug("All Attribute Description0: {} location: {} format: {} offset: {}",
-        pipeline->VertexInputInfo.pVertexAttributeDescriptions[0].binding,
-        pipeline->VertexInputInfo.pVertexAttributeDescriptions[0].location,
-        pipeline->VertexInputInfo.pVertexAttributeDescriptions[0].format,
-        pipeline->VertexInputInfo.pVertexAttributeDescriptions[0].offset);
-    yolo::debug("All Attribute Description1: {} location: {} format: {} offset: {}",
-        pipeline->VertexInputInfo.pVertexAttributeDescriptions[1].binding,
-        pipeline->VertexInputInfo.pVertexAttributeDescriptions[1].location,
-        pipeline->VertexInputInfo.pVertexAttributeDescriptions[1].format,
-        pipeline->VertexInputInfo.pVertexAttributeDescriptions[1].offset);
+    // yolo::debug("All Binding Description: {} stride: {}",
+    //     pipeline->VertexInputInfo.pVertexBindingDescriptions->binding,
+    //     pipeline->VertexInputInfo.pVertexBindingDescriptions->stride);
+    // yolo::debug("All Attribute Description0: {} location: {} format: {} offset: {}",
+    //     pipeline->VertexInputInfo.pVertexAttributeDescriptions[0].binding,
+    //     pipeline->VertexInputInfo.pVertexAttributeDescriptions[0].location,
+    //     pipeline->VertexInputInfo.pVertexAttributeDescriptions[0].format,
+    //     pipeline->VertexInputInfo.pVertexAttributeDescriptions[0].offset);
+    // yolo::debug("All Attribute Description1: {} location: {} format: {} offset: {}",
+    //     pipeline->VertexInputInfo.pVertexAttributeDescriptions[1].binding,
+    //     pipeline->VertexInputInfo.pVertexAttributeDescriptions[1].location,
+    //     pipeline->VertexInputInfo.pVertexAttributeDescriptions[1].format,
+    //     pipeline->VertexInputInfo.pVertexAttributeDescriptions[1].offset);
 
     if (vkCreateGraphicsPipelines(pipeline->Device->VulkanDevice, VK_NULL_HANDLE, 1,
             &pipelineInfo, nullptr, &pipeline->GraphicsPipeline)
         != VK_SUCCESS) {
         yolo::error("failed to create graphics pipeline!");
     }
-
-    yolo::info("Created graphics pipeline");
 
     return pipeline;
 }
