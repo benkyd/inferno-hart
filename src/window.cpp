@@ -127,6 +127,6 @@ bool window_new_frame()
 void window_render()
 {
     glfwSwapBuffers(Window);
-    ImGui::UpdatePlatformWindows();
+    // ImGui::UpdatePlatformWindows();
 }
 }

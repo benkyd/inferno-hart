@@ -3,7 +3,7 @@ let s:so_save = &g:so | let s:siso_save = &g:siso | setg so=0 siso=0 | setl so=-
 let v:this_session=expand("<sfile>:p")
 silent only
 silent tabonly
-cd ~/programming/inferno-hart
+cd ~/dprog/active/inferno-hart
 if expand('%') == '' && !&modified && line('$') <= 1 && getline(1) == ''
   let s:wipebuf = bufnr('%')
 endif
@@ -13,12 +13,38 @@ if &shortmess =~ 'A'
 else
   set shortmess=aoO
 endif
-badd +38 ~/programming/3D-CG-CV/Week3/index.js
-badd +99 src/inferno.cpp
-badd +47 src/graphics/vkrenderer.cpp
-badd +92 src/gui/gui.hpp
-badd +38 src/renderer/renderer.hpp
-badd +45 src/graphics/vkrenderer.hpp
+badd +693 src/graphics/vulkan_tutorial.cpp
+badd +100 src/inferno.cpp
+badd +45 src/scene/mesh.hpp
+badd +75 src/scene/mesh.cpp
+badd +64 src/graphics/pipeline.cpp
+badd +248 src/graphics/vkrenderer.cpp
+badd +18 src/graphics/pipeline.hpp
+badd +1 src/graphics/device.cpp
+badd +19 src/graphics/device.hpp
+badd +54 src/graphics/renderpass.cpp
+badd +20 src/graphics/renderpass.hpp
+badd +16 src/graphics/swapchain.hpp
+badd +56 src/inferno.hpp
+badd +1 src/main.cpp
+badd +1 ~/dprog/active/inferno-hart/src/graphics/descriptor.cpp
+badd +12 src/graphics/vkrenderer.hpp
+badd +42 src/renderer/renderer.hpp
+badd +28 src/scene/scene.cpp
+badd +173 src/graphics/buffer.cpp
+badd +5 res/shaders/vulkan_test.vert
+badd +46 src/graphics/buffer.hpp
+badd +54 src/renderer/renderer.cpp
+badd +295 src/graphics/swapchain.cpp
+badd +22 res/shaders/basic.vert
+badd +181 src/graphics/shader.cpp
+badd +51 src/graphics/shader.hpp
+badd +1 src/scene/scene.hpp
+badd +240 src/scene/camera.cpp
+badd +59 libhart/scene/camera.hpp
+badd +30 src/graphics.hpp
+badd +64 src/gui/gui.hpp
+badd +130 src/window.cpp
 argglobal
 %argdel
 edit src/gui/gui.hpp
@@ -32,6 +58,10 @@ vsplit
 2wincmd h
 wincmd w
 wincmd w
+wincmd _ | wincmd |
+split
+1wincmd k
+wincmd w
 let &splitbelow = s:save_splitbelow
 let &splitright = s:save_splitright
 wincmd t
@@ -41,11 +71,14 @@ set winminheight=0
 set winheight=1
 set winminwidth=0
 set winwidth=1
-exe 'vert 1resize ' . ((&columns * 111 + 181) / 362)
-exe 'vert 2resize ' . ((&columns * 124 + 181) / 362)
-exe 'vert 3resize ' . ((&columns * 125 + 181) / 362)
+exe 'vert 1resize ' . ((&columns * 124 + 191) / 383)
+exe 'vert 2resize ' . ((&columns * 138 + 191) / 383)
+exe '3resize ' . ((&lines * 36 + 33) / 67)
+exe 'vert 3resize ' . ((&columns * 119 + 191) / 383)
+exe '4resize ' . ((&lines * 27 + 33) / 67)
+exe 'vert 4resize ' . ((&columns * 119 + 191) / 383)
 argglobal
-balt src/inferno.cpp
+balt src/window.cpp
 setlocal fdm=manual
 setlocal fde=0
 setlocal fmr={{{,}}}
@@ -56,11 +89,11 @@ setlocal fdn=20
 setlocal fen
 silent! normal! zE
 let &fdl = &fdl
-let s:l = 58 - ((57 * winheight(0) + 35) / 71)
+let s:l = 64 - ((51 * winheight(0) + 32) / 64)
 if s:l < 1 | let s:l = 1 | endif
 keepjumps exe s:l
 normal! zt
-keepjumps 58
+keepjumps 64
 normal! 0
 wincmd w
 argglobal
@@ -68,7 +101,7 @@ if bufexists(fnamemodify("src/graphics/vkrenderer.cpp", ":p")) | buffer src/grap
 if &buftype ==# 'terminal'
   silent file src/graphics/vkrenderer.cpp
 endif
-balt src/renderer/renderer.hpp
+balt src/graphics/pipeline.cpp
 setlocal fdm=manual
 setlocal fde=0
 setlocal fmr={{{,}}}
@@ -79,19 +112,19 @@ setlocal fdn=20
 setlocal fen
 silent! normal! zE
 let &fdl = &fdl
-let s:l = 48 - ((47 * winheight(0) + 35) / 71)
+let s:l = 248 - ((38 * winheight(0) + 32) / 64)
 if s:l < 1 | let s:l = 1 | endif
 keepjumps exe s:l
 normal! zt
-keepjumps 48
-normal! 036|
+keepjumps 248
+normal! 026|
 wincmd w
 argglobal
-if bufexists(fnamemodify("src/graphics/vkrenderer.hpp", ":p")) | buffer src/graphics/vkrenderer.hpp | else | edit src/graphics/vkrenderer.hpp | endif
+if bufexists(fnamemodify("src/scene/scene.hpp", ":p")) | buffer src/scene/scene.hpp | else | edit src/scene/scene.hpp | endif
 if &buftype ==# 'terminal'
-  silent file src/graphics/vkrenderer.hpp
+  silent file src/scene/scene.hpp
 endif
-balt src/renderer/renderer.hpp
+balt src/graphics/shader.hpp
 setlocal fdm=manual
 setlocal fde=0
 setlocal fmr={{{,}}}
@@ -102,17 +135,42 @@ setlocal fdn=20
 setlocal fen
 silent! normal! zE
 let &fdl = &fdl
-let s:l = 45 - ((44 * winheight(0) + 35) / 71)
+let s:l = 2 - ((0 * winheight(0) + 18) / 36)
 if s:l < 1 | let s:l = 1 | endif
 keepjumps exe s:l
 normal! zt
-keepjumps 45
+keepjumps 2
 normal! 0
 wincmd w
-3wincmd w
-exe 'vert 1resize ' . ((&columns * 111 + 181) / 362)
-exe 'vert 2resize ' . ((&columns * 124 + 181) / 362)
-exe 'vert 3resize ' . ((&columns * 125 + 181) / 362)
+argglobal
+if bufexists(fnamemodify("src/graphics/pipeline.hpp", ":p")) | buffer src/graphics/pipeline.hpp | else | edit src/graphics/pipeline.hpp | endif
+if &buftype ==# 'terminal'
+  silent file src/graphics/pipeline.hpp
+endif
+balt src/graphics/swapchain.hpp
+setlocal fdm=manual
+setlocal fde=0
+setlocal fmr={{{,}}}
+setlocal fdi=#
+setlocal fdl=0
+setlocal fml=1
+setlocal fdn=20
+setlocal fen
+silent! normal! zE
+let &fdl = &fdl
+let s:l = 18 - ((9 * winheight(0) + 13) / 27)
+if s:l < 1 | let s:l = 1 | endif
+keepjumps exe s:l
+normal! zt
+keepjumps 18
+normal! 048|
+wincmd w
+exe 'vert 1resize ' . ((&columns * 124 + 191) / 383)
+exe 'vert 2resize ' . ((&columns * 138 + 191) / 383)
+exe '3resize ' . ((&lines * 36 + 33) / 67)
+exe 'vert 3resize ' . ((&columns * 119 + 191) / 383)
+exe '4resize ' . ((&lines * 27 + 33) / 67)
+exe 'vert 4resize ' . ((&columns * 119 + 191) / 383)
 tabnext 1
 if exists('s:wipebuf') && len(win_findbuf(s:wipebuf)) == 0 && getbufvar(s:wipebuf, '&buftype') isnot# 'terminal'
   silent exe 'bwipe ' . s:wipebuf

@@ -39,7 +39,7 @@ inline void imgui_init(graphics::VulkanRenderer* renderer)
     // this initializes the core structures of imgui
     ImGui::CreateContext();
 
-    ImGui_ImplGlfw_InitForVulkan(graphics::window_get_glfw_window(), false);
+    ImGui_ImplGlfw_InitForVulkan(graphics::window_get_glfw_window(), true);
 
     // this initializes imgui for Vulkan
     ImGui_ImplVulkan_InitInfo init_info = {};
@@ -53,13 +53,6 @@ inline void imgui_init(graphics::VulkanRenderer* renderer)
     init_info.MSAASamples = VK_SAMPLE_COUNT_1_BIT;
     init_info.UseDynamicRendering = true;
     ImGui_ImplVulkan_Init(&init_info, VK_NULL_HANDLE);
-
-    // execute a gpu command to upload imgui font textures
-    graphics::renderer_submit_now(
-        renderer, [](graphics::VulkanRenderer* renderer, VkCommandBuffer* cmd) {
-            ImGui_ImplVulkan_CreateFontsTexture(*cmd);
-            yolo::debug("Submit ImGui fonts");
-        });
 
     yolo::info("Initialized ImGUI");
 }

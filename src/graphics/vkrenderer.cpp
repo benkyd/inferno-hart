@@ -255,6 +255,7 @@ bool renderer_draw_frame(VulkanRenderer* renderer)
     work_queue(renderer, &renderer->SubmitQueueOneOffPreFrame, true);
     work_queue(renderer, &renderer->SubmitQueuePreFrame, false);
 
+    ImGui::End();
     gui::imgui_render_frame(*renderer->CommandBufferInFlight);
 
     vkCmdEndRendering(*renderer->CommandBufferInFlight);
