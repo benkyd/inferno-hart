@@ -276,6 +276,7 @@ void swapchain_image_view_create(SwapChain* swapchain)
     }
 
     VkFormat depthFormat = find_depth_format(swapchain->Device);
+    swapchain->DepthFormat = depthFormat;
 
     create_image(swapchain->Device, swapchain->Extent.width, swapchain->Extent.height,
         depthFormat, VK_IMAGE_TILING_OPTIMAL, VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT,

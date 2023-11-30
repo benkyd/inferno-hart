@@ -3,6 +3,7 @@
 #include "graphics.hpp"
 
 #include "graphics/device.hpp"
+#include "graphics/swapchain.hpp"
 #include "graphics/vkrenderer.hpp"
 
 #include "window.hpp"
@@ -52,6 +53,7 @@ inline void imgui_init(graphics::VulkanRenderer* renderer)
     init_info.ImageCount = 3;
     init_info.MSAASamples = VK_SAMPLE_COUNT_1_BIT;
     init_info.UseDynamicRendering = true;
+    init_info.ColorAttachmentFormat = renderer->Swap->ImageFormat;
     ImGui_ImplVulkan_Init(&init_info, VK_NULL_HANDLE);
 
     yolo::info("Initialized ImGUI");

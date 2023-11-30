@@ -11,6 +11,7 @@ struct RenderPass;
 typedef struct SwapChain {
     VkSwapchainKHR Handle;
     VkFormat ImageFormat;
+    VkFormat DepthFormat;
     VkExtent2D Extent;
 
     std::vector<VkImage> Images;

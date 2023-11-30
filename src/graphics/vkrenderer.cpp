@@ -256,6 +256,9 @@ bool renderer_draw_frame(VulkanRenderer* renderer)
     work_queue(renderer, &renderer->SubmitQueuePreFrame, false);
 
     ImGui::End();
+
+    ImGui::ShowDemoWindow();
+
     gui::imgui_render_frame(*renderer->CommandBufferInFlight);
 
     vkCmdEndRendering(*renderer->CommandBufferInFlight);
@@ -276,6 +279,7 @@ bool renderer_draw_frame(VulkanRenderer* renderer)
         VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT,
         VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT, 0, 0, nullptr, 0, nullptr, 1,
         &imageMemoryBarrier);
+
 
     if (vkEndCommandBuffer(renderer->CommandBuffersInFlight[renderer->CurrentFrameIndex])
         != VK_SUCCESS) {
