@@ -244,8 +244,6 @@ bool renderer_begin_frame(VulkanRenderer* renderer)
 
     gui::imgui_new_frame();
 
-    ImGui::Begin("main", nullptr, WINDOW_FLAGS);
-    // ImGui::SetWindowPos(Im)
 
     return true;
 }
@@ -255,9 +253,8 @@ bool renderer_draw_frame(VulkanRenderer* renderer)
     work_queue(renderer, &renderer->SubmitQueueOneOffPreFrame, true);
     work_queue(renderer, &renderer->SubmitQueuePreFrame, false);
 
-    ImGui::End();
 
-    ImGui::ShowDemoWindow();
+    // ImGui::ShowDemoWindow();
 
     gui::imgui_render_frame(*renderer->CommandBufferInFlight);
 

@@ -242,18 +242,21 @@ bool inferno_pre(InfernoApp* app)
     if (!graphics::window_new_frame())
         return false;
 
+    ImGui::Begin("main", nullptr, WINDOW_FLAGS);
+    // ImGui::SetWindowPos(Im)
+
     // set the main window to the dockspace and then on the first launch set the preset
-    // ImGuiID dockspace_id = ImGui::GetID("main");
-    // static ImGuiDockNodeFlags dockspace_flags = ImGuiDockNodeFlags_PassthruCentralNode;
-    // if (ImGui::DockBuilderGetNode(dockspace_id) == NULL) {
-    //     inferno_preset_gui(app);
-    // }
-    // ImGui::DockSpace(dockspace_id, ImVec2(0.0f, 0.0f), dockspace_flags);
-    //
+    ImGuiID dockspace_id = ImGui::GetID("main");
+    static ImGuiDockNodeFlags dockspace_flags = ImGuiDockNodeFlags_PassthruCentralNode;
+    if (ImGui::DockBuilderGetNode(dockspace_id) == NULL) {
+        inferno_preset_gui(app);
+    }
+    ImGui::DockSpace(dockspace_id, ImVec2(0.0f, 0.0f), dockspace_flags);
+
     return true;
 }
 
-void inferno_end(InfernoApp* app) { }
+void inferno_end(InfernoApp* app) { ImGui::End(); }
 
 int inferno_run(InfernoApp* app)
 {
