@@ -56,6 +56,7 @@ void populateDebugMessengerCreateInfo(VkDebugUtilsMessengerCreateInfoEXT& create
     createInfo.pfnUserCallback = debugCallback;
 }
 
+#ifdef VALIDATION_LAYERS_ENABLED
 bool checkValidationLayerSupport()
 {
     uint32_t layerCount;
@@ -81,6 +82,7 @@ bool checkValidationLayerSupport()
 
     return true;
 }
+#endif
 
 std::vector<const char*> getRequiredExtensions()
 {
@@ -91,10 +93,10 @@ std::vector<const char*> getRequiredExtensions()
     std::vector<const char*> extensions(
         glfwExtensions, glfwExtensions + glfwExtensionCount);
 
-    if constexpr (VALIDATION_LAYERS_ENABLED) {
+#ifdef VALIDATION_LAYERS_ENABLED
         yolo::info("Validation layers enabled");
         extensions.push_back(VK_EXT_DEBUG_UTILS_EXTENSION_NAME);
-    }
+#endif
 
     yolo::info("Requested instance extensions:");
     for (const auto& extension : extensions) {
@@ -213,20 +215,22 @@ void device_cleanup(GraphicsDevice* device)
 {
     vkDestroyDevice(device->VulkanDevice, nullptr);
 
-    if constexpr (VALIDATION_LAYERS_ENABLED) {
+    #ifdef VALIDATION_LAYERS_ENABLED
         destroyDebugUtilsMessengerEXT(
             device->VulkanInstance, device->VulkanDebugMessenger, nullptr);
-    }
-
+            #endif
     vkDestroySurfaceKHR(device->VulkanInstance, device->VulkanSurface, nullptr);
     vkDestroyInstance(device->VulkanInstance, nullptr);
 }
 
 void device_create_vulkan_instance(GraphicsDevice* device)
 {
-    if (VALIDATION_LAYERS_ENABLED && !checkValidationLayerSupport()) {
+
+    #ifdef VALIDATION_LAYERS_ENABLED
+    if (!checkValidationLayerSupport()) {
         yolo::error("validation layers requested, but not available!");
     }
+    #endif
 
     VkApplicationInfo appInfo {};
     appInfo.sType = VK_STRUCTURE_TYPE_APPLICATION_INFO;
@@ -265,10 +269,10 @@ void device_create_vulkan_instance(GraphicsDevice* device)
 
 void device_vulkan_debugger(GraphicsDevice* device)
 {
-    if constexpr (!VALIDATION_LAYERS_ENABLED) {
+    #ifndef VALIDATION_LAYERS_ENABLED
         yolo::warn("Validation layers disabled");
         return;
-    }
+#endif
 
     VkDebugUtilsMessengerCreateInfoEXT createInfo;
     populateDebugMessengerCreateInfo(createInfo);
@@ -361,7 +365,8 @@ void device_create_vulkan_logical_device(GraphicsDevice* device)
 #ifdef VALIDATION_LAYERS_ENABLED
     createInfo.enabledLayerCount = static_cast<uint32_t>(VALIDATION_LAYERS.size());
     createInfo.ppEnabledLayerNames = VALIDATION_LAYERS.data();
-#elif
+#endif
+#ifndef VALIDATION_LAYERS_ENABLED
     createInfo.enabledLayerCount = 0;
 #endif
 

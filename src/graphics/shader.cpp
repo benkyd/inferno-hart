@@ -55,7 +55,7 @@ void shader_load(Shader* shader, std::filesystem::path path)
     VkShaderModuleCreateInfo createInfo = {};
     createInfo.sType = VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO;
     createInfo.codeSize = vertexLoadedShaderCode.size();
-    createInfo.pCode = reinterpret_cast<const uint32_t*>(vertexLoadedShaderCode.data());
+    createInfo.pCode = (uint32_t*)(vertexLoadedShaderCode.data());
 
     if (vkCreateShaderModule(
             shader->Device->VulkanDevice, &createInfo, nullptr, &shader->VertexShader)
@@ -63,17 +63,22 @@ void shader_load(Shader* shader, std::filesystem::path path)
         yolo::error("failed to create shader module");
     }
 
+    memset(&shader->ShaderStages, 0,
+        SHADER_STAGES * sizeof(VkPipelineShaderStageCreateInfo));
+
     shader->ShaderStages[0].sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
     shader->ShaderStages[0].stage = VK_SHADER_STAGE_VERTEX_BIT;
     shader->ShaderStages[0].module = shader->VertexShader;
     shader->ShaderStages[0].pName = "main";
-    VkShaderModuleCreateInfo createInfo2 = {};
+    shader->ShaderStages[0].pSpecializationInfo = nullptr; // Optional
+    shader->ShaderStages[0].flags = 0; // Optional
+    shader->ShaderStages[0].pNext = nullptr; // Optional
 
     std::string fragmentLoadedShaderCode = textFromFile(fragmentShaderPath);
+    VkShaderModuleCreateInfo createInfo2 = {};
     createInfo2.sType = VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO;
     createInfo2.codeSize = fragmentLoadedShaderCode.size();
-    createInfo2.pCode
-        = reinterpret_cast<const uint32_t*>(fragmentLoadedShaderCode.data());
+    createInfo2.pCode = (uint32_t*)(fragmentLoadedShaderCode.data());
 
     if (vkCreateShaderModule(
             shader->Device->VulkanDevice, &createInfo2, nullptr, &shader->FragmentShader)
@@ -85,6 +90,9 @@ void shader_load(Shader* shader, std::filesystem::path path)
     shader->ShaderStages[1].stage = VK_SHADER_STAGE_FRAGMENT_BIT;
     shader->ShaderStages[1].module = shader->FragmentShader;
     shader->ShaderStages[1].pName = "main";
+    shader->ShaderStages[0].pSpecializationInfo = nullptr; // Optional
+    shader->ShaderStages[0].flags = 0; // Optional
+    shader->ShaderStages[0].pNext = nullptr; // Optional
 }
 
 void shader_update_state(Shader* shader, VkCommandBuffer commandBuffer,
@@ -165,9 +173,8 @@ void shader_build(Shader* shader)
         yolo::error("failed to allocate descriptor sets!");
     }
 
-
     shader->GraphicsPipeline = pipeline_create(shader->Device, shader->GraphicsSwapchain,
-            shader, layouts.size(), layouts.data());
+        shader, layouts.size(), layouts.data());
     shader->GlobalUniformBuffer
         = uniform_buffer_create<scene::GlobalUniformObject>(shader->Device, true);
 }

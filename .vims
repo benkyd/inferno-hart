@@ -43,7 +43,7 @@ badd +2 src/scene/scene.hpp
 badd +240 src/scene/camera.cpp
 badd +59 libhart/scene/camera.hpp
 badd +30 src/graphics.hpp
-badd +70 src/gui/gui.hpp
+badd +43 src/gui/gui.hpp
 badd +130 src/window.cpp
 badd +111 src/thirdparty/imgui/imgui_impl_vulkan.cpp
 badd +66 ~/dprog/active/inferno-hart/src/thirdparty/imgui/imgui_impl_vulkan.h
@@ -75,9 +75,9 @@ set winminwidth=0
 set winwidth=1
 exe 'vert 1resize ' . ((&columns * 91 + 191) / 383)
 exe 'vert 2resize ' . ((&columns * 173 + 191) / 383)
-exe '3resize ' . ((&lines * 20 + 33) / 67)
+exe '3resize ' . ((&lines * 24 + 39) / 79)
 exe 'vert 3resize ' . ((&columns * 117 + 191) / 383)
-exe '4resize ' . ((&lines * 43 + 33) / 67)
+exe '4resize ' . ((&lines * 51 + 39) / 79)
 exe 'vert 4resize ' . ((&columns * 117 + 191) / 383)
 argglobal
 balt src/window.cpp
@@ -91,12 +91,12 @@ setlocal fdn=20
 setlocal fen
 silent! normal! zE
 let &fdl = &fdl
-let s:l = 81 - ((61 * winheight(0) + 32) / 64)
+let s:l = 5 - ((4 * winheight(0) + 38) / 76)
 if s:l < 1 | let s:l = 1 | endif
 keepjumps exe s:l
 normal! zt
-keepjumps 81
-normal! 0
+keepjumps 5
+normal! 030|
 wincmd w
 argglobal
 if bufexists(fnamemodify("src/graphics/pipeline.cpp", ":p")) | buffer src/graphics/pipeline.cpp | else | edit src/graphics/pipeline.cpp | endif
@@ -114,7 +114,7 @@ setlocal fdn=20
 setlocal fen
 silent! normal! zE
 let &fdl = &fdl
-let s:l = 34 - ((33 * winheight(0) + 32) / 64)
+let s:l = 34 - ((33 * winheight(0) + 38) / 76)
 if s:l < 1 | let s:l = 1 | endif
 keepjumps exe s:l
 normal! zt
@@ -137,7 +137,7 @@ setlocal fdn=20
 setlocal fen
 silent! normal! zE
 let &fdl = &fdl
-let s:l = 53 - ((17 * winheight(0) + 10) / 20)
+let s:l = 53 - ((20 * winheight(0) + 12) / 24)
 if s:l < 1 | let s:l = 1 | endif
 keepjumps exe s:l
 normal! zt
@@ -160,19 +160,18 @@ setlocal fdn=20
 setlocal fen
 silent! normal! zE
 let &fdl = &fdl
-let s:l = 18 - ((17 * winheight(0) + 21) / 43)
+let s:l = 18 - ((17 * winheight(0) + 25) / 51)
 if s:l < 1 | let s:l = 1 | endif
 keepjumps exe s:l
 normal! zt
 keepjumps 18
 normal! 047|
 wincmd w
-2wincmd w
 exe 'vert 1resize ' . ((&columns * 91 + 191) / 383)
 exe 'vert 2resize ' . ((&columns * 173 + 191) / 383)
-exe '3resize ' . ((&lines * 20 + 33) / 67)
+exe '3resize ' . ((&lines * 24 + 39) / 79)
 exe 'vert 3resize ' . ((&columns * 117 + 191) / 383)
-exe '4resize ' . ((&lines * 43 + 33) / 67)
+exe '4resize ' . ((&lines * 51 + 39) / 79)
 exe 'vert 4resize ' . ((&columns * 117 + 191) / 383)
 tabnext 1
 if exists('s:wipebuf') && len(win_findbuf(s:wipebuf)) == 0 && getbufvar(s:wipebuf, '&buftype') isnot# 'terminal'
