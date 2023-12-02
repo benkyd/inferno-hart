@@ -58,7 +58,6 @@ typedef struct InfernoApp {
     graphics::Buffer* VBuffer;
     graphics::Buffer* IBuffer;
     graphics::Shader* Shader;
-    graphics::Camera* Camera;
 
     // graphics::PreviewRenderer* PreviewRenderer;
     graphics::RayRenderer* RayRenderer;

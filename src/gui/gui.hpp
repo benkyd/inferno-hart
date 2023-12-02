@@ -12,6 +12,13 @@
 
 namespace inferno::gui {
 
+#define WINDOW_FLAGS                                                                     \
+    ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoCollapse                            \
+        | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove                            \
+        | ImGuiWindowFlags_NoBringToFrontOnFocus | ImGuiWindowFlags_NoNavFocus           \
+        | ImGuiWindowFlags_MenuBar | ImGuiWindowFlags_NoBackground                       \
+        | ImGuiWindowFlags_NoDecoration
+
 inline void imgui_init(graphics::VulkanRenderer* renderer)
 {
     graphics::GraphicsDevice* device = renderer->Device;
@@ -59,15 +66,46 @@ inline void imgui_init(graphics::VulkanRenderer* renderer)
     yolo::info("Initialized ImGUI");
 }
 
+inline void imgui_imgui_preset_gui()
+{
+    ImGuiID dockspace_id = ImGui::GetID("main");
+    ImGui::DockBuilderRemoveNode(dockspace_id); // Clear out existing layout
+    ImGui::DockBuilderAddNode(dockspace_id, ImGuiDockNodeFlags_DockSpace); // Add empty
+                                                                           // node ImGui::DockBuilderSetNodeSize(dockspace_id, { 1000, 1000 });
+    ImGuiID dock_main_id = dockspace_id;
+    ImGuiID dock_left = ImGui::DockBuilderSplitNode(
+            dock_main_id, ImGuiDir_Left, 0.5f, NULL, &dock_main_id);
+    // ImGui::DockBuilderDockWindow("Preview", dock_left);
+    // ImGui::DockBuilderDockWindow("Render", dock_main_id);
+    ImGui::DockBuilderFinish(dockspace_id);
+
+    yolo::info("LAYOUT SET TO DEFAULT");
+}
+
 inline void imgui_new_frame()
 {
     ImGui_ImplVulkan_NewFrame();
     ImGui_ImplGlfw_NewFrame();
     ImGui::NewFrame();
+
+    ImGui::Begin("main", nullptr, WINDOW_FLAGS);
+
+    ImGui::SetWindowPos({ 0, 0 });
+    ImGui::SetWindowSize(
+        { graphics::window_get_size().x, graphics::window_get_size().y });
+
+    ImGuiID dockspace_id = ImGui::GetID("main");
+    static ImGuiDockNodeFlags dockspace_flags = ImGuiDockNodeFlags_PassthruCentralNode;
+    // if (ImGui::DockBuilderGetNode(dockspace_id) == NULL) {
+    //     imgui_imgui_preset_gui();
+    // }
+    ImGui::DockSpace(dockspace_id, ImVec2(0.0f, 0.0f), dockspace_flags);
 }
 
 inline void imgui_render_frame(VkCommandBuffer command_buffer)
 {
+    ImGui::End();
+
     ImGui::Render();
     ImDrawData* draw_data = ImGui::GetDrawData();
     ImGui_ImplVulkan_RenderDrawData(draw_data, command_buffer);

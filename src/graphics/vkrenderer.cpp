@@ -244,7 +244,6 @@ bool renderer_begin_frame(VulkanRenderer* renderer)
 
     gui::imgui_new_frame();
 
-
     return true;
 }
 
@@ -252,9 +251,6 @@ bool renderer_draw_frame(VulkanRenderer* renderer)
 {
     work_queue(renderer, &renderer->SubmitQueueOneOffPreFrame, true);
     work_queue(renderer, &renderer->SubmitQueuePreFrame, false);
-
-
-    // ImGui::ShowDemoWindow();
 
     gui::imgui_render_frame(*renderer->CommandBufferInFlight);
 
