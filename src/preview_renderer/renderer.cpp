@@ -56,6 +56,7 @@ void preview_set_viewport(PreviewRenderer* renderer, Camera* camera)
     renderer->Viewport.offset.y = 0;
     renderer->Viewport.extent.width = viewport.x;
     renderer->Viewport.extent.height = viewport.y;
+    renderer->HasViewportChanged = true;
 }
 
 RenderTarget* preview_get_target(PreviewRenderer* renderer)
@@ -82,8 +83,8 @@ void preview_draw(PreviewRenderer* renderer, scene::Scene* scene)
         .View = graphics::camera_get_view(scene->Camera),
     };
 
-    graphics::shader_update_state(renderer->DrawShader, commandBuffer, globalUniformObject,
-        renderer->Renderer->CurrentFrameIndex);
+    graphics::shader_update_state(renderer->DrawShader, commandBuffer,
+        globalUniformObject, renderer->Renderer->CurrentFrameIndex);
 
     for (scene::SceneObject* o : scene::scene_get_renderables(scene)) {
         for (scene::Mesh* m : scene::scene_object_get_meshs(o)) {
@@ -96,7 +97,7 @@ void preview_draw(PreviewRenderer* renderer, scene::Scene* scene)
         }
     }
     graphics::renderer_end_pass(renderer->Renderer);
-    // app->LastPreviewRenderArea = app->PreviewRenderArea;
+    renderer->HasViewportChanged = false;
 }
 
 }

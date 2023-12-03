@@ -96,10 +96,11 @@ InfernoApp* inferno_create()
     graphics::window_create("Inferno v" INFERNO_VERSION, 1920, 1080);
     app->Device = graphics::device_create();
     app->Renderer = graphics::renderer_create(app->Device);
-    app->PreviewRenderer = graphics::preview_create(app->Renderer);
 
-    graphics::renderer_configure_command_buffer(app->Renderer);
     graphics::renderer_configure_gui(app->Renderer);
+    graphics::renderer_configure_command_buffer(app->Renderer);
+
+    app->PreviewRenderer = graphics::preview_create(app->Renderer);
 
     graphics::renderer_submit_repeat(
         app->Renderer,
