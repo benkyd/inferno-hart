@@ -19,7 +19,12 @@ typedef struct RenderTarget {
     std::optional<VkImageView> DepthImageView;
 
     VkFormat Format;
+    VkFormat DepthFormat;
     VkExtent2D Extent;
+
+    // NOTE: This is for the ImGui renderer.. it needs a descriptor set of a sampler of an image
+    VkSampler Sampler;
+    VkDescriptorSet DescriptorSet;
 
     GraphicsDevice* Device;
 } RenderTarget;

@@ -4,6 +4,7 @@
 #include <graphics.hpp>
 #include <version.hpp>
 
+#include "graphics/rendertarget.hpp"
 #include "gui/gui.hpp"
 // #include "renderer/renderer.hpp"
 // #include "scene/scene.hpp"
@@ -95,8 +96,12 @@ InfernoApp* inferno_create()
     graphics::window_create("Inferno v" INFERNO_VERSION, 1920, 1080);
     app->Device = graphics::device_create();
     app->Renderer = graphics::renderer_create(app->Device);
+
     graphics::renderer_configure_command_buffer(app->Renderer);
     graphics::renderer_configure_gui(app->Renderer);
+
+    app->PreviewTarget = graphics::rendertarget_create(
+            app->Device, { 1920, 1080 }, VK_FORMAT_R8G8B8A8_UNORM);
 
     graphics::renderer_submit_repeat(
         app->Renderer,
@@ -106,11 +111,10 @@ InfernoApp* inferno_create()
         false);
     graphics::renderer_submit_repeat(
         app->Renderer,
-        [](graphics::VulkanRenderer* renderer, VkCommandBuffer* commandBuffer) {
+        [&](graphics::VulkanRenderer* renderer, VkCommandBuffer* commandBuffer) {
             graphics::renderer_begin_pass(renderer,
                 { 0, 0, (uint32_t)graphics::window_get_size().x,
-                    (uint32_t)graphics::window_get_size().y },
-                false);
+                    (uint32_t)graphics::window_get_size().y });
             gui::imgui_render_frame(*commandBuffer);
             graphics::renderer_end_pass(renderer);
         },
@@ -321,10 +325,10 @@ int inferno_run(InfernoApp* app)
                 { ImGui::GetWindowSize().x, ImGui::GetWindowSize().y });
             // graphics::preview_set_viewport(app->PreviewRenderer, app->Scene->Camera);
             {
-                graphics::renderer_begin_pass(app->Renderer,
+                graphics::renderer_begin_pass(app->Renderer, app->PreviewTarget,
                     { 0, 0, (uint32_t)ImGui::GetWindowSize().x,
-                        (uint32_t)ImGui::GetWindowSize().y },
-                    false);
+                        (uint32_t)ImGui::GetWindowSize().y });
+
                 graphics::shader_use(app->Shader, commandBuffer);
                 scene::GlobalUniformObject globalUniformObject {
                     .Projection = graphics::camera_get_projection(app->Scene->Camera),
@@ -347,12 +351,9 @@ int inferno_run(InfernoApp* app)
                 graphics::renderer_end_pass(app->Renderer);
             }
 
-            // ImTextureID texture = (ImTextureID)graphics::preview_get_rendered_texture(
-            //     app->PreviewRenderer);
-            // ImGui::Image(texture, { ImGui::GetWindowSize().x, ImGui::GetWindowSize().y
-            // },
-            //     ImVec2(0, 1), ImVec2(1, 0));
-
+            ImTextureID texture = (ImTextureID)app->PreviewTarget->DescriptorSet;
+            ImGui::Image(texture, { ImGui::GetWindowSize().x, ImGui::GetWindowSize().y },
+                ImVec2(0, 1), ImVec2(1, 0));
             ImGui::End();
         }
 

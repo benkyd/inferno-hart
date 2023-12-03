@@ -16,6 +16,7 @@ namespace graphics {
     struct Camera;
     struct GraphicsDevice;
     struct VulkanRenderer;
+    struct RenderTarget;
     struct Buffer;
     struct Shader;
 }
@@ -55,6 +56,7 @@ typedef struct InfernoApp {
     InfernoInput* Input;
     scene::Scene* Scene;
 
+    graphics::RenderTarget* PreviewTarget;
     graphics::Buffer* VBuffer;
     graphics::Buffer* IBuffer;
     graphics::Shader* Shader;

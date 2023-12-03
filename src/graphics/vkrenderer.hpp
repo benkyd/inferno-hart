@@ -3,15 +3,15 @@
 #include "graphics.hpp"
 
 #include <functional>
-#include <vector>
 #include <map>
+#include <vector>
 
 namespace inferno::graphics {
 
 struct GraphicsDevice;
 struct Pipeline;
 struct SwapChain;
-struct RenderPass;
+struct RenderTarget;
 struct GenBuffer;
 struct Shader;
 
@@ -65,7 +65,11 @@ void renderer_submit_now(VulkanRenderer* renderer,
 
 bool renderer_begin_frame(VulkanRenderer* renderer);
 
-void renderer_begin_pass(VulkanRenderer* renderer, VkRect2D renderArea, bool depth = true);
+void renderer_begin_pass(VulkanRenderer* renderer, RenderTarget* target,
+    VkRect2D renderArea);
+// this is for rendering to the swapchain / present image
+void renderer_begin_pass(VulkanRenderer* renderer, VkRect2D renderArea);
+
 void renderer_end_pass(VulkanRenderer* renderer);
 
 bool renderer_draw_frame(VulkanRenderer* renderer);
