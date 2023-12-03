@@ -9,7 +9,7 @@
 namespace inferno::graphics {
 
 RenderTarget* rendertarget_create(
-    GraphicsDevice* device, VkExtent2D extent, VkFormat format)
+    GraphicsDevice* device, VkExtent2D extent, VkFormat format, bool depth)
 {
     RenderTarget* target = new RenderTarget();
     target->Device = device;

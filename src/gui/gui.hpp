@@ -1,6 +1,7 @@
 #pragma once
 
 #include "graphics.hpp"
+#include "style.hpp"
 
 #include "graphics/device.hpp"
 #include "graphics/swapchain.hpp"
@@ -47,6 +48,9 @@ inline void imgui_init(graphics::VulkanRenderer* renderer)
     // this initializes the core structures of imgui
     ImGui::CreateContext();
 
+    auto& io = ImGui::GetIO();
+    io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;
+
     ImGui_ImplGlfw_InitForVulkan(graphics::window_get_glfw_window(), true);
 
     // this initializes imgui for Vulkan
@@ -63,23 +67,9 @@ inline void imgui_init(graphics::VulkanRenderer* renderer)
     init_info.ColorAttachmentFormat = renderer->Swap->ImageFormat;
     ImGui_ImplVulkan_Init(&init_info, VK_NULL_HANDLE);
 
+    SetupImGuiStyle2();
+
     yolo::info("Initialized ImGUI");
-}
-
-inline void imgui_imgui_preset_gui()
-{
-    ImGuiID dockspace_id = ImGui::GetID("main");
-    ImGui::DockBuilderRemoveNode(dockspace_id); // Clear out existing layout
-    ImGui::DockBuilderAddNode(dockspace_id, ImGuiDockNodeFlags_DockSpace); // Add empty
-                                                                           // node ImGui::DockBuilderSetNodeSize(dockspace_id, { 1000, 1000 });
-    ImGuiID dock_main_id = dockspace_id;
-    ImGuiID dock_left = ImGui::DockBuilderSplitNode(
-            dock_main_id, ImGuiDir_Left, 0.5f, NULL, &dock_main_id);
-    // ImGui::DockBuilderDockWindow("Preview", dock_left);
-    // ImGui::DockBuilderDockWindow("Render", dock_main_id);
-    ImGui::DockBuilderFinish(dockspace_id);
-
-    yolo::info("LAYOUT SET TO DEFAULT");
 }
 
 inline void imgui_new_frame()
@@ -92,13 +82,10 @@ inline void imgui_new_frame()
 
     ImGui::SetWindowPos({ 0, 0 });
     ImGui::SetWindowSize(
-        { graphics::window_get_size().x, graphics::window_get_size().y });
+    { graphics::window_get_size().x, graphics::window_get_size().y });
 
     ImGuiID dockspace_id = ImGui::GetID("main");
     static ImGuiDockNodeFlags dockspace_flags = ImGuiDockNodeFlags_PassthruCentralNode;
-    // if (ImGui::DockBuilderGetNode(dockspace_id) == NULL) {
-    //     imgui_imgui_preset_gui();
-    // }
     ImGui::DockSpace(dockspace_id, ImVec2(0.0f, 0.0f), dockspace_flags);
 }
 
@@ -119,3 +106,4 @@ inline void imgui_shutdown()
 }
 
 }
+

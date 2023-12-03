@@ -29,7 +29,7 @@ typedef struct RenderTarget {
     GraphicsDevice* Device;
 } RenderTarget;
 
-RenderTarget* rendertarget_create(GraphicsDevice* device, VkExtent2D extent, VkFormat format);
+RenderTarget* rendertarget_create(GraphicsDevice* device, VkExtent2D extent, VkFormat format, bool depth);
 void rendertarget_cleanup(RenderTarget* target);
 
 void rendertarget_create_depth(RenderTarget* target);

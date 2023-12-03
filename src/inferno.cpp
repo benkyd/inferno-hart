@@ -101,7 +101,7 @@ InfernoApp* inferno_create()
     graphics::renderer_configure_gui(app->Renderer);
 
     app->PreviewTarget = graphics::rendertarget_create(
-            app->Device, { 1920, 1080 }, VK_FORMAT_R8G8B8A8_UNORM);
+            app->Device, { 1920, 1080 }, VK_FORMAT_R8G8B8A8_UNORM, true);
 
     graphics::renderer_submit_repeat(
         app->Renderer,

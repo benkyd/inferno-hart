@@ -2,7 +2,7 @@
 
 #include <graphics.hpp>
 
-namespace inferno {
+namespace inferno::gui {
 
 inline void SetupImGuiStyle2()
 {
