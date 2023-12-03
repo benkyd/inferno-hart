@@ -102,16 +102,10 @@ void rendertarget_recreate(RenderTarget* target, VkExtent2D extent, VkFormat for
     target->Extent = extent;
     target->Format = format;
 
+    rendertarget_create(target->Device, extent, format, doDepth);
+
     if (doDepth)
         rendertarget_create_depth(target);
-
-    create_image(target->Device, extent.width, extent.height, format,
-        VK_IMAGE_TILING_OPTIMAL,
-        VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT | VK_IMAGE_USAGE_INPUT_ATTACHMENT_BIT,
-        VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, target->Image, target->Memory);
-
-    target->ImageView = create_image_view(
-        target->Device, target->Image, format, VK_IMAGE_ASPECT_COLOR_BIT);
 }
 
 }

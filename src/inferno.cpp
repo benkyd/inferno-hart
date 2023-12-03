@@ -101,7 +101,7 @@ InfernoApp* inferno_create()
     graphics::renderer_configure_gui(app->Renderer);
 
     app->PreviewTarget = graphics::rendertarget_create(
-            app->Device, { 1920, 1080 }, VK_FORMAT_R8G8B8A8_UNORM, true);
+        app->Device, { 1920, 1080 }, VK_FORMAT_R8G8B8A8_UNORM, true);
 
     graphics::renderer_submit_repeat(
         app->Renderer,
@@ -325,11 +325,26 @@ int inferno_run(InfernoApp* app)
                 { ImGui::GetWindowSize().x, ImGui::GetWindowSize().y });
             // graphics::preview_set_viewport(app->PreviewRenderer, app->Scene->Camera);
             {
-                graphics::renderer_begin_pass(app->Renderer, app->PreviewTarget,
-                    { 0, 0, (uint32_t)ImGui::GetWindowSize().x,
-                        (uint32_t)ImGui::GetWindowSize().y });
+                app->PreviewRenderArea = { 0, 0, (uint32_t)ImGui::GetWindowSize().x,
+                    (uint32_t)ImGui::GetWindowSize().y };
 
-                graphics::shader_use(app->Shader, commandBuffer);
+                // if changed
+                if (app->PreviewRenderArea.extent.width
+                        != app->LastPreviewRenderArea.extent.width
+                    || app->PreviewRenderArea.extent.height
+                        != app->LastPreviewRenderArea.extent.height) {
+
+                    graphics::camera_raster_set_viewport(app->Scene->Camera,
+                        { ImGui::GetWindowSize().x, ImGui::GetWindowSize().y });
+
+                    graphics::rendertarget_recreate(
+                        app->PreviewTarget, app->PreviewRenderArea.extent, VK_FORMAT_R8G8B8A8_UNORM);
+                }
+
+                graphics::renderer_begin_pass(
+                    app->Renderer, app->PreviewTarget, app->PreviewRenderArea);
+
+                graphics::shader_use(app->Shader, commandBuffer, app->PreviewRenderArea);
                 scene::GlobalUniformObject globalUniformObject {
                     .Projection = graphics::camera_get_projection(app->Scene->Camera),
                     .View = graphics::camera_get_view(app->Scene->Camera),
@@ -349,6 +364,7 @@ int inferno_run(InfernoApp* app)
                 }
 
                 graphics::renderer_end_pass(app->Renderer);
+                app->LastPreviewRenderArea = app->PreviewRenderArea;
             }
 
             ImTextureID texture = (ImTextureID)app->PreviewTarget->DescriptorSet;

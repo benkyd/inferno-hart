@@ -179,23 +179,24 @@ void shader_build(Shader* shader)
         = uniform_buffer_create<scene::GlobalUniformObject>(shader->Device, true);
 }
 
-void shader_use(Shader* shader, VkCommandBuffer commandBuffer)
+void shader_use(Shader* shader, VkCommandBuffer commandBuffer, VkRect2D renderArea)
 {
     vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS,
         shader->GraphicsPipeline->GraphicsPipeline);
 
     VkViewport viewport {};
     viewport.x = 0.0f;
-    viewport.y = static_cast<float>(shader->GraphicsPipeline->Swap->Extent.height);
-    viewport.width = static_cast<float>(shader->GraphicsPipeline->Swap->Extent.width);
-    viewport.height = -static_cast<float>(shader->GraphicsPipeline->Swap->Extent.height);
+    // viewport.y = static_cast<float>(renderArea.extent.height);
+    viewport.y = 0.0f;
+    viewport.width = static_cast<float>(renderArea.extent.width);
+    viewport.height = static_cast<float>(renderArea.extent.height);
     viewport.minDepth = 0.0f;
     viewport.maxDepth = 1.0f;
     vkCmdSetViewport(commandBuffer, 0, 1, &viewport);
 
     VkRect2D scissor {};
     scissor.offset = { 0, 0 };
-    scissor.extent = shader->GraphicsPipeline->Swap->Extent;
+    scissor.extent = renderArea.extent;
     vkCmdSetScissor(commandBuffer, 0, 1, &scissor);
 }
 

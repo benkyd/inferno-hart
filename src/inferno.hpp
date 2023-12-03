@@ -57,8 +57,8 @@ typedef struct InfernoApp {
     scene::Scene* Scene;
 
     graphics::RenderTarget* PreviewTarget;
-    graphics::Buffer* VBuffer;
-    graphics::Buffer* IBuffer;
+    VkRect2D PreviewRenderArea;
+    VkRect2D LastPreviewRenderArea;
     graphics::Shader* Shader;
 
     // graphics::PreviewRenderer* PreviewRenderer;

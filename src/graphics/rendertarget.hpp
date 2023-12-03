@@ -22,14 +22,16 @@ typedef struct RenderTarget {
     VkFormat DepthFormat;
     VkExtent2D Extent;
 
-    // NOTE: This is for the ImGui renderer.. it needs a descriptor set of a sampler of an image
+    // NOTE: This is for the ImGui renderer.. it needs a descriptor set of a sampler of an
+    // image
     VkSampler Sampler;
     VkDescriptorSet DescriptorSet;
 
     GraphicsDevice* Device;
 } RenderTarget;
 
-RenderTarget* rendertarget_create(GraphicsDevice* device, VkExtent2D extent, VkFormat format, bool depth);
+RenderTarget* rendertarget_create(
+    GraphicsDevice* device, VkExtent2D extent, VkFormat format, bool depth);
 void rendertarget_cleanup(RenderTarget* target);
 
 void rendertarget_create_depth(RenderTarget* target);

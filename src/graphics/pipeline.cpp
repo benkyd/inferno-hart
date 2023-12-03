@@ -69,7 +69,8 @@ Pipeline* pipeline_create(GraphicsDevice* device, SwapChain* swap, Shader* shade
     rasterizer.polygonMode = VK_POLYGON_MODE_FILL;
     rasterizer.lineWidth = 1.f;
     rasterizer.cullMode = VK_CULL_MODE_BACK_BIT;
-    rasterizer.frontFace = VK_FRONT_FACE_COUNTER_CLOCKWISE;
+    // rasterizer.frontFace = VK_FRONT_FACE_COUNTER_CLOCKWISE;
+    rasterizer.frontFace = VK_FRONT_FACE_CLOCKWISE;
     rasterizer.depthBiasEnable = VK_FALSE;
 
     VkPipelineMultisampleStateCreateInfo multisampling {};
@@ -160,19 +161,19 @@ Pipeline* pipeline_create(GraphicsDevice* device, SwapChain* swap, Shader* shade
     pipelineInfo.subpass = 0;
     pipelineInfo.basePipelineHandle = VK_NULL_HANDLE; // Optional
 
-    // yolo::debug("All Binding Description: {} stride: {}",
-    //     vertexInputInfo.pVertexBindingDescriptions->binding,
-    //     vertexInputInfo.pVertexBindingDescriptions->stride);
-    // yolo::debug("All Attribute Description0: {} location: {} format: {} offset: {}",
-    //     vertexInputInfo.pVertexAttributeDescriptions[0].binding,
-    //     vertexInputInfo.pVertexAttributeDescriptions[0].location,
-    //     vertexInputInfo.pVertexAttributeDescriptions[0].format,
-    //     vertexInputInfo.pVertexAttributeDescriptions[0].offset);
-    // yolo::debug("All Attribute Description1: {} location: {} format: {} offset: {}",
-    //     vertexInputInfo.pVertexAttributeDescriptions[1].binding,
-    //     vertexInputInfo.pVertexAttributeDescriptions[1].location,
-    //     vertexInputInfo.pVertexAttributeDescriptions[1].format,
-    //     vertexInputInfo.pVertexAttributeDescriptions[1].offset);
+    yolo::debug("All Binding Description: {} stride: {}",
+        vertexInputInfo.pVertexBindingDescriptions->binding,
+        vertexInputInfo.pVertexBindingDescriptions->stride);
+    yolo::debug("All Attribute Description0: {} location: {} format: {} offset: {}",
+        vertexInputInfo.pVertexAttributeDescriptions[0].binding,
+        vertexInputInfo.pVertexAttributeDescriptions[0].location,
+        vertexInputInfo.pVertexAttributeDescriptions[0].format,
+        vertexInputInfo.pVertexAttributeDescriptions[0].offset);
+    yolo::debug("All Attribute Description1: {} location: {} format: {} offset: {}",
+        vertexInputInfo.pVertexAttributeDescriptions[1].binding,
+        vertexInputInfo.pVertexAttributeDescriptions[1].location,
+        vertexInputInfo.pVertexAttributeDescriptions[1].format,
+        vertexInputInfo.pVertexAttributeDescriptions[1].offset);
 
     if (vkCreateGraphicsPipelines(device->VulkanDevice, VK_NULL_HANDLE, 1, &pipelineInfo,
             nullptr, &pipeline->GraphicsPipeline)

@@ -57,7 +57,7 @@ void shader_push_const(glm::mat4 mat);
 // actually creates the pipeline
 void shader_build(Shader* shader);
 
-void shader_use(Shader* shader, VkCommandBuffer commandBuffer);
+void shader_use(Shader* shader, VkCommandBuffer commandBuffer, VkRect2D renderArea);
 void shader_unuse(Shader* shader, VkCommandBuffer commandBuffer);
 
 }
