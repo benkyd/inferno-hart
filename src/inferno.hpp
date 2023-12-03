@@ -56,16 +56,11 @@ typedef struct InfernoApp {
     InfernoInput* Input;
     scene::Scene* Scene;
 
-    graphics::RenderTarget* PreviewTarget;
-    VkRect2D PreviewRenderArea;
-    VkRect2D LastPreviewRenderArea;
-    graphics::Shader* Shader;
-
-    // graphics::PreviewRenderer* PreviewRenderer;
-    graphics::RayRenderer* RayRenderer;
-
-    graphics::VulkanRenderer* Renderer;
     graphics::GraphicsDevice* Device;
+    graphics::VulkanRenderer* Renderer;
+
+    graphics::PreviewRenderer* PreviewRenderer;
+    graphics::RayRenderer* RayRenderer;
 
     InfernoTimer* MainTimer;
     uint64_t FrameCount;
@@ -79,6 +74,7 @@ void inferno_stop_move_input(InfernoApp* app);
 
 bool inferno_pre(InfernoApp* app);
 void inferno_end(InfernoApp* app);
+
 int inferno_run(InfernoApp* app);
 
 } // namespace inferno

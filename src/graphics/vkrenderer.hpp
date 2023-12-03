@@ -21,6 +21,8 @@ typedef struct FrameInFlight {
     VkSemaphore RenderFinished;
     VkFence Fence;
 
+    // Global Uniform Buffer
+    // TODO: We also need push constants
     GenBuffer* UniformBuffer;
 } FrameInFlight;
 

@@ -96,12 +96,10 @@ InfernoApp* inferno_create()
     graphics::window_create("Inferno v" INFERNO_VERSION, 1920, 1080);
     app->Device = graphics::device_create();
     app->Renderer = graphics::renderer_create(app->Device);
+    app->PreviewRenderer = graphics::preview_create(app->Renderer);
 
     graphics::renderer_configure_command_buffer(app->Renderer);
     graphics::renderer_configure_gui(app->Renderer);
-
-    app->PreviewTarget = graphics::rendertarget_create(
-        app->Device, { 1920, 1080 }, VK_FORMAT_R8G8B8A8_UNORM, true);
 
     graphics::renderer_submit_repeat(
         app->Renderer,
@@ -120,9 +118,6 @@ InfernoApp* inferno_create()
         },
         true);
 
-    app->Shader = graphics::shader_create(app->Device, app->Renderer->Swap);
-    graphics::shader_load(app->Shader, "res/shaders/basic");
-    graphics::shader_build(app->Shader);
 
     scene::Mesh* mesh = scene::mesh_create(app->Device);
     scene::mesh_load_obj(mesh, "res/cornell-box.obj");
@@ -259,10 +254,6 @@ int inferno_run(InfernoApp* app)
         if (!inferno_pre(app))
             continue;
 
-        VkCommandBuffer commandBuffer
-            = app->Renderer->CommandBuffersInFlight[app->Renderer->CurrentFrameIndex];
-        uint32_t frameIndex = app->Renderer->CurrentFrameIndex;
-
         if (glm::length(app->Input->MouseDelta) > 0.0f)
             graphics::camera_mouse_move(app->Scene->Camera, app->Input->MouseDelta,
                 inferno_timer_get_time(app->MainTimer).count());
@@ -323,51 +314,12 @@ int inferno_run(InfernoApp* app)
 
             graphics::camera_raster_set_viewport(scene::scene_get_camera(app->Scene),
                 { ImGui::GetWindowSize().x, ImGui::GetWindowSize().y });
-            // graphics::preview_set_viewport(app->PreviewRenderer, app->Scene->Camera);
-            {
-                app->PreviewRenderArea = { 0, 0, (uint32_t)ImGui::GetWindowSize().x,
-                    (uint32_t)ImGui::GetWindowSize().y };
+            graphics::preview_set_viewport(app->PreviewRenderer, app->Scene->Camera);
+            graphics::preview_draw(app->PreviewRenderer, app->Scene);
 
-                // if changed
-                if (app->PreviewRenderArea.extent.width
-                        != app->LastPreviewRenderArea.extent.width
-                    || app->PreviewRenderArea.extent.height
-                        != app->LastPreviewRenderArea.extent.height) {
-
-                    graphics::camera_raster_set_viewport(app->Scene->Camera,
-                        { ImGui::GetWindowSize().x, ImGui::GetWindowSize().y });
-
-                    graphics::rendertarget_recreate(
-                        app->PreviewTarget, app->PreviewRenderArea.extent, VK_FORMAT_R8G8B8A8_UNORM);
-                }
-
-                graphics::renderer_begin_pass(
-                    app->Renderer, app->PreviewTarget, app->PreviewRenderArea);
-
-                graphics::shader_use(app->Shader, commandBuffer, app->PreviewRenderArea);
-                scene::GlobalUniformObject globalUniformObject {
-                    .Projection = graphics::camera_get_projection(app->Scene->Camera),
-                    .View = graphics::camera_get_view(app->Scene->Camera),
-                };
-
-                graphics::shader_update_state(
-                    app->Shader, commandBuffer, globalUniformObject, frameIndex);
-
-                for (auto& object : scene::scene_get_renderables(app->Scene)) {
-                    graphics::vertex_buffer_bind(
-                        object->Meshs[0]->VertexBuffer, commandBuffer);
-                    graphics::index_buffer_bind(
-                        object->Meshs[0]->IndexBuffer, commandBuffer);
-
-                    vkCmdDrawIndexed(commandBuffer,
-                        object->Meshs[0]->IndexBuffer->GenericBuffer->Count, 1, 0, 0, 0);
-                }
-
-                graphics::renderer_end_pass(app->Renderer);
-                app->LastPreviewRenderArea = app->PreviewRenderArea;
-            }
-
-            ImTextureID texture = (ImTextureID)app->PreviewTarget->DescriptorSet;
+            ImTextureID texture
+                = (ImTextureID)graphics::preview_get_target(app->PreviewRenderer)
+                      ->DescriptorSet;
             ImGui::Image(texture, { ImGui::GetWindowSize().x, ImGui::GetWindowSize().y },
                 ImVec2(0, 1), ImVec2(1, 0));
             ImGui::End();
