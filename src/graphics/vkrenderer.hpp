@@ -4,6 +4,7 @@
 
 #include <functional>
 #include <vector>
+#include <map>
 
 namespace inferno::graphics {
 
@@ -52,6 +53,7 @@ typedef struct VulkanRenderer {
 VulkanRenderer* renderer_create(GraphicsDevice* device);
 void renderer_cleanup(VulkanRenderer* renderer);
 
+void renderer_configure_gui(VulkanRenderer* renderer);
 void renderer_configure_command_buffer(VulkanRenderer* renderer);
 
 void renderer_submit_oneoff(VulkanRenderer* renderer,
@@ -61,8 +63,11 @@ void renderer_submit_repeat(VulkanRenderer* renderer,
 void renderer_submit_now(VulkanRenderer* renderer,
     std::function<void(VulkanRenderer*, VkCommandBuffer*)> callback);
 
-
 bool renderer_begin_frame(VulkanRenderer* renderer);
+
+void renderer_begin_pass(VulkanRenderer* renderer, VkRect2D renderArea, bool depth = true);
+void renderer_end_pass(VulkanRenderer* renderer);
+
 bool renderer_draw_frame(VulkanRenderer* renderer);
 
 }

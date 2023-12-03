@@ -186,10 +186,6 @@ bool device_evaluate(GraphicsDevice* g, VkPhysicalDevice device)
     // Maximum possible size of textures affects graphics quality
     score += deviceProperties.limits.maxImageDimension2D;
 
-    // Application won't function without geometry shaders
-    if (!deviceFeatures.geometryShader)
-        return 0;
-
     // Ensure that the device can process the graphics commands that we need
     QueueFamilyIndices indices = device_get_queue_families(g, device);
     if (!indices.isComplete())

@@ -49,10 +49,10 @@ VulkanRenderer* renderer_create(GraphicsDevice* device)
     renderer->CurrentFrameIndex = 0;
     renderer->CurrentFrame = &renderer->InFlight[0];
 
-    gui::imgui_init(renderer);
-
     return renderer;
 }
+
+void renderer_configure_gui(VulkanRenderer* renderer) { gui::imgui_init(renderer); }
 
 void renderer_cleanup(VulkanRenderer* renderer)
 {
@@ -101,55 +101,6 @@ void renderer_record_command_buffer(VulkanRenderer* renderer, uint32_t imageInde
 
     renderer->CommandBufferInFlight
         = &renderer->CommandBuffersInFlight[renderer->CurrentFrameIndex];
-
-    VkImageMemoryBarrier imageMemoryBarrier {};
-    imageMemoryBarrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
-    imageMemoryBarrier.dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
-    imageMemoryBarrier.oldLayout = VK_IMAGE_LAYOUT_UNDEFINED;
-    imageMemoryBarrier.newLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
-    imageMemoryBarrier.image = renderer->Swap->Images[renderer->ImageIndex];
-    imageMemoryBarrier.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
-    imageMemoryBarrier.subresourceRange.baseMipLevel = 0;
-    imageMemoryBarrier.subresourceRange.layerCount = 1;
-    imageMemoryBarrier.subresourceRange.baseArrayLayer = 0;
-    imageMemoryBarrier.subresourceRange.levelCount = 1;
-
-    vkCmdPipelineBarrier(renderer->CommandBuffersInFlight[renderer->CurrentFrameIndex],
-        VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT, VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT,
-        0, 0, nullptr, 0, nullptr, 1, &imageMemoryBarrier);
-
-    VkClearValue clearColor = { { { 0.0f, 0.0f, 0.0f, 1.0f } } };
-    VkRenderingAttachmentInfo attachmentInfo {};
-    attachmentInfo.sType = VK_STRUCTURE_TYPE_RENDERING_ATTACHMENT_INFO_KHR;
-    attachmentInfo.imageView = renderer->Swap->ImageViews[imageIndex];
-    attachmentInfo.imageLayout = VK_IMAGE_LAYOUT_ATTACHMENT_OPTIMAL_KHR;
-    attachmentInfo.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
-    attachmentInfo.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
-    attachmentInfo.clearValue = clearColor;
-
-    VkRenderingAttachmentInfo depthAttachmentInfo;
-    depthAttachmentInfo.sType = VK_STRUCTURE_TYPE_RENDERING_ATTACHMENT_INFO_KHR;
-    depthAttachmentInfo.imageView = renderer->Swap->DepthImageView;
-    depthAttachmentInfo.imageLayout = VK_IMAGE_LAYOUT_ATTACHMENT_OPTIMAL_KHR;
-    depthAttachmentInfo.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
-    depthAttachmentInfo.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
-    depthAttachmentInfo.clearValue.depthStencil = { 1.0f, 0 };
-    depthAttachmentInfo.resolveMode = VK_RESOLVE_MODE_NONE;
-    depthAttachmentInfo.resolveImageView = VK_NULL_HANDLE;
-    depthAttachmentInfo.resolveImageLayout = VK_IMAGE_LAYOUT_GENERAL;
-    depthAttachmentInfo.pNext = VK_NULL_HANDLE;
-
-    VkRenderingInfo renderingInfo {};
-    renderingInfo.sType = VK_STRUCTURE_TYPE_RENDERING_INFO_KHR;
-    renderingInfo.renderArea
-        = { 0, 0, renderer->Swap->Extent.width, renderer->Swap->Extent.height };
-    renderingInfo.layerCount = 1;
-    renderingInfo.colorAttachmentCount = 1;
-    renderingInfo.pColorAttachments = &attachmentInfo;
-    renderingInfo.pDepthAttachment = &depthAttachmentInfo;
-
-    vkCmdBeginRendering(
-        renderer->CommandBuffersInFlight[renderer->CurrentFrameIndex], &renderingInfo);
 }
 
 void renderer_submit_oneoff(VulkanRenderer* renderer,
@@ -242,18 +193,63 @@ bool renderer_begin_frame(VulkanRenderer* renderer)
     work_queue(renderer, &renderer->SubmitQueueOneOffPreFrame, true);
     work_queue(renderer, &renderer->SubmitQueuePreFrame, false);
 
-    gui::imgui_new_frame();
-
     return true;
 }
 
-bool renderer_draw_frame(VulkanRenderer* renderer)
+void renderer_begin_pass(VulkanRenderer* renderer, VkRect2D renderArea, bool depth)
 {
-    work_queue(renderer, &renderer->SubmitQueueOneOffPreFrame, true);
-    work_queue(renderer, &renderer->SubmitQueuePreFrame, false);
+    VkImageMemoryBarrier imageMemoryBarrier {};
+    imageMemoryBarrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
+    imageMemoryBarrier.dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
+    imageMemoryBarrier.oldLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+    imageMemoryBarrier.newLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
+    imageMemoryBarrier.image = renderer->Swap->Images[renderer->ImageIndex];
+    imageMemoryBarrier.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+    imageMemoryBarrier.subresourceRange.baseMipLevel = 0;
+    imageMemoryBarrier.subresourceRange.layerCount = 1;
+    imageMemoryBarrier.subresourceRange.baseArrayLayer = 0;
+    imageMemoryBarrier.subresourceRange.levelCount = 1;
 
-    gui::imgui_render_frame(*renderer->CommandBufferInFlight);
+    vkCmdPipelineBarrier(renderer->CommandBuffersInFlight[renderer->CurrentFrameIndex],
+        VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT, VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT,
+        0, 0, nullptr, 0, nullptr, 1, &imageMemoryBarrier);
 
+    VkClearValue clearColor = { { { 0.0f, 0.0f, 0.0f, 1.0f } } };
+    VkRenderingAttachmentInfo attachmentInfo {};
+    attachmentInfo.sType = VK_STRUCTURE_TYPE_RENDERING_ATTACHMENT_INFO_KHR;
+    attachmentInfo.imageView = renderer->Swap->ImageViews[renderer->ImageIndex];
+    attachmentInfo.imageLayout = VK_IMAGE_LAYOUT_ATTACHMENT_OPTIMAL_KHR;
+    attachmentInfo.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
+    attachmentInfo.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
+    attachmentInfo.clearValue = clearColor;
+
+    VkRenderingAttachmentInfo depthAttachmentInfo;
+    depthAttachmentInfo.sType = VK_STRUCTURE_TYPE_RENDERING_ATTACHMENT_INFO_KHR;
+    depthAttachmentInfo.imageView = renderer->Swap->DepthImageView;
+    depthAttachmentInfo.imageLayout = VK_IMAGE_LAYOUT_ATTACHMENT_OPTIMAL_KHR;
+    depthAttachmentInfo.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
+    depthAttachmentInfo.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
+    depthAttachmentInfo.clearValue.depthStencil = { 1.0f, 0 };
+    depthAttachmentInfo.resolveMode = VK_RESOLVE_MODE_NONE;
+    depthAttachmentInfo.resolveImageView = VK_NULL_HANDLE;
+    depthAttachmentInfo.resolveImageLayout = VK_IMAGE_LAYOUT_GENERAL;
+    depthAttachmentInfo.pNext = VK_NULL_HANDLE;
+
+    VkRenderingInfo renderingInfo {};
+    renderingInfo.sType = VK_STRUCTURE_TYPE_RENDERING_INFO_KHR;
+    renderingInfo.renderArea = renderArea;
+    renderingInfo.layerCount = 1;
+    renderingInfo.colorAttachmentCount = 1;
+    renderingInfo.pColorAttachments = &attachmentInfo;
+    if (depth)
+        renderingInfo.pDepthAttachment = &depthAttachmentInfo;
+
+    vkCmdBeginRendering(
+        renderer->CommandBuffersInFlight[renderer->CurrentFrameIndex], &renderingInfo);
+}
+
+void renderer_end_pass(VulkanRenderer* renderer)
+{
     vkCmdEndRendering(*renderer->CommandBufferInFlight);
 
     VkImageMemoryBarrier imageMemoryBarrier {};
@@ -273,6 +269,13 @@ bool renderer_draw_frame(VulkanRenderer* renderer)
         VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT, 0, 0, nullptr, 0, nullptr, 1,
         &imageMemoryBarrier);
 
+    // return VkImage
+}
+
+bool renderer_draw_frame(VulkanRenderer* renderer)
+{
+    work_queue(renderer, &renderer->SubmitQueueOneOffPostFrame, true);
+    work_queue(renderer, &renderer->SubmitQueuePostFrame, false);
 
     if (vkEndCommandBuffer(renderer->CommandBuffersInFlight[renderer->CurrentFrameIndex])
         != VK_SUCCESS) {

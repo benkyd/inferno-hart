@@ -1,5 +1,6 @@
 #include "inferno.hpp"
 
+#include <cstdint>
 #include <graphics.hpp>
 #include <version.hpp>
 
@@ -95,6 +96,25 @@ InfernoApp* inferno_create()
     app->Device = graphics::device_create();
     app->Renderer = graphics::renderer_create(app->Device);
     graphics::renderer_configure_command_buffer(app->Renderer);
+    graphics::renderer_configure_gui(app->Renderer);
+
+    graphics::renderer_submit_repeat(
+        app->Renderer,
+        [](graphics::VulkanRenderer* renderer, VkCommandBuffer* commandBuffer) {
+            gui::imgui_new_frame();
+        },
+        false);
+    graphics::renderer_submit_repeat(
+        app->Renderer,
+        [](graphics::VulkanRenderer* renderer, VkCommandBuffer* commandBuffer) {
+            graphics::renderer_begin_pass(renderer,
+                { 0, 0, (uint32_t)graphics::window_get_size().x,
+                    (uint32_t)graphics::window_get_size().y },
+                false);
+            gui::imgui_render_frame(*commandBuffer);
+            graphics::renderer_end_pass(renderer);
+        },
+        true);
 
     app->Shader = graphics::shader_create(app->Device, app->Renderer->Swap);
     graphics::shader_load(app->Shader, "res/shaders/basic");
@@ -239,24 +259,6 @@ int inferno_run(InfernoApp* app)
             = app->Renderer->CommandBuffersInFlight[app->Renderer->CurrentFrameIndex];
         uint32_t frameIndex = app->Renderer->CurrentFrameIndex;
 
-        // shader bind
-        graphics::shader_use(app->Shader, commandBuffer);
-        scene::GlobalUniformObject globalUniformObject {
-            .Projection = graphics::camera_get_projection(app->Scene->Camera),
-            .View = graphics::camera_get_view(app->Scene->Camera),
-        };
-
-        graphics::shader_update_state(
-            app->Shader, commandBuffer, globalUniformObject, frameIndex);
-
-        for (auto& object : scene::scene_get_renderables(app->Scene)) {
-            graphics::vertex_buffer_bind(object->Meshs[0]->VertexBuffer, commandBuffer);
-            graphics::index_buffer_bind(object->Meshs[0]->IndexBuffer, commandBuffer);
-
-            vkCmdDrawIndexed(commandBuffer,
-                object->Meshs[0]->IndexBuffer->GenericBuffer->Count, 1, 0, 0, 0);
-        }
-
         if (glm::length(app->Input->MouseDelta) > 0.0f)
             graphics::camera_mouse_move(app->Scene->Camera, app->Input->MouseDelta,
                 inferno_timer_get_time(app->MainTimer).count());
@@ -318,9 +320,32 @@ int inferno_run(InfernoApp* app)
             graphics::camera_raster_set_viewport(scene::scene_get_camera(app->Scene),
                 { ImGui::GetWindowSize().x, ImGui::GetWindowSize().y });
             // graphics::preview_set_viewport(app->PreviewRenderer, app->Scene->Camera);
-            //
-            // graphics::preview_draw(app->PreviewRenderer, app->Scene);
-            // graphics::debug_draw_to_target(app->Scene);
+            {
+                graphics::renderer_begin_pass(app->Renderer,
+                    { 0, 0, (uint32_t)ImGui::GetWindowSize().x,
+                        (uint32_t)ImGui::GetWindowSize().y },
+                    false);
+                graphics::shader_use(app->Shader, commandBuffer);
+                scene::GlobalUniformObject globalUniformObject {
+                    .Projection = graphics::camera_get_projection(app->Scene->Camera),
+                    .View = graphics::camera_get_view(app->Scene->Camera),
+                };
+
+                graphics::shader_update_state(
+                    app->Shader, commandBuffer, globalUniformObject, frameIndex);
+
+                for (auto& object : scene::scene_get_renderables(app->Scene)) {
+                    graphics::vertex_buffer_bind(
+                        object->Meshs[0]->VertexBuffer, commandBuffer);
+                    graphics::index_buffer_bind(
+                        object->Meshs[0]->IndexBuffer, commandBuffer);
+
+                    vkCmdDrawIndexed(commandBuffer,
+                        object->Meshs[0]->IndexBuffer->GenericBuffer->Count, 1, 0, 0, 0);
+                }
+
+                graphics::renderer_end_pass(app->Renderer);
+            }
 
             // ImTextureID texture = (ImTextureID)graphics::preview_get_rendered_texture(
             //     app->PreviewRenderer);
