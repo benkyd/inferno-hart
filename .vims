@@ -14,12 +14,12 @@ else
   set shortmess=aoO
 endif
 badd +693 src/graphics/vulkan_tutorial.cpp
-badd +100 src/inferno.cpp
+badd +316 src/inferno.cpp
 badd +45 src/scene/mesh.hpp
 badd +75 src/scene/mesh.cpp
-badd +34 src/graphics/pipeline.cpp
-badd +52 src/graphics/vkrenderer.cpp
-badd +18 src/graphics/pipeline.hpp
+badd +33 src/graphics/pipeline.cpp
+badd +40 src/graphics/vkrenderer.cpp
+badd +14 src/graphics/pipeline.hpp
 badd +1 src/graphics/device.cpp
 badd +20 src/graphics/device.hpp
 badd +54 src/graphics/renderpass.cpp
@@ -28,13 +28,13 @@ badd +13 src/graphics/swapchain.hpp
 badd +56 src/inferno.hpp
 badd +1 src/main.cpp
 badd +1 ~/dprog/active/inferno-hart/src/graphics/descriptor.cpp
-badd +12 src/graphics/vkrenderer.hpp
+badd +53 src/graphics/vkrenderer.hpp
 badd +42 src/renderer/renderer.hpp
 badd +28 src/scene/scene.cpp
 badd +173 src/graphics/buffer.cpp
 badd +5 res/shaders/vulkan_test.vert
 badd +46 src/graphics/buffer.hpp
-badd +54 src/renderer/renderer.cpp
+badd +3 src/renderer/renderer.cpp
 badd +279 src/graphics/swapchain.cpp
 badd +22 res/shaders/basic.vert
 badd +181 src/graphics/shader.cpp
@@ -47,9 +47,11 @@ badd +43 src/gui/gui.hpp
 badd +130 src/window.cpp
 badd +111 src/thirdparty/imgui/imgui_impl_vulkan.cpp
 badd +66 ~/dprog/active/inferno-hart/src/thirdparty/imgui/imgui_impl_vulkan.h
+badd +38 src/preview_renderer/renderer.hpp
+badd +59 src/preview_renderer/renderer.cpp
 argglobal
 %argdel
-edit src/gui/gui.hpp
+edit src/inferno.cpp
 let s:save_splitbelow = &splitbelow
 let s:save_splitright = &splitright
 set splitbelow splitright
@@ -73,14 +75,9 @@ set winminheight=0
 set winheight=1
 set winminwidth=0
 set winwidth=1
-exe 'vert 1resize ' . ((&columns * 91 + 191) / 383)
-exe 'vert 2resize ' . ((&columns * 173 + 191) / 383)
-exe '3resize ' . ((&lines * 24 + 39) / 79)
-exe 'vert 3resize ' . ((&columns * 117 + 191) / 383)
-exe '4resize ' . ((&lines * 51 + 39) / 79)
-exe 'vert 4resize ' . ((&columns * 117 + 191) / 383)
+wincmd =
 argglobal
-balt src/window.cpp
+balt src/preview_renderer/renderer.hpp
 setlocal fdm=manual
 setlocal fde=0
 setlocal fmr={{{,}}}
@@ -91,19 +88,19 @@ setlocal fdn=20
 setlocal fen
 silent! normal! zE
 let &fdl = &fdl
-let s:l = 5 - ((4 * winheight(0) + 38) / 76)
+let s:l = 317 - ((60 * winheight(0) + 43) / 86)
 if s:l < 1 | let s:l = 1 | endif
 keepjumps exe s:l
 normal! zt
-keepjumps 5
-normal! 030|
+keepjumps 317
+normal! 050|
 wincmd w
 argglobal
-if bufexists(fnamemodify("src/graphics/pipeline.cpp", ":p")) | buffer src/graphics/pipeline.cpp | else | edit src/graphics/pipeline.cpp | endif
+if bufexists(fnamemodify("src/preview_renderer/renderer.cpp", ":p")) | buffer src/preview_renderer/renderer.cpp | else | edit src/preview_renderer/renderer.cpp | endif
 if &buftype ==# 'terminal'
-  silent file src/graphics/pipeline.cpp
+  silent file src/preview_renderer/renderer.cpp
 endif
-balt src/graphics/device.hpp
+balt src/graphics/vkrenderer.cpp
 setlocal fdm=manual
 setlocal fde=0
 setlocal fmr={{{,}}}
@@ -114,19 +111,19 @@ setlocal fdn=20
 setlocal fen
 silent! normal! zE
 let &fdl = &fdl
-let s:l = 34 - ((33 * winheight(0) + 38) / 76)
+let s:l = 59 - ((56 * winheight(0) + 43) / 86)
 if s:l < 1 | let s:l = 1 | endif
 keepjumps exe s:l
 normal! zt
-keepjumps 34
-normal! 05|
+keepjumps 59
+normal! 015|
 wincmd w
 argglobal
-if bufexists(fnamemodify("src/graphics/vkrenderer.cpp", ":p")) | buffer src/graphics/vkrenderer.cpp | else | edit src/graphics/vkrenderer.cpp | endif
+if bufexists(fnamemodify("src/graphics/vkrenderer.hpp", ":p")) | buffer src/graphics/vkrenderer.hpp | else | edit src/graphics/vkrenderer.hpp | endif
 if &buftype ==# 'terminal'
-  silent file src/graphics/vkrenderer.cpp
+  silent file src/graphics/vkrenderer.hpp
 endif
-balt src/graphics/swapchain.cpp
+balt src/graphics/vkrenderer.cpp
 setlocal fdm=manual
 setlocal fde=0
 setlocal fmr={{{,}}}
@@ -137,19 +134,19 @@ setlocal fdn=20
 setlocal fen
 silent! normal! zE
 let &fdl = &fdl
-let s:l = 53 - ((20 * winheight(0) + 12) / 24)
+let s:l = 10 - ((4 * winheight(0) + 24) / 49)
 if s:l < 1 | let s:l = 1 | endif
 keepjumps exe s:l
 normal! zt
-keepjumps 53
+keepjumps 10
 normal! 0
 wincmd w
 argglobal
-if bufexists(fnamemodify("src/graphics/pipeline.hpp", ":p")) | buffer src/graphics/pipeline.hpp | else | edit src/graphics/pipeline.hpp | endif
+if bufexists(fnamemodify("src/preview_renderer/renderer.hpp", ":p")) | buffer src/preview_renderer/renderer.hpp | else | edit src/preview_renderer/renderer.hpp | endif
 if &buftype ==# 'terminal'
-  silent file src/graphics/pipeline.hpp
+  silent file src/preview_renderer/renderer.hpp
 endif
-balt src/graphics/swapchain.hpp
+balt src/graphics/pipeline.hpp
 setlocal fdm=manual
 setlocal fde=0
 setlocal fmr={{{,}}}
@@ -160,19 +157,14 @@ setlocal fdn=20
 setlocal fen
 silent! normal! zE
 let &fdl = &fdl
-let s:l = 18 - ((17 * winheight(0) + 25) / 51)
+let s:l = 1 - ((0 * winheight(0) + 18) / 36)
 if s:l < 1 | let s:l = 1 | endif
 keepjumps exe s:l
 normal! zt
-keepjumps 18
-normal! 047|
+keepjumps 1
+normal! 08|
 wincmd w
-exe 'vert 1resize ' . ((&columns * 91 + 191) / 383)
-exe 'vert 2resize ' . ((&columns * 173 + 191) / 383)
-exe '3resize ' . ((&lines * 24 + 39) / 79)
-exe 'vert 3resize ' . ((&columns * 117 + 191) / 383)
-exe '4resize ' . ((&lines * 51 + 39) / 79)
-exe 'vert 4resize ' . ((&columns * 117 + 191) / 383)
+wincmd =
 tabnext 1
 if exists('s:wipebuf') && len(win_findbuf(s:wipebuf)) == 0 && getbufvar(s:wipebuf, '&buftype') isnot# 'terminal'
   silent exe 'bwipe ' . s:wipebuf

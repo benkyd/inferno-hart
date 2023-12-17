@@ -119,7 +119,6 @@ InfernoApp* inferno_create()
         },
         true);
 
-
     scene::Mesh* mesh = scene::mesh_create(app->Device);
     scene::mesh_load_obj(mesh, "res/cornell-box.obj");
     scene::mesh_ready(mesh);
@@ -291,7 +290,7 @@ int inferno_run(InfernoApp* app)
             }
             if (ImGui::TreeNode("Preview Render")) {
                 ImGui::Checkbox("Show Preview", &showPreview);
-                // graphics::preview_draw_ui(app->PreviewRenderer);
+                graphics::preview_draw_ui(app->PreviewRenderer);
                 if (ImGui::TreeNode("Debug Overlay")) {
                     // graphics::debug_draw_ui();
                     ImGui::TreePop();
@@ -313,9 +312,16 @@ int inferno_run(InfernoApp* app)
                 inferno_stop_move_input(app);
             }
 
-            graphics::camera_raster_set_viewport(scene::scene_get_camera(app->Scene),
-                { ImGui::GetWindowSize().x, ImGui::GetWindowSize().y });
-            graphics::preview_set_viewport(app->PreviewRenderer, app->Scene->Camera);
+            static ImVec2 lastViewport = { 0, 0 };
+            ImVec2 currentViewport = ImGui::GetWindowSize();
+            if (lastViewport.x != currentViewport.x || lastViewport.y != currentViewport.y) {
+                graphics::camera_raster_set_viewport(scene::scene_get_camera(app->Scene),
+                    { ImGui::GetWindowSize().x, ImGui::GetWindowSize().y });
+                // if imgui has changed the viewport, we need to recreate the rendertarget
+                graphics::preview_set_viewport(app->PreviewRenderer, app->Scene->Camera);
+            }
+            lastViewport = currentViewport;
+
             graphics::preview_draw(app->PreviewRenderer, app->Scene);
 
             ImTextureID texture
