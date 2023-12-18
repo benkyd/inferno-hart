@@ -1,6 +1,7 @@
 #pragma once
 
 #include "graphics.hpp"
+#include "imgui/imgui.h"
 #include "style.hpp"
 
 #include "graphics/device.hpp"
@@ -18,7 +19,7 @@ namespace inferno::gui {
         | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove                            \
         | ImGuiWindowFlags_NoBringToFrontOnFocus | ImGuiWindowFlags_NoNavFocus           \
         | ImGuiWindowFlags_MenuBar | ImGuiWindowFlags_NoBackground                       \
-        | ImGuiWindowFlags_NoDecoration
+        | ImGuiWindowFlags_NoDecoration | ImGuiMouseCursor_Arrow
 
 inline void imgui_init(graphics::VulkanRenderer* renderer)
 {

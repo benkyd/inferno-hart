@@ -43,11 +43,16 @@ RenderTarget* rendertarget_create(
         VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT | VK_IMAGE_USAGE_INPUT_ATTACHMENT_BIT,
         VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, target->Image, target->Memory);
 
+
     target->ImageView
         = create_image_view(device, target->Image, format, VK_IMAGE_ASPECT_COLOR_BIT);
 
     target->DescriptorSet = ImGui_ImplVulkan_AddTexture(
         target->Sampler, target->ImageView, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
+
+    if (depth) {
+        rendertarget_create_depth(target);
+    }
 
     return target;
 }
@@ -66,28 +71,26 @@ void rendertarget_cleanup(RenderTarget* target)
 void rendertarget_create_depth(RenderTarget* target)
 {
     VkFormat depthFormat = find_depth_format(target->Device);
-    target->DepthFormat = depthFormat;
+
+    target->TargetDepth = new DepthAttachment();
+    target->TargetDepth->Format = depthFormat;
 
     create_image(target->Device, target->Extent.width, target->Extent.height, depthFormat,
         VK_IMAGE_TILING_OPTIMAL, VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT,
-        VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, target->DepthImage.value(),
-        target->DepthMemory.value());
+        VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, target->TargetDepth->Image,
+        target->TargetDepth->Memory);
 
-    target->DepthImageView = create_image_view(target->Device, target->DepthImage.value(),
+    target->TargetDepth->ImageView = create_image_view(target->Device, target->TargetDepth->Image,
         depthFormat, VK_IMAGE_ASPECT_DEPTH_BIT);
 }
 
 void rendertarget_destroy_depth(RenderTarget* target)
 {
-    if (target->DepthImageView.has_value()) {
+    if (target->TargetDepth != nullptr) {
         vkDestroyImageView(
-            target->Device->VulkanDevice, target->DepthImageView.value(), nullptr);
-    }
-    if (target->DepthImage.has_value()) {
-        vkDestroyImage(target->Device->VulkanDevice, target->DepthImage.value(), nullptr);
-    }
-    if (target->DepthMemory.has_value()) {
-        vkFreeMemory(target->Device->VulkanDevice, target->DepthMemory.value(), nullptr);
+            target->Device->VulkanDevice, target->TargetDepth->ImageView, nullptr);
+        vkDestroyImage(target->Device->VulkanDevice, target->TargetDepth->Image, nullptr);
+        vkFreeMemory(target->Device->VulkanDevice, target->TargetDepth->Memory, nullptr);
     }
 }
 
@@ -95,7 +98,7 @@ void rendertarget_recreate(RenderTarget* target, VkExtent2D extent, VkFormat for
 {
     vkDeviceWaitIdle(target->Device->VulkanDevice);
 
-    bool doDepth = target->DepthImage.has_value();
+    bool doDepth = target->TargetDepth != nullptr;
 
     rendertarget_cleanup(target);
 
@@ -104,8 +107,8 @@ void rendertarget_recreate(RenderTarget* target, VkExtent2D extent, VkFormat for
 
     rendertarget_create(target->Device, extent, format, doDepth);
 
-    if (doDepth)
-        rendertarget_create_depth(target);
+    // if (doDepth)
+    //     rendertarget_create_depth(target);
 }
 
 }

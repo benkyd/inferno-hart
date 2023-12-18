@@ -8,19 +8,25 @@ namespace inferno::graphics {
 
 struct GraphicsDevice;
 
+// TODO: Should probably be "ImageAttachment" and then the
+// target will abstract which sort of attachment it is
+typedef struct DepthAttachment {
+    VkImage Image;
+    VkDeviceMemory Memory;
+    VkImageView ImageView;
+    VkFormat Format;
+} DepthAttachment;
+
 // TODO: What about the present mode?
 typedef struct RenderTarget {
     VkImage Image;
     VkDeviceMemory Memory;
     VkImageView ImageView;
 
-    std::optional<VkImage> DepthImage;
-    std::optional<VkDeviceMemory> DepthMemory;
-    std::optional<VkImageView> DepthImageView;
-
     VkFormat Format;
-    VkFormat DepthFormat;
     VkExtent2D Extent;
+
+    DepthAttachment* TargetDepth = nullptr;
 
     // NOTE: This is for the ImGui renderer.. it needs a descriptor set of a sampler of an
     // image

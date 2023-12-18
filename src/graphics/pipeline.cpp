@@ -14,26 +14,14 @@
 namespace inferno::graphics {
 
 Pipeline* pipeline_create(GraphicsDevice* device, SwapChain* swap, Shader* shader,
-    uint32_t descriptorSetLayoutCount, VkDescriptorSetLayout* layouts)
+    uint32_t descriptorSetLayoutCount, VkDescriptorSetLayout* layouts, PipelineType type)
 {
     Pipeline* pipeline = new Pipeline();
-
-    // memset(descriptorSetLayouts, 0, sizeof(VkDescriptorSetLayout));
-    // memset(&layout, 0, sizeof(VkPipelineLayout));
-    // memset(&graphicsPipeline, 0, sizeof(VkPipeline));
-    // memset(&dynamicStates, 0, sizeof(VkPipelineDynamicStateCreateInfo));
-    // memset(&vertexInputInfo, 0, sizeof(VkPipelineVertexInputStateCreateInfo));
-    // memset(&inputAssembly, 0, sizeof(VkPipelineInputAssemblyStateCreateInfo));
-    // memset(&viewportState, 0, sizeof(VkPipelineViewportStateCreateInfo));
-    // memset(&rasterizer, 0, sizeof(VkPipelineRasterizationStateCreateInfo));
-    // memset(&multisampling, 0, sizeof(VkPipelineMultisampleStateCreateInfo));
-    // memset(&colorBlendAttachment, 0, sizeof(VkPipelineColorBlendAttachmentState));
-    // memset(&colorBlending, 0, sizeof(VkPipelineColorBlendStateCreateInfo));
-    // memset(&depthState, 0, sizeof(VkPipelineDepthStencilStateCreateInfo));
 
     pipeline->Device = device;
     pipeline->Swap = swap;
     pipeline->RelaventShader = shader;
+    pipeline->Type = type;
 
     pipeline->DescriptorSetLayoutCount = descriptorSetLayoutCount;
     pipeline->DescriptorSetLayouts = layouts;
@@ -65,13 +53,18 @@ Pipeline* pipeline_create(GraphicsDevice* device, SwapChain* swap, Shader* shade
     VkPipelineRasterizationStateCreateInfo rasterizer {};
     rasterizer.sType = VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_STATE_CREATE_INFO;
     rasterizer.depthClampEnable = VK_FALSE; // NOTE: This is for shadow mapping
+    rasterizer.polygonMode = VK_POLYGON_MODE_LINE;
     rasterizer.rasterizerDiscardEnable = VK_FALSE;
     rasterizer.polygonMode = VK_POLYGON_MODE_FILL;
-    rasterizer.lineWidth = 1.f;
+    rasterizer.lineWidth = 1.3f;
     rasterizer.cullMode = VK_CULL_MODE_BACK_BIT;
     // rasterizer.frontFace = VK_FRONT_FACE_COUNTER_CLOCKWISE;
     rasterizer.frontFace = VK_FRONT_FACE_CLOCKWISE;
     rasterizer.depthBiasEnable = VK_FALSE;
+    if (type == PIPELINE_TYPE_GRAPHICS_LINE) {
+        rasterizer.polygonMode = VK_POLYGON_MODE_LINE;
+        rasterizer.cullMode = VK_CULL_MODE_NONE;
+    }
 
     VkPipelineMultisampleStateCreateInfo multisampling {};
     multisampling.sType = VK_STRUCTURE_TYPE_PIPELINE_MULTISAMPLE_STATE_CREATE_INFO;
@@ -81,7 +74,7 @@ Pipeline* pipeline_create(GraphicsDevice* device, SwapChain* swap, Shader* shade
     VkPipelineColorBlendAttachmentState colorBlendAttachment {};
     colorBlendAttachment.colorWriteMask = VK_COLOR_COMPONENT_R_BIT
         | VK_COLOR_COMPONENT_G_BIT | VK_COLOR_COMPONENT_B_BIT | VK_COLOR_COMPONENT_A_BIT;
-    // Alpha blending basically
+    // Alpha blending
     colorBlendAttachment.blendEnable = VK_TRUE;
     colorBlendAttachment.srcColorBlendFactor = VK_BLEND_FACTOR_SRC_ALPHA;
     colorBlendAttachment.dstColorBlendFactor
@@ -107,7 +100,7 @@ Pipeline* pipeline_create(GraphicsDevice* device, SwapChain* swap, Shader* shade
     depthState.depthTestEnable = VK_TRUE;
     depthState.depthWriteEnable = VK_TRUE;
     depthState.depthCompareOp = VK_COMPARE_OP_LESS;
-    depthState.depthBoundsTestEnable = VK_FALSE;
+    depthState.depthBoundsTestEnable = VK_TRUE;
     depthState.minDepthBounds = 0.0f;
     depthState.maxDepthBounds = 1.0f;
     depthState.stencilTestEnable = VK_FALSE;
@@ -203,9 +196,10 @@ void pipeline_recreate(Pipeline* pipeline)
     Shader* shader = pipeline->RelaventShader;
     uint32_t descriptorSetLayoutCount = descriptorSetLayoutCount;
     VkDescriptorSetLayout* layouts = pipeline->DescriptorSetLayouts;
+    PipelineType type = pipeline->Type;
 
     pipeline_cleanup(pipeline);
-    pipeline = pipeline_create(device, swap, shader, descriptorSetLayoutCount, layouts);
+    pipeline = pipeline_create(device, swap, shader, descriptorSetLayoutCount, layouts, type);
 }
 
 } // namespace inferno::graphics

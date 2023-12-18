@@ -1,7 +1,7 @@
 #include "window.hpp"
 
-#include "gui/style.hpp"
 #include "graphics/device.hpp"
+#include "gui/style.hpp"
 
 #include <graphics.hpp>
 #include <version.hpp>
@@ -21,8 +21,7 @@ static WINDOW_MODE WinMode = WINDOW_MODE::WIN_MODE_DEFAULT;
 static KeyCallback UserKeyCallback = nullptr;
 static int Width, Height;
 
-void glfwKeyCallback(GLFWwindow* window, int key, int scancode,
-    int action, int mods)
+void glfwKeyCallback(GLFWwindow* window, int key, int scancode, int action, int mods)
 {
     if (UserKeyCallback != nullptr) {
         UserKeyCallback(key, scancode, action, mods);
@@ -44,8 +43,6 @@ void setupWindow(std::string title)
     Window = glfwCreateWindow(Width, Height, title.c_str(), nullptr, nullptr);
 }
 
-
-
 void shutdownGLFW()
 {
     glfwDestroyWindow(Window);
@@ -62,24 +59,20 @@ void window_create(std::string title, int width, int height)
 
 void window_init_device(GraphicsDevice* device, GLFWframebuffersizefun resizeCallback)
 {
-     if (glfwCreateWindowSurface(device->VulkanInstance, Window, nullptr, &device->VulkanSurface) != VK_SUCCESS) {
-         yolo::error("failed to create window surface!");
-         exit(1);
+    if (glfwCreateWindowSurface(
+            device->VulkanInstance, Window, nullptr, &device->VulkanSurface)
+        != VK_SUCCESS) {
+        yolo::error("failed to create window surface!");
+        exit(1);
     }
 
     glfwSetWindowUserPointer(Window, device);
     glfwSetFramebufferSizeCallback(Window, (GLFWframebuffersizefun)resizeCallback);
 }
 
-void window_cleanup()
-{
-    shutdownGLFW();
-}
+void window_cleanup() { shutdownGLFW(); }
 
-void window_set_title(std::string title)
-{
-    glfwSetWindowTitle(Window, title.c_str());
-}
+void window_set_title(std::string title) { glfwSetWindowTitle(Window, title.c_str()); }
 
 void window_set_size(int w, int h)
 {
@@ -99,9 +92,9 @@ GLFWwindow* window_get_glfw_window() { return Window; }
 void window_set_mode(WINDOW_MODE mode)
 {
     WinMode = mode;
-    if (mode == WINDOW_MODE::WIN_MODE_FPS) {
-        glfwSetInputMode(Window, GLFW_CURSOR, GLFW_CURSOR_HIDDEN);
-    }
+    // if (mode == WINDOW_MODE::WIN_MODE_FPS) {
+    //     glfwSetInputMode(Window, GLFW_CURSOR, GLFW_CURSOR_HIDDEN);
+    // }
 }
 
 void window_set_key_callback(KeyCallback callback) { UserKeyCallback = callback; }
@@ -111,14 +104,15 @@ KeyCallback window_get_key_callback() { return UserKeyCallback; }
 bool window_new_frame()
 {
     glfwPollEvents();
-    if (WinMode == WIN_MODE_FPS) {
-        glfwSetInputMode(Window, GLFW_CURSOR, GLFW_CURSOR_HIDDEN);
-        glfwSetCursorPos(Window, (double)Width / 2, (double)Height / 2);
-    }
+    // if (WinMode == WIN_MODE_FPS) {
+    //     glfwSetInputMode(Window, GLFW_CURSOR, GLFW_CURSOR_HIDDEN);
+    //     glfwSetCursorPos(Window, (double)Width / 2, (double)Height / 2);
+    // }
     if (glfwWindowShouldClose(Window)) {
         return false;
     }
 
+    glfwSetInputMode(Window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
     glfwGetWindowSize(Window, &Width, &Height);
 
     return true;

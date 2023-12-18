@@ -67,8 +67,8 @@ void renderer_submit_now(VulkanRenderer* renderer,
 
 bool renderer_begin_frame(VulkanRenderer* renderer);
 
-void renderer_begin_pass(VulkanRenderer* renderer, RenderTarget* target,
-    VkRect2D renderArea);
+void renderer_begin_pass(
+    VulkanRenderer* renderer, RenderTarget* target, VkRect2D renderArea);
 // this is for rendering to the swapchain / present image
 void renderer_begin_pass(VulkanRenderer* renderer, VkRect2D renderArea);
 

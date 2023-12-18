@@ -226,9 +226,9 @@ void renderer_begin_pass(
     attachmentInfo.clearValue = clearColor;
 
     VkRenderingAttachmentInfo depthAttachmentInfo;
-    if (target->DepthImage.has_value()) {
+    if (target->TargetDepth != nullptr) {
         depthAttachmentInfo.sType = VK_STRUCTURE_TYPE_RENDERING_ATTACHMENT_INFO_KHR;
-        depthAttachmentInfo.imageView = target->DepthImageView.value();
+        depthAttachmentInfo.imageView = target->TargetDepth->ImageView;
         depthAttachmentInfo.imageLayout = VK_IMAGE_LAYOUT_ATTACHMENT_OPTIMAL_KHR;
         depthAttachmentInfo.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
         depthAttachmentInfo.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
@@ -245,7 +245,7 @@ void renderer_begin_pass(
     renderingInfo.layerCount = 1;
     renderingInfo.colorAttachmentCount = 1;
     renderingInfo.pColorAttachments = &attachmentInfo;
-    if (target->DepthImage.has_value())
+    if (target->TargetDepth != nullptr)
         renderingInfo.pDepthAttachment = &depthAttachmentInfo;
 
     vkCmdBeginRendering(

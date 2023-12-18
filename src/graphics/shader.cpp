@@ -174,7 +174,7 @@ void shader_build(Shader* shader)
     }
 
     shader->GraphicsPipeline = pipeline_create(shader->Device, shader->GraphicsSwapchain,
-        shader, layouts.size(), layouts.data());
+        shader, layouts.size(), layouts.data(), PIPELINE_TYPE_GRAPHICS);
     shader->GlobalUniformBuffer
         = uniform_buffer_create<scene::GlobalUniformObject>(shader->Device, true);
 }
