@@ -1,25 +1,32 @@
 #include "inferno.hpp"
 
+#include <cstdint>
+#include <graphics.hpp>
 #include <version.hpp>
-// #include "gui/layout.hpp"
-#include "imgui/imgui.h"
-#include "renderer/renderer.hpp"
-#include "scene/scene.hpp"
+
+#include "graphics/rendertarget.hpp"
+#include "gui/gui.hpp"
+// #include "renderer/renderer.hpp"
+// #include "scene/scene.hpp"
+#include "graphics/buffer.hpp"
+#include "graphics/device.hpp"
+#include "graphics/pipeline.hpp"
+#include "graphics/shader.hpp"
+#include "graphics/swapchain.hpp"
+#include "graphics/vkrenderer.hpp"
+#include "preview_renderer/debug.hpp"
 #include "window.hpp"
 
-#include "preview_renderer/debug.hpp"
-#include "preview_renderer/renderer.hpp"
-#include "preview_renderer/shader.hpp"
+// #include "preview_renderer/debug.hpp"
+// #include "preview_renderer/renderer.hpp"
 #include "scene/camera.hpp"
-#include "scene/material.hpp"
+// #include "scene/material.hpp"
 #include "scene/mesh.hpp"
 #include "scene/scene.hpp"
 
 #include <yolo/yolo.hpp>
 
 #include <chrono>
-#include <iostream>
-#include <memory>
 #include <numeric>
 
 namespace inferno {
@@ -33,16 +40,15 @@ InfernoTimer* inferno_timer_create()
     return timer;
 }
 
-void inferno_timer_cleanup(InfernoTimer* timer)
-{
-    delete timer;
-}
+void inferno_timer_cleanup(InfernoTimer* timer) { delete timer; }
 
 void inferno_timer_rolling_average(InfernoTimer* timer, int count)
 {
     if (timer->Times.size() > count)
         timer->Times.erase(timer->Times.begin());
-    timer->RollingAverage = std::accumulate(timer->Times.begin(), timer->Times.end(), std::chrono::duration<double>(0.0)) / count;
+    timer->RollingAverage = std::accumulate(timer->Times.begin(), timer->Times.end(),
+                                std::chrono::duration<double>(0.0))
+        / count;
 }
 
 void inferno_timer_start(InfernoTimer* timer)
@@ -55,7 +61,7 @@ void inferno_timer_end(InfernoTimer* timer)
     timer->EndTime = std::chrono::high_resolution_clock::now();
     timer->Time = timer->EndTime - timer->StartTime;
     timer->Times.push_back(timer->Time);
-    inferno_timer_rolling_average(timer, 100);
+    inferno_timer_rolling_average(timer, 1000);
 }
 
 void inferno_timer_print(InfernoTimer* timer, bool time)
@@ -88,35 +94,51 @@ InfernoApp* inferno_create()
     graphics::camera_set_position(app->Scene->Camera, { 0.0f, 1.0f, 3.1f });
 
     // Create window
-    graphics::window_create("Inferno v" INFERNO_VERSION, 1280, 720);
+    graphics::window_create("Inferno v" INFERNO_VERSION, 1920, 1080);
+    app->Device = graphics::device_create();
+    app->Renderer = graphics::renderer_create(app->Device);
 
-    // setup the scene
-    scene::Material* basicMaterial = new scene::Material("basic");
-    graphics::Shader* basicShader = graphics::shader_create();
-    graphics::shader_load(basicShader, "res/shaders/basic.glsl");
-    graphics::shader_link(basicShader);
-    basicMaterial->setGlShader(basicShader);
+    graphics::renderer_configure_gui(app->Renderer);
+    graphics::renderer_configure_command_buffer(app->Renderer);
 
-    scene::Mesh* mesh = new scene::Mesh;
-    mesh->loadOBJ("res/cornell.obj");
-    mesh->ready();
-    mesh->setMaterial(basicMaterial);
+    app->PreviewRenderer = graphics::preview_create(app->Renderer);
+    graphics::debug_do_depth_test(false);
+
+    graphics::renderer_submit_repeat(
+        app->Renderer,
+        [](graphics::VulkanRenderer* renderer, VkCommandBuffer* commandBuffer) {
+            gui::imgui_new_frame();
+        },
+        false);
+    graphics::renderer_submit_repeat(
+        app->Renderer,
+        [&](graphics::VulkanRenderer* renderer, VkCommandBuffer* commandBuffer) {
+            graphics::renderer_begin_pass(renderer,
+                { 0, 0, (uint32_t)graphics::window_get_size().x,
+                    (uint32_t)graphics::window_get_size().y });
+            gui::imgui_render_frame(*commandBuffer);
+            graphics::renderer_end_pass(renderer);
+        },
+        true);
+
+    scene::Mesh* mesh = scene::mesh_create(app->Device);
+    scene::mesh_load_obj(mesh, "res/cornell-box.obj");
+    scene::mesh_ready(mesh);
     scene::SceneObject* object = scene::scene_object_create();
     scene::scene_object_add_mesh(object, mesh);
     scene::scene_add_object(app->Scene, object);
 
-    // scene::Mesh* box = new scene::Mesh;
-    // box->loadOBJ("res/cornell.obj");
-    // box->ready();
-    // box->setMaterial(basicMaterial);
-    // scene::SceneObject* box_object = scene::scene_object_create();
-    // scene::scene_object_add_mesh(box_object, box);
-    // scene::scene_add_object(app->Scene, box_object);
+    scene::Mesh* lucy = scene::mesh_create(app->Device);
+    scene::mesh_load_obj(lucy, "res/lucy.obj");
+    scene::mesh_ready(lucy);
+    scene::SceneObject* lucyObject = scene::scene_object_create();
+    scene::scene_object_add_mesh(lucyObject, lucy);
+    scene::scene_add_object(app->Scene, lucyObject);
 
-    app->PreviewRenderer = graphics::preview_create();
-    graphics::preview_set_viewport(app->PreviewRenderer, app->Scene->Camera);
-    app->RayRenderer = graphics::rayr_create(app->Scene);
-    graphics::rayr_set_viewport(app->RayRenderer, app->Scene->Camera);
+    // app->PreviewRenderer = graphics::preview_create();
+    // graphics::preview_set_viewport(app->PreviewRenderer, app->Scene->Camera);
+    // app->RayRenderer = graphics::rayr_create(app->Scene);
+    // graphics::rayr_set_viewport(app->RayRenderer, app->Scene->Camera);
 
     return app;
 }
@@ -142,13 +164,13 @@ static void inferno_gui_help_marker(const char* desc)
 void inferno_preset_gui(InfernoApp* app)
 {
     ImGuiID dockspace_id = ImGui::GetID("main");
-
     ImGui::DockBuilderRemoveNode(dockspace_id); // Clear out existing layout
-    ImGui::DockBuilderAddNode(dockspace_id, ImGuiDockNodeFlags_DockSpace); // Add empty node
-    ImGui::DockBuilderSetNodeSize(dockspace_id, { 1000, 1000 });
+    ImGui::DockBuilderAddNode(dockspace_id, ImGuiDockNodeFlags_DockSpace); // Add empty
+    // node ImGui::DockBuilderSetNodeSize(dockspace_id, { 1000, 1000 });
 
     ImGuiID dock_main_id = dockspace_id;
-    ImGuiID dock_left = ImGui::DockBuilderSplitNode(dock_main_id, ImGuiDir_Left, 0.5f, NULL, &dock_main_id);
+    ImGuiID dock_left = ImGui::DockBuilderSplitNode(
+        dock_main_id, ImGuiDir_Left, 0.5f, NULL, &dock_main_id);
     ImGui::DockBuilderDockWindow("Preview", dock_left);
     ImGui::DockBuilderDockWindow("Render", dock_main_id);
     ImGui::DockBuilderFinish(dockspace_id);
@@ -165,13 +187,16 @@ void inferno_move_input(InfernoApp* app, std::chrono::duration<double> deltaTime
     // pan only get on hold
     static glm::dvec2 lastMousePos;
     static int firstClick = 0;
-    if (glfwGetMouseButton(graphics::window_get_glfw_window(), GLFW_MOUSE_BUTTON_1) == GLFW_PRESS) {
+    if (glfwGetMouseButton(graphics::window_get_glfw_window(), GLFW_MOUSE_BUTTON_1)
+        == GLFW_PRESS) {
         firstClick++;
         if (firstClick == 1) {
-            glfwGetCursorPos(graphics::window_get_glfw_window(), &lastMousePos.x, &lastMousePos.y);
+            glfwGetCursorPos(
+                graphics::window_get_glfw_window(), &lastMousePos.x, &lastMousePos.y);
         }
         glm::dvec2 tempMousePos = { 0.0f, 0.0f };
-        glfwGetCursorPos(graphics::window_get_glfw_window(), &tempMousePos.x, &tempMousePos.y);
+        glfwGetCursorPos(
+            graphics::window_get_glfw_window(), &tempMousePos.x, &tempMousePos.y);
         app->Input->MouseDelta = lastMousePos - tempMousePos;
         lastMousePos = tempMousePos;
     } else {
@@ -203,57 +228,40 @@ void inferno_stop_move_input(InfernoApp* app)
 
 bool inferno_pre(InfernoApp* app)
 {
+    inferno_timer_start(app->MainTimer);
+
     app->FrameCount++;
     if (app->FrameCount % 100 == 0) {
-        yolo::info("Average FPS: {}", 1.0 / inferno_timer_get_time(app->MainTimer).count());
+        yolo::info(
+            "Average FPS: {}", 1.0 / inferno_timer_get_time(app->MainTimer).count());
         inferno_timer_print(app->MainTimer, false);
     }
 
-    if (!graphics::window_new_frame())
+    if (!graphics::renderer_begin_frame(app->Renderer))
         return false;
-
-    // set the main window to the dockspace and then on the first launch set the preset
-    ImGuiID dockspace_id = ImGui::GetID("main");
-    static ImGuiDockNodeFlags dockspace_flags = ImGuiDockNodeFlags_PassthruCentralNode;
-    if (ImGui::DockBuilderGetNode(dockspace_id) == NULL) {
-        inferno_preset_gui(app);
-    }
-    ImGui::DockSpace(dockspace_id, ImVec2(0.0f, 0.0f), dockspace_flags);
 
     return true;
 }
 
 void inferno_end(InfernoApp* app)
 {
-    // clang-format off
-        GLenum err;
-        while((err = glGetError()) != GL_NO_ERROR) {
-            std::string error;
-            switch (err) {
-                case GL_INVALID_ENUM:                  error = "INVALID_ENUM"; break;
-                case GL_INVALID_VALUE:                 error = "INVALID_VALUE"; break;
-                case GL_INVALID_OPERATION:             error = "INVALID_OPERATION"; break;
-                case GL_STACK_OVERFLOW:                error = "STACK_OVERFLOW"; break;
-                case GL_STACK_UNDERFLOW:               error = "STACK_UNDERFLOW"; break;
-                case GL_OUT_OF_MEMORY:                 error = "OUT_OF_MEMORY"; break;
-                case GL_INVALID_FRAMEBUFFER_OPERATION: error = "INVALID_FRAMEBUFFER_OPERATION"; break;
-                default:                               error = std::to_string((uint32_t)err); break;
-            }
-            yolo::error("[GL]: {} {}", err, error);
-        }
+    graphics::renderer_draw_frame(app->Renderer);
+    graphics::window_render();
+    inferno_timer_end(app->MainTimer);
 }
 
 int inferno_run(InfernoApp* app)
 {
-    while (true) {
-        inferno_timer_start(app->MainTimer);
+    while (graphics::window_new_frame()) {
         if (!inferno_pre(app))
-            break;
+            continue;
 
         if (glm::length(app->Input->MouseDelta) > 0.0f)
-            graphics::camera_mouse_move(app->Scene->Camera, app->Input->MouseDelta);
+            graphics::camera_mouse_move(app->Scene->Camera, app->Input->MouseDelta,
+                inferno_timer_get_time(app->MainTimer).count());
         if (app->Input->MovementDelta != 0b00000000)
-            graphics::camera_move(app->Scene->Camera, app->Input->MovementDelta);
+            graphics::camera_move(app->Scene->Camera, app->Input->MovementDelta,
+                inferno_timer_get_time(app->MainTimer).count());
 
         // Menu Bar
         static bool showPreview = true;
@@ -279,8 +287,7 @@ int inferno_run(InfernoApp* app)
 
         if (showRenderSettings && ImGui::Begin("Inferno HART")) {
             if (ImGui::TreeNode("Camera")) {
-                graphics::Camera* camera = scene::scene_get_camera(app->Scene);
-                graphics::camera_draw_ui(camera);
+                graphics::camera_draw_ui(scene::scene_get_camera(app->Scene));
                 ImGui::TreePop();
             }
             if (ImGui::TreeNode("Preview Render")) {
@@ -293,43 +300,51 @@ int inferno_run(InfernoApp* app)
                 ImGui::TreePop();
             }
             if (ImGui::TreeNode("RayTraced Render")) {
-                graphics::rayr_draw_ui(app->RayRenderer);
+                // graphics::rayr_draw_ui(app->RayRenderer);
                 ImGui::TreePop();
             }
             ImGui::End();
         }
 
-        if (showPreview && ImGui::Begin("Preview", nullptr, ImGuiWindowFlags_NoScrollbar)) {
+        if (showPreview
+            && ImGui::Begin("Preview", nullptr, ImGuiWindowFlags_NoScrollbar)) {
             if (ImGui::IsWindowHovered()) {
                 inferno_move_input(app, inferno_timer_get_time(app->MainTimer));
             } else {
                 inferno_stop_move_input(app);
             }
 
-            graphics::camera_raster_set_viewport(scene::scene_get_camera(app->Scene),
-                { ImGui::GetWindowSize().x, ImGui::GetWindowSize().y });
-            graphics::preview_set_viewport(app->PreviewRenderer, app->Scene->Camera);
+            static ImVec2 lastViewport = { 0, 0 };
+            ImVec2 currentViewport = ImGui::GetWindowSize();
+            if (lastViewport.x != currentViewport.x
+                || lastViewport.y != currentViewport.y) {
+                graphics::camera_raster_set_viewport(scene::scene_get_camera(app->Scene),
+                    { ImGui::GetWindowSize().x, ImGui::GetWindowSize().y });
+                // if imgui has changed the viewport, we need to recreate the rendertarget
+                graphics::preview_set_viewport(app->PreviewRenderer, app->Scene->Camera);
+            }
+            lastViewport = currentViewport;
 
             graphics::preview_draw(app->PreviewRenderer, app->Scene);
-            graphics::debug_draw_to_target(app->Scene);
+            graphics::debug_draw_line({ 0, 0, 0 }, { 1, 1, 0 }, { 1, 1, 0 });
+            graphics::debug_draw_to_preview(app->Scene);
 
-            ImTextureID texture = (ImTextureID)graphics::preview_get_rendered_texture(app->PreviewRenderer);
-            ImGui::Image(
-                texture,
-                { ImGui::GetWindowSize().x, ImGui::GetWindowSize().y },
+            ImTextureID texture
+                = (ImTextureID)graphics::preview_get_target(app->PreviewRenderer)
+                      ->DescriptorSet;
+            ImGui::Image(texture, { ImGui::GetWindowSize().x, ImGui::GetWindowSize().y },
                 ImVec2(0, 1), ImVec2(1, 0));
-
             ImGui::End();
         }
 
         if (ImGui::Begin("Render")) {
-            graphics::rayr_draw(app->RayRenderer);
+            // graphics::rayr_draw(app->RayRenderer);
 
-            ImTextureID texture = (ImTextureID)graphics::rayr_get_rendered_texture(app->RayRenderer);
-            ImGui::Image(
-                texture,
-                { ImGui::GetWindowSize().x, ImGui::GetWindowSize().y },
-                ImVec2(0, 1), ImVec2(1, 0));
+            // ImTextureID texture
+            //     = (ImTextureID)graphics::rayr_get_rendered_texture(app->RayRenderer);
+            // ImGui::Image(texture, { ImGui::GetWindowSize().x, ImGui::GetWindowSize().y
+            // },
+            //     ImVec2(0, 1), ImVec2(1, 0));
             ImGui::End();
         }
 
@@ -337,11 +352,8 @@ int inferno_run(InfernoApp* app)
             ImGui::ShowDemoWindow();
         }
 
-        graphics::window_render();
         inferno_end(app);
-        inferno_timer_end(app->MainTimer);
     }
-
     return 1;
 }
 

@@ -10,19 +10,25 @@ struct Scene;
 
 namespace inferno::graphics {
 
+struct VulkanRenderer;
 struct Viewport;
 struct Camera;
 struct DebugDraw;
+struct RenderTarget;
+struct Shader;
 
 typedef struct PreviewRenderer {
-    glm::ivec2 Viewport;
+    VulkanRenderer* Renderer;
 
-    GLuint RenderTarget = 0;
-    GLuint RenderTargetTexture = 0;
-    GLuint RenderTargetDepthTexture = 0;
+    RenderTarget* PreviewRenderTarget;
+
+    Shader* DrawShader;
+
+    VkRect2D Viewport;
+    bool HasViewportChanged = false;
 } PreviewRenderer;
 
-PreviewRenderer* preview_create();
+PreviewRenderer* preview_create(VulkanRenderer* renderer);
 void preview_cleanup(PreviewRenderer* renderer);
 
 void preview_draw_debug_ui(PreviewRenderer* renderer);
@@ -30,7 +36,7 @@ void preview_draw_debug_ui(PreviewRenderer* renderer);
 void preview_draw_ui(PreviewRenderer* renderer);
 void preview_set_viewport(PreviewRenderer* renderer, Camera* camera);
 
-GLuint preview_get_rendered_texture(PreviewRenderer* renderer);
+RenderTarget* preview_get_target(PreviewRenderer* renderer);
 
 void preview_draw(PreviewRenderer* renderer, scene::Scene* scene);
 
