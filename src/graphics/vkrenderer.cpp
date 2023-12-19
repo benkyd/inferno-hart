@@ -198,7 +198,7 @@ bool renderer_begin_frame(VulkanRenderer* renderer)
 }
 
 void renderer_begin_pass(
-    VulkanRenderer* renderer, RenderTarget* target, VkRect2D renderArea)
+    VulkanRenderer* renderer, RenderTarget* target, VkRect2D renderArea, bool clear)
 {
     VkImageMemoryBarrier imageMemoryBarrier {};
     imageMemoryBarrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
@@ -224,6 +224,9 @@ void renderer_begin_pass(
     attachmentInfo.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
     attachmentInfo.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
     attachmentInfo.clearValue = clearColor;
+    if (!clear) {
+        attachmentInfo.loadOp = VK_ATTACHMENT_LOAD_OP_LOAD;
+    }
 
     VkRenderingAttachmentInfo depthAttachmentInfo;
     if (target->TargetDepth != nullptr) {
@@ -237,6 +240,9 @@ void renderer_begin_pass(
         depthAttachmentInfo.resolveImageView = VK_NULL_HANDLE;
         depthAttachmentInfo.resolveImageLayout = VK_IMAGE_LAYOUT_GENERAL;
         depthAttachmentInfo.pNext = VK_NULL_HANDLE;
+        if (!clear) {
+            depthAttachmentInfo.loadOp = VK_ATTACHMENT_LOAD_OP_LOAD;
+        }
     }
 
     VkRenderingInfo renderingInfo {};

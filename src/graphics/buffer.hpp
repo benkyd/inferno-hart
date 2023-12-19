@@ -38,16 +38,21 @@ void generic_buffer_cleanup(GenBuffer* buffer);
 
 void buffer_copy(Buffer* buffer, GraphicsDevice* device);
 
-Buffer* vertex_buffer_create(GraphicsDevice* device, void* data, uint32_t size, bool bind = false);
+Buffer* vertex_buffer_create(
+    GraphicsDevice* device, void* data, uint32_t size, bool bind = false);
 void vertex_buffer_cleanup(Buffer* buffer);
+void vertex_buffer_update(Buffer* buffer, void* data, uint32_t size);
 void vertex_buffer_bind(Buffer* buffer, VkCommandBuffer commandBuffer);
 
-Buffer* index_buffer_create(GraphicsDevice* device, void* data, uint32_t size, bool bind = false);
+Buffer* index_buffer_create(
+    GraphicsDevice* device, void* data, uint32_t size, bool bind = false);
 void index_buffer_cleanup(Buffer* buffer);
+void index_buffer_update(Buffer* buffer, void* data, uint32_t size);
 void index_buffer_bind(Buffer* buffer, VkCommandBuffer commandBuffer);
 
 // We *do* want universally mapped memory to act as a "uniform buffer"
-template<typename T> GenBuffer* uniform_buffer_create(GraphicsDevice* device, bool bind = false)
+template <typename T>
+GenBuffer* uniform_buffer_create(GraphicsDevice* device, bool bind = false)
 {
     GenBuffer* buffer
         = generic_buffer_create(device, 0, sizeof(T), VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT,
@@ -61,7 +66,7 @@ template<typename T> GenBuffer* uniform_buffer_create(GraphicsDevice* device, bo
 
 inline void uniform_buffer_cleanup(GenBuffer* buffer) { generic_buffer_cleanup(buffer); }
 
-template<typename T> void uniform_buffer_update(GenBuffer* buffer, T* data)
+template <typename T> void uniform_buffer_update(GenBuffer* buffer, T* data)
 {
     memcpy(buffer->MappedData, (void*)data, sizeof(T));
 }

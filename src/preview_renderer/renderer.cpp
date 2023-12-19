@@ -30,7 +30,8 @@ PreviewRenderer* preview_create(VulkanRenderer* vkrenderer)
     PreviewRenderer* renderer = new PreviewRenderer;
     renderer->Renderer = vkrenderer;
 
-    renderer->DrawShader = graphics::shader_create(vkrenderer->Device, vkrenderer->Swap);
+    renderer->DrawShader = graphics::shader_create(
+        vkrenderer->Device, vkrenderer->Swap, SHADER_PROGRAM_TYPE_GRAPHICS);
 
     graphics::shader_load(renderer->DrawShader, "res/shaders/basic");
     graphics::shader_build(renderer->DrawShader);
@@ -39,8 +40,7 @@ PreviewRenderer* preview_create(VulkanRenderer* vkrenderer)
         renderer->Renderer->Device, { 1920, 1080 }, VK_FORMAT_R8G8B8A8_UNORM, true);
 
     // bind preview renderer to debugdraw
-    debug_init();
-    debug_attach_renderer(renderer);
+    // debug_init(renderer);
 
     return renderer;
 }

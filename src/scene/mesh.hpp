@@ -21,8 +21,15 @@ struct Vert {
     glm::vec3 Normal;
 };
 
+struct DebugLineVert {
+    glm::vec3 Position;
+    glm::vec3 Color;
+};
+
 using Index = uint32_t;
 
+// NOTE: Out of coincidence, this is the same for both vert and debug line vert
+// TODO: Make this a template // somehow
 VkVertexInputBindingDescription get_vert_binding_description();
 std::array<VkVertexInputAttributeDescription, 2> get_vert_attribute_descriptions();
 

@@ -14,6 +14,7 @@
 #include "graphics/shader.hpp"
 #include "graphics/swapchain.hpp"
 #include "graphics/vkrenderer.hpp"
+#include "preview_renderer/debug.hpp"
 #include "window.hpp"
 
 // #include "preview_renderer/debug.hpp"
@@ -292,7 +293,7 @@ int inferno_run(InfernoApp* app)
                 ImGui::Checkbox("Show Preview", &showPreview);
                 graphics::preview_draw_ui(app->PreviewRenderer);
                 if (ImGui::TreeNode("Debug Overlay")) {
-                    // graphics::debug_draw_ui();
+                    graphics::debug_draw_ui();
                     ImGui::TreePop();
                 }
                 ImGui::TreePop();
@@ -323,6 +324,8 @@ int inferno_run(InfernoApp* app)
             lastViewport = currentViewport;
 
             graphics::preview_draw(app->PreviewRenderer, app->Scene);
+            // graphics::debug_draw_line({0, 0, 0}, {1, 1, 0}, {1, 1, 0});
+            // graphics::debug_draw_to_target(app->Scene);
 
             ImTextureID texture
                 = (ImTextureID)graphics::preview_get_target(app->PreviewRenderer)

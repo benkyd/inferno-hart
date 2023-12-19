@@ -21,11 +21,13 @@ std::string textFromFile(const std::filesystem::path& path)
         (std::istreambuf_iterator<char>(input)), std::istreambuf_iterator<char>());
 }
 
-Shader* shader_create(GraphicsDevice* device, SwapChain* swapchain)
+Shader* shader_create(
+    GraphicsDevice* device, SwapChain* swapchain, ShaderProgramType type)
 {
     Shader* shader = new Shader;
     shader->Device = device;
     shader->GraphicsSwapchain = swapchain;
+    shader->Type = type;
 
     return shader;
 }
@@ -173,8 +175,21 @@ void shader_build(Shader* shader)
         yolo::error("failed to allocate descriptor sets!");
     }
 
+    PipelineType pipelineType = PIPELINE_TYPE_GRAPHICS;
+    switch (shader->Type) {
+    case SHADER_PROGRAM_TYPE_GRAPHICS:
+        pipelineType = PIPELINE_TYPE_GRAPHICS;
+        break;
+    case SHADER_PROGRAM_TYPE_GRAPHICS_LINE:
+        pipelineType = PIPELINE_TYPE_GRAPHICS_LINE;
+        break;
+    default:
+        yolo::error("Shader type not supported");
+        break;
+    }
+
     shader->GraphicsPipeline = pipeline_create(shader->Device, shader->GraphicsSwapchain,
-        shader, layouts.size(), layouts.data(), PIPELINE_TYPE_GRAPHICS);
+        shader, layouts.size(), layouts.data(), pipelineType);
     shader->GlobalUniformBuffer
         = uniform_buffer_create<scene::GlobalUniformObject>(shader->Device, true);
 }
