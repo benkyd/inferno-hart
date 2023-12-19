@@ -46,16 +46,21 @@ void debug_init(PreviewRenderer* renderer)
     // DebugDrawerInstance->BillboardElements = std::vector<DebugTextBillboard>();
 
     DebugDrawerInstance->_Internal = new _DebugInternal;
-    // DebugDrawerInstance->_Internal->LineShader = shader_create(renderer->Renderer->Device,
-    //     renderer->Renderer->Swap, SHADER_PROGRAM_TYPE_GRAPHICS_LINE);
-    // graphics::shader_load(
-    //     DebugDrawerInstance->_Internal->LineShader, "res/shaders/lines_debug");
-    // graphics::shader_build(DebugDrawerInstance->_Internal->LineShader);
+    DebugDrawerInstance->_Internal->LineShader = shader_create(renderer->Renderer->Device,
+        renderer->Renderer->Swap, SHADER_PROGRAM_TYPE_GRAPHICS_LINE);
+    graphics::shader_load(
+        DebugDrawerInstance->_Internal->LineShader, "res/shaders/lines_debug");
+    graphics::shader_build(DebugDrawerInstance->_Internal->LineShader);
 
     yolo::debug("DebugDrawer initialized");
 }
 
 void debug_cleanup() { delete DebugDrawerInstance; }
+
+void debug_do_depth_test(bool doDepthTest)
+{
+    DebugDrawerInstance->DoDepthTest = doDepthTest;
+}
 
 void debug_draw_line(glm::vec3 start, glm::vec3 end, glm::vec3 color)
 {
@@ -63,15 +68,9 @@ void debug_draw_line(glm::vec3 start, glm::vec3 end, glm::vec3 color)
     DebugDrawerInstance->LineElements.push_back({ start, end, color });
 }
 
-// void debug_draw_text_billboard(glm::vec3 position, glm::vec3 color, std::string text)
-// {
-//     std::lock_guard<std::mutex> lock(DebugDrawerInstance->_Internal->DebugMutex);
-//     DebugDrawerInstance->BillboardElements.push_back({ position, color, text });
-// }
-
 void debug_draw_ui() { ImGui::Checkbox("Show Overlay", &DebugDrawerInstance->DoShow); }
 
-void debug_draw_to_target(scene::Scene* scene)
+void debug_draw_to_preview(scene::Scene* scene)
 {
     if (!DebugDrawerInstance->DoShow)
         return;
@@ -113,7 +112,14 @@ void debug_draw_to_target(scene::Scene* scene)
     graphics::vertex_buffer_bind(
         DebugDrawerInstance->_Internal->LineBuffer, commandBuffer);
 
+    if (DebugDrawerInstance->DoDepthTest)
+        vkCmdSetDepthTestEnable(commandBuffer, VK_TRUE);
+    else
+        vkCmdSetDepthTestEnable(commandBuffer, VK_FALSE);
+
     vkCmdDraw(commandBuffer, DebugDrawerInstance->LineElements.size() * 2, 1, 0, 0);
+
+    vkCmdSetDepthTestEnable(commandBuffer, VK_TRUE);
 
     graphics::renderer_end_pass(backend);
 

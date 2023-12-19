@@ -102,6 +102,7 @@ InfernoApp* inferno_create()
     graphics::renderer_configure_command_buffer(app->Renderer);
 
     app->PreviewRenderer = graphics::preview_create(app->Renderer);
+    graphics::debug_do_depth_test(false);
 
     graphics::renderer_submit_repeat(
         app->Renderer,
@@ -315,7 +316,8 @@ int inferno_run(InfernoApp* app)
 
             static ImVec2 lastViewport = { 0, 0 };
             ImVec2 currentViewport = ImGui::GetWindowSize();
-            if (lastViewport.x != currentViewport.x || lastViewport.y != currentViewport.y) {
+            if (lastViewport.x != currentViewport.x
+                || lastViewport.y != currentViewport.y) {
                 graphics::camera_raster_set_viewport(scene::scene_get_camera(app->Scene),
                     { ImGui::GetWindowSize().x, ImGui::GetWindowSize().y });
                 // if imgui has changed the viewport, we need to recreate the rendertarget
@@ -324,8 +326,8 @@ int inferno_run(InfernoApp* app)
             lastViewport = currentViewport;
 
             graphics::preview_draw(app->PreviewRenderer, app->Scene);
-            // graphics::debug_draw_line({0, 0, 0}, {1, 1, 0}, {1, 1, 0});
-            // graphics::debug_draw_to_target(app->Scene);
+            graphics::debug_draw_line({ 0, 0, 0 }, { 1, 1, 0 }, { 1, 1, 0 });
+            graphics::debug_draw_to_preview(app->Scene);
 
             ImTextureID texture
                 = (ImTextureID)graphics::preview_get_target(app->PreviewRenderer)

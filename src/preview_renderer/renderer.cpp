@@ -40,7 +40,7 @@ PreviewRenderer* preview_create(VulkanRenderer* vkrenderer)
         renderer->Renderer->Device, { 1920, 1080 }, VK_FORMAT_R8G8B8A8_UNORM, true);
 
     // bind preview renderer to debugdraw
-    // debug_init(renderer);
+    debug_init(renderer);
 
     return renderer;
 }
