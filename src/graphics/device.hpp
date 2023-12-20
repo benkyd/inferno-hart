@@ -6,7 +6,7 @@
 
 namespace inferno::graphics {
 
-#define VALIDATION_LAYERS_ENABLED 1
+// #define VALIDATION_LAYERS_ENABLED 1
 #ifdef VALIDATION_LAYERS_ENABLED
 const std::vector<const char*> VALIDATION_LAYERS = {
     "VK_LAYER_KHRONOS_validation",

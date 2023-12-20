@@ -1,11 +1,13 @@
 #include "mesh.hpp"
 
-#include <scene/objloader.hpp>
-
 #include "graphics/buffer.hpp"
 #include "graphics/device.hpp"
 
 #include <yolo/yolo.hpp>
+
+#include <assimp/Importer.hpp>
+#include <assimp/postprocess.h>
+#include <assimp/scene.h>
 
 #include <iostream>
 
@@ -48,64 +50,55 @@ Mesh* mesh_create(graphics::GraphicsDevice* device)
     return mesh;
 }
 
-void mesh_cleanup(Mesh* mesh)
+void mesh_cleanup(Mesh* mesh) { delete mesh; }
+
+void mesh_process(Mesh* out, aiMesh* mesh)
 {
-    delete mesh->MeshObjLoader;
-    delete mesh;
-}
-
-void mesh_load_obj(Mesh* mesh, std::filesystem::path file)
-{
-    mesh->MeshObjLoader = new ObjLoader();
-    mesh->MeshObjLoader->load(file);
-
-    int vertCount = mesh->MeshObjLoader->getVertCount();
-    for (int i = 0; i < vertCount * 3; i += 3) {
-        Vert vert;
-        vert.Position = {
-            mesh->MeshObjLoader->getPositions()[i],
-            mesh->MeshObjLoader->getPositions()[i + 1],
-            mesh->MeshObjLoader->getPositions()[i + 2],
+    for (unsigned int i = 0; i < mesh->mNumVertices; i++) {
+        Vert vertex = {
+            .Position = glm::vec3(mesh->mVertices[i].x, mesh->mVertices[i].y, mesh->mVertices[i].z),
+            .Normal = glm::vec3(mesh->mNormals[i].x, mesh->mNormals[i].y, mesh->mNormals[i].z),
         };
-        vert.Normal = {
-            mesh->MeshObjLoader->getNormals()[i],
-            mesh->MeshObjLoader->getNormals()[i + 1],
-            mesh->MeshObjLoader->getNormals()[i + 2],
-        };
+        out->Verticies.push_back(vertex);
+    }
 
-        mesh->Verticies.push_back(vert);
+    // indicies
+    for (unsigned int i = 0; i < mesh->mNumFaces; i++) {
+        aiFace face = mesh->mFaces[i];
+        for (unsigned int j = 0; j < face.mNumIndices; j++) {
+            out->Indicies.push_back(face.mIndices[j]);
+        }
     }
 }
 
 void mesh_ready(Mesh* mesh)
 {
     void* data = mesh->Verticies.data();
-    void* indexData = (void*)mesh->MeshObjLoader->getFaces();
+    void* indexData = mesh->Indicies.data();
 
     uint32_t size = mesh->Verticies.size();
-    // yolo::debug("Mesh size: {}", size);
+    yolo::debug("Mesh size: {}", size);
 
     mesh->VertexBuffer = graphics::vertex_buffer_create(mesh->Device, data, size);
-    mesh->IndexBuffer = graphics::index_buffer_create(
-        mesh->Device, indexData, mesh->MeshObjLoader->getIndexCount());
+    mesh->IndexBuffer
+        = graphics::index_buffer_create(mesh->Device, indexData, mesh->Indicies.size());
 
     yolo::debug("Mesh for preview ready...");
 }
 
+// TODO: Extract vertex and normal data from internal mesh
 uint32_t mesh_get_verticies(Mesh* mesh, const float** v, const float** n)
 {
-    *v = &mesh->MeshObjLoader->getPositions()[0];
-    *n = &mesh->MeshObjLoader->getNormals()[0];
-    return mesh->MeshObjLoader->getVertCount();
+    return mesh->Verticies.size();
 }
 
 uint32_t mesh_get_indicies(Mesh* mesh, const uint32_t** i)
 {
-    *i = &mesh->MeshObjLoader->getFaces()[0];
-    return mesh->MeshObjLoader->getIndexCount();
+    *i = mesh->Indicies.data();
+    return mesh_get_index_count(mesh);
 }
 
-uint32_t mesh_get_index_count(Mesh* mesh) { return mesh->MeshObjLoader->getIndexCount(); }
+uint32_t mesh_get_index_count(Mesh* mesh) { return mesh->Indicies.size(); }
 
 void mesh_set_model_matrix(Mesh* mesh, glm::mat4 model) { mesh->ModelMatrix = model; }
 

@@ -2,6 +2,8 @@
 
 #include <hart_graphics.hpp>
 
+#include <assimp/mesh.h>
+
 #include <array>
 #include <filesystem>
 #include <vector>
@@ -12,8 +14,6 @@ struct Buffer;
 }
 
 namespace inferno::scene {
-
-class ObjLoader;
 
 // TODO: This should be procedural like everything else
 struct Vert {
@@ -38,8 +38,8 @@ typedef struct Mesh {
 
     glm::mat4 ModelMatrix;
 
-    ObjLoader* MeshObjLoader;
     std::vector<Vert> Verticies;
+    std::vector<uint32_t> Indicies;
 
     graphics::Buffer* VertexBuffer;
     graphics::Buffer* IndexBuffer;
@@ -48,7 +48,8 @@ typedef struct Mesh {
 Mesh* mesh_create(graphics::GraphicsDevice* device);
 void mesh_cleanup(Mesh* mesh);
 
-void mesh_load_obj(Mesh* mesh, std::filesystem::path file);
+void mesh_process(Mesh* out, aiMesh* mesh);
+
 void mesh_ready(Mesh* mesh);
 
 uint32_t mesh_get_verticies(Mesh* mesh, const float** v, const float** n);

@@ -121,19 +121,18 @@ InfernoApp* inferno_create()
         },
         true);
 
-    scene::Mesh* mesh = scene::mesh_create(app->Device);
-    scene::mesh_load_obj(mesh, "res/cornell-box.obj");
-    scene::mesh_ready(mesh);
-    scene::SceneObject* object = scene::scene_object_create();
-    scene::scene_object_add_mesh(object, mesh);
+    scene::SceneObject* object = scene::scene_object_create(app->Device);
+    scene::scene_object_load(object, "res/Bistro.obj");
+    // scene::scene_object_load(object, "res/sponza.obj");
+    // scene::mesh_load_obj(object, "res/cornell-box.obj");
     scene::scene_add_object(app->Scene, object);
 
-    scene::Mesh* lucy = scene::mesh_create(app->Device);
-    scene::mesh_load_obj(lucy, "res/lucy.obj");
-    scene::mesh_ready(lucy);
-    scene::SceneObject* lucyObject = scene::scene_object_create();
-    scene::scene_object_add_mesh(lucyObject, lucy);
-    scene::scene_add_object(app->Scene, lucyObject);
+    // scene::Mesh* lucy = scene::mesh_create(app->Device);
+    // scene::mesh_load_obj(lucy, "res/lucy.obj");
+    // scene::mesh_ready(lucy);
+    // scene::SceneObject* lucyObject = scene::scene_object_create();
+    // scene::scene_object_add_mesh(lucyObject, lucy);
+    // scene::scene_add_object(app->Scene, lucyObject);
 
     // app->PreviewRenderer = graphics::preview_create();
     // graphics::preview_set_viewport(app->PreviewRenderer, app->Scene->Camera);

@@ -3,6 +3,8 @@ project(inferno)
 
 file(GLOB SRC "src/*.cpp" "src/graphics/*.cpp" "src/preview_renderer/*.cpp" "src/scene/*.cpp" "src/thirdparty/imgui/*.cpp" "src/preview_renderer/*.cpp")
 
+add_subdirectory("thirdparty/assimp")
+
 add_executable(inferno ${SRC})
 target_include_directories(inferno PRIVATE "libhart/thirdparty")
 target_include_directories(inferno PRIVATE "libhart/")
@@ -72,6 +74,8 @@ find_package(OpenMP REQUIRED)
 find_package(Vulkan REQUIRED)
 
 # Libraries
+target_link_libraries(inferno PRIVATE assimp)
+
 if (WIN32)
     # cmake .. "-DCMAKE_TOOLCHAIN_FILE=C:/dev/vcpkg/scripts/buildsystems/vcpkg.cmake"
     find_package(glfw3 CONFIG REQUIRED)
