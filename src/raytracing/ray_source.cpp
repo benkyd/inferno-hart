@@ -5,7 +5,8 @@
 #include <maths.hpp>
 
 #include <scene/camera.hpp>
-#include <renderer/ray.hpp>
+
+#include <raytracing/ray.hpp>
 
 namespace inferno::graphics::rays {
 

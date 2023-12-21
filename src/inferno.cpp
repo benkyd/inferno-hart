@@ -14,7 +14,7 @@
 #include "graphics/shader.hpp"
 #include "graphics/swapchain.hpp"
 #include "graphics/vkrenderer.hpp"
-#include "preview_renderer/debug.hpp"
+#include "preview/debug.hpp"
 #include "window.hpp"
 
 // #include "preview_renderer/debug.hpp"
@@ -73,7 +73,7 @@ void inferno_timer_print(InfernoTimer* timer, bool time)
 
 std::chrono::duration<double> inferno_timer_get_time(InfernoTimer* timer)
 {
-    return timer->Time;
+    return timer->Times.back();
 }
 
 std::chrono::duration<double> inferno_timer_get_average(InfernoTimer* timer)
@@ -122,18 +122,15 @@ InfernoApp* inferno_create()
         true);
 
     scene::SceneObject* object = scene::scene_object_create(app->Device);
-    scene::scene_object_load(object, "res/Bistro.obj");
+    // scene::scene_object_load(object, "res/Bistro.obj");
     // scene::scene_object_load(object, "res/sponza.obj");
-    // scene::mesh_load_obj(object, "res/cornell-box.obj");
+    scene::scene_object_load(object, "res/cornell-box.obj");
     scene::scene_add_object(app->Scene, object);
 
-    // scene::Mesh* lucy = scene::mesh_create(app->Device);
-    // scene::mesh_load_obj(lucy, "res/lucy.obj");
-    // scene::mesh_ready(lucy);
-    // scene::SceneObject* lucyObject = scene::scene_object_create();
-    // scene::scene_object_add_mesh(lucyObject, lucy);
-    // scene::scene_add_object(app->Scene, lucyObject);
-
+    scene::SceneObject* lucy = scene::scene_object_create(app->Device);
+    scene::scene_object_load(lucy, "res/lucy.obj");
+    scene::scene_object_optimize(lucy);
+    scene::scene_add_object(app->Scene, lucy);
     // app->PreviewRenderer = graphics::preview_create();
     // graphics::preview_set_viewport(app->PreviewRenderer, app->Scene->Camera);
     // app->RayRenderer = graphics::rayr_create(app->Scene);
@@ -251,6 +248,31 @@ void inferno_end(InfernoApp* app)
 
 int inferno_run(InfernoApp* app)
 {
+
+    // we weant to outline Lucy in lines
+    graphics::renderer_submit_repeat(
+        app->Renderer,
+        [&](graphics::VulkanRenderer* renderer, VkCommandBuffer* commandBuffer) {
+            const auto lucy = app->Scene->Objects[0];
+            for (auto& mesh : scene::scene_object_get_meshs(lucy)) {
+                for (int i = 0; i < mesh->Indicies.size() - 1; i += 3) {
+                    graphics::debug_draw_line(
+                        mesh->Verticies[mesh->Indicies[i]].Position,
+                        mesh->Verticies[mesh->Indicies[i + 1]].Position,
+                        { 1, 0, 0 });
+                    graphics::debug_draw_line(
+                        mesh->Verticies[mesh->Indicies[i + 1]].Position,
+                        mesh->Verticies[mesh->Indicies[i + 2]].Position,
+                        { 1, 0, 0 });
+                    graphics::debug_draw_line(
+                        mesh->Verticies[mesh->Indicies[i + 2]].Position,
+                        mesh->Verticies[mesh->Indicies[i]].Position,
+                        { 1, 0, 0 });
+                }
+            }
+        },
+        false);
+
     while (graphics::window_new_frame()) {
         if (!inferno_pre(app))
             continue;
@@ -325,7 +347,6 @@ int inferno_run(InfernoApp* app)
             lastViewport = currentViewport;
 
             graphics::preview_draw(app->PreviewRenderer, app->Scene);
-            graphics::debug_draw_line({ 0, 0, 0 }, { 1, 1, 0 }, { 1, 1, 0 });
             graphics::debug_draw_to_preview(app->Scene);
 
             ImTextureID texture
@@ -356,4 +377,4 @@ int inferno_run(InfernoApp* app)
     return 1;
 }
 
-} // namespace inferno
+} // namespace infern

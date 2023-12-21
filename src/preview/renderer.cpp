@@ -2,7 +2,7 @@
 
 #include <graphics.hpp>
 
-#include "preview_renderer/debug.hpp"
+#include "debug.hpp"
 
 #include "graphics/buffer.hpp"
 #include "graphics/rendertarget.hpp"
@@ -45,7 +45,9 @@ PreviewRenderer* preview_create(VulkanRenderer* vkrenderer)
     return renderer;
 }
 
-void preview_cleanup(PreviewRenderer* renderer) { }
+void preview_cleanup(PreviewRenderer* renderer) {
+    delete renderer;
+}
 
 void preview_draw_ui(PreviewRenderer* renderer) { }
 

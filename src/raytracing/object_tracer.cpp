@@ -1,6 +1,6 @@
 #include "object_tracer.hpp"
 
-#include "preview_renderer/debug.hpp"
+#include "preview/debug.hpp"
 #include "scene/object.hpp"
 
 #include <cmath>
@@ -50,11 +50,12 @@ HitInfo* object_ray_collide(scene::SceneObject* object, Ray* ray)
         const uint32_t* ind;
         const float* verts;
         const float* norms;
-        mesh->getIndicies(&ind);
-        mesh->getVerticies(&verts, &norms);
+        // mesh->getIndicies(&ind);
+        // mesh->getVerticies(&verts, &norms);
 
         float t = INFINITY;
-        for (int i = 0; i < mesh->getIndexCount(); i += 3) {
+        int i ;
+        // for (int i = 0; i < mesh->getIndexCount(); i += 3) {
             uint32_t indexa = ind[i + 0];
             uint32_t indexb = ind[i + 1];
             uint32_t indexc = ind[i + 2];
@@ -71,7 +72,7 @@ HitInfo* object_ray_collide(scene::SceneObject* object, Ray* ray)
                 t = temp_t;
                 info->Distance = t;
             }
-        }
+        // }
     }
     return info;
 }

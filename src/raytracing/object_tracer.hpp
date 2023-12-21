@@ -1,9 +1,10 @@
-#pragma once 
+#pragma once
 
 #include <scene/object.hpp>
 #include <scene/mesh.hpp>
-#include <renderer/hit.hpp>
-#include <renderer/ray.hpp>
+
+#include <raytracing/hit.hpp>
+#include <raytracing/ray.hpp>
 
 namespace inferno::graphics::rays {
 

@@ -40,7 +40,7 @@ void scene_object_load(SceneObject* object, std::filesystem::path file)
 
     const aiScene* scene = importer.ReadFile(file.string(),
         aiProcess_Triangulate | aiProcess_OptimizeMeshes | aiProcess_OptimizeGraph
-            | aiProcess_GenNormals);
+            | aiProcess_GenSmoothNormals);
 
     if (!scene || scene->mFlags & AI_SCENE_FLAGS_INCOMPLETE || !scene->mRootNode) {
         yolo::error("Assimp error: {}", importer.GetErrorString());
@@ -48,6 +48,13 @@ void scene_object_load(SceneObject* object, std::filesystem::path file)
     }
 
     processNode(object, scene->mRootNode, scene);
+}
+
+void scene_object_optimize(SceneObject* object)
+{
+    for (auto& mesh : object->Meshs) {
+        mesh_optimize(mesh);
+    }
 }
 
 void scene_object_add_mesh(SceneObject* object, Mesh* mesh)

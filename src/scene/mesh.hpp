@@ -50,6 +50,7 @@ void mesh_cleanup(Mesh* mesh);
 
 void mesh_process(Mesh* out, aiMesh* mesh);
 
+void mesh_optimize(Mesh* mesh);
 void mesh_ready(Mesh* mesh);
 
 uint32_t mesh_get_verticies(Mesh* mesh, const float** v, const float** n);

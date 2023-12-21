@@ -5,7 +5,7 @@
 #include "graphics/shader.hpp"
 #include "graphics/vkrenderer.hpp"
 
-#include "preview_renderer/renderer.hpp"
+#include "preview/renderer.hpp"
 
 #include "scene/camera.hpp"
 #include "scene/mesh.hpp"
@@ -73,6 +73,9 @@ void debug_draw_ui() { ImGui::Checkbox("Show Overlay", &DebugDrawerInstance->DoS
 void debug_draw_to_preview(scene::Scene* scene)
 {
     if (!DebugDrawerInstance->DoShow)
+        return;
+
+    if (DebugDrawerInstance->LineElements.size() == 0)
         return;
 
     uint32_t bufferSize

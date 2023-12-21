@@ -1,7 +1,8 @@
 cmake_minimum_required(VERSION 3.13)
 project(inferno)
 
-file(GLOB SRC "src/*.cpp" "src/graphics/*.cpp" "src/preview_renderer/*.cpp" "src/scene/*.cpp" "src/thirdparty/imgui/*.cpp" "src/preview_renderer/*.cpp")
+# file(GLOB SRC "src/*.cpp" "src/graphics/*.cpp" "src/preview_renderer/*.cpp" "src/scene/*.cpp" "src/thirdparty/imgui/*.cpp" "src/preview_renderer/*.cpp")
+file(GLOB_RECURSE SRC "src/*.cpp")
 
 add_subdirectory("thirdparty/assimp")
 

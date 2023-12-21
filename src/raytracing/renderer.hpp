@@ -13,32 +13,39 @@ namespace inferno::scene {
 
 namespace inferno::graphics {
 
+class VulkanRenderer;
+class RenderTarget;
+
 class Camera;
 class HitInfo;
 class RaySource;
 class RenderDispatcher;
 
 typedef struct RayRenderer {
-    glm::ivec2 Viewport;
+    VulkanRenderer* Renderer;
 
     // TODO: Can this be direct to GPU?
     // NOTE: Probably not
     glm::fvec4* RenderData = nullptr;
-    GLuint RenderTargetTexture = 0;
+    RenderTarget* RayRenderTarget;
 
     scene::Scene* Scene = nullptr;
+
+    VkRect2D Viewport;
+    bool HasViewportChanged;
 } RayRenderer;
 
-// Expects complete scene
-RayRenderer* rayr_create(scene::Scene* scene);
+// Expects complete scene as it will need to bake a lot of features
+RayRenderer* rayr_create(VulkanRenderer* renderer, scene::Scene* scene);
 void rayr_cleanup(RayRenderer* renderer);
 
 void rayr_draw_ui(RayRenderer* renderer);
 void rayr_set_viewport(RayRenderer* renderer, Camera* camera);
 
-GLuint rayr_get_rendered_texture(RayRenderer* renderer);
+ // rayr_get_rendered_texture(RayRenderer* renderer);
 glm::fvec4* rayr_get_render_data(RayRenderer* renderer);
 
+void rayr_prepare(RayRenderer* renderer);
 void rayr_draw(RayRenderer* renderer);
 
 void raryr_compute_hit(HitInfo* info);

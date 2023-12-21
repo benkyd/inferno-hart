@@ -56,9 +56,12 @@ void mesh_process(Mesh* out, aiMesh* mesh)
 {
     for (unsigned int i = 0; i < mesh->mNumVertices; i++) {
         Vert vertex = {
-            .Position = glm::vec3(mesh->mVertices[i].x, mesh->mVertices[i].y, mesh->mVertices[i].z),
-            .Normal = glm::vec3(mesh->mNormals[i].x, mesh->mNormals[i].y, mesh->mNormals[i].z),
+            .Position
+            = glm::vec3(mesh->mVertices[i].x, mesh->mVertices[i].y, mesh->mVertices[i].z),
+            .Normal
+            = glm::vec3(mesh->mNormals[i].x, mesh->mNormals[i].y, mesh->mNormals[i].z),
         };
+
         out->Verticies.push_back(vertex);
     }
 
@@ -70,6 +73,8 @@ void mesh_process(Mesh* out, aiMesh* mesh)
         }
     }
 }
+
+void mesh_optimize(Mesh* mesh) { }
 
 void mesh_ready(Mesh* mesh)
 {

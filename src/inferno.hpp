@@ -5,8 +5,7 @@
 #include "scene/mesh.hpp"
 #include "scene/scene.hpp"
 // #include "scene/camera.hpp"
-#include "preview_renderer/renderer.hpp"
-#include "renderer/renderer.hpp"
+#include "preview/renderer.hpp"
 
 #include <memory>
 
@@ -60,7 +59,7 @@ typedef struct InfernoApp {
     graphics::VulkanRenderer* Renderer;
 
     graphics::PreviewRenderer* PreviewRenderer;
-    graphics::RayRenderer* RayRenderer;
+    // graphics::RayRenderer* RayRenderer;
 
     InfernoTimer* MainTimer;
     uint64_t FrameCount;

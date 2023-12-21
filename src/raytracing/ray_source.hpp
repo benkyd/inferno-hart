@@ -5,7 +5,7 @@
 
 #include <graphics.hpp>
 
-#include <renderer/ray.hpp>
+#include <raytracing/ray.hpp>
 
 namespace inferno::graphics {
     class Camera;
