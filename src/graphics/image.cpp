@@ -1,8 +1,11 @@
 #include "graphics/image.hpp"
 
 #include "device.hpp"
+#include "vkrenderer.hpp"
 
 #include "yolo/yolo.hpp"
+
+#include <functional>
 
 namespace inferno::graphics {
 
@@ -69,6 +72,36 @@ VkImageView create_image_view(GraphicsDevice* device, VkImage image, VkFormat fo
     return imageView;
 }
 
+void transition_image_layout(GraphicsDevice* device, VkImage image, VkFormat format,
+    VkImageLayout oldLayout, VkImageLayout newLayout)
+{
+    // This all goes in a standard callback to go to the renderer as a one time command
+    // buffer execution
+    std::function<void(VulkanRenderer*, VkCommandBuffer*)> callback
+        = [&](VulkanRenderer* renderer, VkCommandBuffer* commandBuffer) {
+              VkImageMemoryBarrier barrier {};
+              barrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
+              barrier.oldLayout = oldLayout;
+              barrier.newLayout = newLayout;
+              barrier.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+              barrier.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+              barrier.image = image;
+              barrier.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+              barrier.subresourceRange.baseMipLevel = 0;
+              barrier.subresourceRange.levelCount = 1;
+              barrier.subresourceRange.baseArrayLayer = 0;
+              barrier.subresourceRange.layerCount = 1;
+              barrier.srcAccessMask = 0; // TODO
+              barrier.dstAccessMask = 0; // TODO
+
+              vkCmdPipelineBarrier(*commandBuffer, VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT,
+                  VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT, 0, 0, nullptr, 0, nullptr, 1,
+                  &barrier);
+          };
+
+    graphics::renderer_submit_now(device->RenderContext, callback);
+}
+
 VkFormat find_format(GraphicsDevice* device, const std::vector<VkFormat>& candidates,
     VkImageTiling tiling, VkFormatFeatureFlags features)
 {
@@ -92,10 +125,9 @@ VkFormat find_depth_format(GraphicsDevice* device)
 {
     return VK_FORMAT_D32_SFLOAT_S8_UINT;
     return find_format(device,
-        { VK_FORMAT_D32_SFLOAT, VK_FORMAT_D32_SFLOAT_S8_UINT, VK_FORMAT_D24_UNORM_S8_UINT },
+        { VK_FORMAT_D32_SFLOAT, VK_FORMAT_D32_SFLOAT_S8_UINT,
+            VK_FORMAT_D24_UNORM_S8_UINT },
         VK_IMAGE_TILING_OPTIMAL, VK_FORMAT_FEATURE_DEPTH_STENCIL_ATTACHMENT_BIT);
-
 }
-
 
 }

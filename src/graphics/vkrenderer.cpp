@@ -205,7 +205,7 @@ void renderer_begin_pass(
     imageMemoryBarrier.dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
     imageMemoryBarrier.oldLayout = VK_IMAGE_LAYOUT_UNDEFINED;
     imageMemoryBarrier.newLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
-    imageMemoryBarrier.image = target->Image;
+    imageMemoryBarrier.image = target->TargetImage->Image;
     imageMemoryBarrier.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
     imageMemoryBarrier.subresourceRange.baseMipLevel = 0;
     imageMemoryBarrier.subresourceRange.layerCount = 1;
@@ -223,7 +223,7 @@ void renderer_begin_pass(
     VkClearValue clearColor = { { { 0.0f, 0.0f, 0.0f, 1.0f } } };
     VkRenderingAttachmentInfo attachmentInfo {};
     attachmentInfo.sType = VK_STRUCTURE_TYPE_RENDERING_ATTACHMENT_INFO_KHR;
-    attachmentInfo.imageView = target->ImageView;
+    attachmentInfo.imageView = target->TargetImage->ImageView;
     attachmentInfo.imageLayout = VK_IMAGE_LAYOUT_ATTACHMENT_OPTIMAL_KHR;
     attachmentInfo.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
     attachmentInfo.storeOp = VK_ATTACHMENT_STORE_OP_STORE;

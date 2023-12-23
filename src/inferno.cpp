@@ -97,6 +97,8 @@ InfernoApp* inferno_create()
     graphics::window_create("Inferno v" INFERNO_VERSION, 1920, 1080);
     app->Device = graphics::device_create();
     app->Renderer = graphics::renderer_create(app->Device);
+    // FIXME: FUCKING CHANGE THIS
+    graphics::device_add_context(app->Device, app->Renderer);
 
     graphics::renderer_configure_gui(app->Renderer);
     graphics::renderer_configure_command_buffer(app->Renderer);
@@ -131,10 +133,8 @@ InfernoApp* inferno_create()
     scene::scene_object_load(lucy, "res/lucy.obj");
     scene::scene_object_optimize(lucy);
     scene::scene_add_object(app->Scene, lucy);
-    // app->PreviewRenderer = graphics::preview_create();
-    // graphics::preview_set_viewport(app->PreviewRenderer, app->Scene->Camera);
-    // app->RayRenderer = graphics::rayr_create(app->Scene);
-    // graphics::rayr_set_viewport(app->RayRenderer, app->Scene->Camera);
+
+    app->RayRenderer = graphics::rayr_create(app->Renderer, app->Scene);
 
     return app;
 }
@@ -248,26 +248,20 @@ void inferno_end(InfernoApp* app)
 
 int inferno_run(InfernoApp* app)
 {
-
-    // we weant to outline Lucy in lines
     graphics::renderer_submit_repeat(
         app->Renderer,
         [&](graphics::VulkanRenderer* renderer, VkCommandBuffer* commandBuffer) {
             const auto lucy = app->Scene->Objects[0];
             for (auto& mesh : scene::scene_object_get_meshs(lucy)) {
                 for (int i = 0; i < mesh->Indicies.size() - 1; i += 3) {
-                    graphics::debug_draw_line(
-                        mesh->Verticies[mesh->Indicies[i]].Position,
-                        mesh->Verticies[mesh->Indicies[i + 1]].Position,
-                        { 1, 0, 0 });
+                    graphics::debug_draw_line(mesh->Verticies[mesh->Indicies[i]].Position,
+                        mesh->Verticies[mesh->Indicies[i + 1]].Position, { 0, 0, 1 });
                     graphics::debug_draw_line(
                         mesh->Verticies[mesh->Indicies[i + 1]].Position,
-                        mesh->Verticies[mesh->Indicies[i + 2]].Position,
-                        { 1, 0, 0 });
+                        mesh->Verticies[mesh->Indicies[i + 2]].Position, { 0, 0, 1 });
                     graphics::debug_draw_line(
                         mesh->Verticies[mesh->Indicies[i + 2]].Position,
-                        mesh->Verticies[mesh->Indicies[i]].Position,
-                        { 1, 0, 0 });
+                        mesh->Verticies[mesh->Indicies[i]].Position, { 0, 0, 1 });
                 }
             }
         },
@@ -358,13 +352,13 @@ int inferno_run(InfernoApp* app)
         }
 
         if (ImGui::Begin("Render")) {
-            // graphics::rayr_draw(app->RayRenderer);
+            graphics::rayr_prepare(app->RayRenderer);
+            graphics::rayr_draw(app->RayRenderer);
 
-            // ImTextureID texture
-            //     = (ImTextureID)graphics::rayr_get_rendered_texture(app->RayRenderer);
-            // ImGui::Image(texture, { ImGui::GetWindowSize().x, ImGui::GetWindowSize().y
-            // },
-            //     ImVec2(0, 1), ImVec2(1, 0));
+            ImTextureID texture
+                = (ImTextureID)graphics::rayr_get_target(app->RayRenderer)->DescriptorSet;
+            ImGui::Image(texture, { ImGui::GetWindowSize().x, ImGui::GetWindowSize().y },
+                ImVec2(0, 1), ImVec2(1, 0));
             ImGui::End();
         }
 
@@ -377,4 +371,4 @@ int inferno_run(InfernoApp* app)
     return 1;
 }
 
-} // namespace infern
+} // name

@@ -18,6 +18,8 @@ const std::vector<const char*> DEVICE_EXTENSIONS = {
     VK_KHR_DYNAMIC_RENDERING_EXTENSION_NAME,
 };
 
+struct VulkanRenderer;
+
 typedef struct GraphicsDevice {
     VkInstance VulkanInstance;
     VkDebugUtilsMessengerEXT VulkanDebugMessenger;
@@ -27,6 +29,9 @@ typedef struct GraphicsDevice {
     VkQueue VulkanGraphicsQueue;
     VkQueue VulkanPresentQueue;
     VkCommandPool VulkanCommandPool;
+
+    // FIXME: There is no way in hell this should be here
+    VulkanRenderer* RenderContext;
 
     glm::ivec2 SurfaceSize;
     bool Resized = false;
@@ -45,6 +50,8 @@ struct QueueFamilyIndices {
 // MUST ONLY BE CALLED AFTER GLFW INIT
 GraphicsDevice* device_create();
 void device_cleanup(GraphicsDevice* device);
+
+void device_add_context(GraphicsDevice* device, VulkanRenderer* context);
 
 void device_create_vulkan_instance(GraphicsDevice* device);
 void device_vulkan_debugger(GraphicsDevice* device);

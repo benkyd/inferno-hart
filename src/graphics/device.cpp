@@ -3,6 +3,8 @@
 #include "graphics.hpp"
 #include "window.hpp"
 
+#include "vkrenderer.hpp"
+
 #include "yolo/yolo.hpp"
 
 #include <map>
@@ -217,6 +219,11 @@ void device_cleanup(GraphicsDevice* device)
             #endif
     vkDestroySurfaceKHR(device->VulkanInstance, device->VulkanSurface, nullptr);
     vkDestroyInstance(device->VulkanInstance, nullptr);
+}
+
+void device_add_context(GraphicsDevice* device, VulkanRenderer* context)
+{
+    device->RenderContext = context;
 }
 
 void device_create_vulkan_instance(GraphicsDevice* device)
