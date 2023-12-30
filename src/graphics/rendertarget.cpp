@@ -164,6 +164,8 @@ DynamicCPUTarget* dynamic_rendertarget_create(
     target->StagingBuffer = generic_buffer_create(device, 0,
         extent.width * extent.height * 4, VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
         VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
+
+    return target;
 }
 
 void dynamic_rendertarget_cleanup(DynamicCPUTarget* target) { }
