@@ -352,7 +352,6 @@ int inferno_run(InfernoApp* app)
         }
 
         if (ImGui::Begin("Render")) {
-            graphics::rayr_prepare(app->RayRenderer);
             graphics::rayr_draw(app->RayRenderer);
 
             ImTextureID texture

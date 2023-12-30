@@ -38,6 +38,7 @@ PreviewRenderer* preview_create(VulkanRenderer* vkrenderer)
 
     renderer->PreviewRenderTarget = graphics::rendertarget_create(
         renderer->Renderer->Device, { 1920, 1080 }, VK_FORMAT_R8G8B8A8_UNORM, true);
+    yolo::info("Created preview rendertarget");
 
     // bind preview renderer to debugdraw
     debug_init(renderer);
@@ -71,10 +72,12 @@ void preview_draw(PreviewRenderer* renderer, scene::Scene* scene)
     VkCommandBuffer commandBuffer = *renderer->Renderer->CommandBufferInFlight;
     // if changed
     if (renderer->HasViewportChanged) {
+        yolo::info("Resizing preview");
         graphics::rendertarget_recreate(renderer->PreviewRenderTarget,
             renderer->Viewport.extent, VK_FORMAT_R8G8B8A8_UNORM);
     }
 
+    yolo::info("Drawing preview");
     graphics::renderer_begin_pass(
         renderer->Renderer, renderer->PreviewRenderTarget, renderer->Viewport);
 

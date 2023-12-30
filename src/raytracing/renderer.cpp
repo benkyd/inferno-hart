@@ -96,9 +96,8 @@ void rayr_draw(RayRenderer* renderer)
 #pragma omp parallel for
     for (int x = 0; x < renderer->Viewport.extent.width; x++) {
         for (int y = 0; y < renderer->Viewport.extent.height; y++) {
-            renderer->RenderData[y * renderer->Viewport.extent.width + x]
-                = { 0.0f, 0.0f, 0.0f, 1.0f };
-            // rays::Ray* ray = startRays.Field[x * renderer->Viewport.extent.height + y];
+            rays::Ray* ray = startRays.Field[x * renderer->Viewport.extent.height + y];
+            renderer->RenderData[y * renderer->Viewport.extent.width + x] = glm::vec4(ray->Direction, 1.0);
             // rays::HitInfo* closest_hit = nullptr;
             //
             // for (auto& obj : scene::scene_get_renderables(renderer->Scene)) {

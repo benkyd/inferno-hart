@@ -200,6 +200,14 @@ bool renderer_begin_frame(VulkanRenderer* renderer)
 void renderer_begin_pass(
     VulkanRenderer* renderer, RenderTarget* target, VkRect2D renderArea, bool clear)
 {
+    // Validate that "Image" is valid
+    if (target == nullptr || target->TargetImage == nullptr) {
+        yolo::error("Target image is null");
+    }
+    // print target details
+    yo::info("Target: {} {} {}", target->TargetImage->Image, target->TargetImage->Memory,
+        target->TargetImage->ImageView);
+
     VkImageMemoryBarrier imageMemoryBarrier {};
     imageMemoryBarrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
     imageMemoryBarrier.dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;

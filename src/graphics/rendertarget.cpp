@@ -4,6 +4,7 @@
 #include "device.hpp"
 #include "graphics.hpp"
 #include "image.hpp"
+#include "vkrenderer.hpp"
 
 #include "yolo/yolo.hpp"
 #include <vulkan/vulkan_core.h>
@@ -44,7 +45,8 @@ RenderTarget* rendertarget_create(
     target->TargetImage = new ImageAttachment();
 
     create_image(device, extent.width, extent.height, format, VK_IMAGE_TILING_OPTIMAL,
-        VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT | VK_IMAGE_USAGE_INPUT_ATTACHMENT_BIT,
+        VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT | VK_IMAGE_USAGE_INPUT_ATTACHMENT_BIT
+            | VK_IMAGE_USAGE_SAMPLED_BIT,
         VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, target->TargetImage->Image,
         target->TargetImage->Memory);
 
@@ -53,6 +55,13 @@ RenderTarget* rendertarget_create(
 
     target->DescriptorSet = ImGui_ImplVulkan_AddTexture(target->Sampler,
         target->TargetImage->ImageView, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
+
+    // wait for the image to be ready
+    graphics::renderer_submit_now(
+        device->RenderContext, [&](VulkanRenderer* re, VkCommandBuffer* cmd) {
+            transition_image_layout(re->Device, target->TargetImage->Image, format,
+                VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
+        });
 
     if (depth) {
         rendertarget_create_depth(target);
@@ -105,15 +114,70 @@ void rendertarget_recreate(RenderTarget* target, VkExtent2D extent, VkFormat for
 
     bool doDepth = target->TargetDepth != nullptr;
 
-    rendertarget_cleanup(target);
+    vkDestroyImageView(
+        target->Device->VulkanDevice, target->TargetImage->ImageView, nullptr);
+    vkDestroyImage(target->Device->VulkanDevice, target->TargetImage->Image, nullptr);
+    vkFreeMemory(target->Device->VulkanDevice, target->TargetImage->Memory, nullptr);
+
+    if (doDepth) {
+        vkDestroyImageView(
+            target->Device->VulkanDevice, target->TargetDepth->ImageView, nullptr);
+        vkDestroyImage(target->Device->VulkanDevice, target->TargetDepth->Image, nullptr);
+        vkFreeMemory(target->Device->VulkanDevice, target->TargetDepth->Memory, nullptr);
+    }
 
     target->Extent = extent;
     target->Format = format;
 
-    rendertarget_create(target->Device, extent, format, doDepth);
+    VkSamplerCreateInfo samplerInfo {};
+    samplerInfo.sType = VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO;
+    samplerInfo.magFilter = VK_FILTER_LINEAR;
+    samplerInfo.minFilter = VK_FILTER_LINEAR;
+    samplerInfo.addressModeU = VK_SAMPLER_ADDRESS_MODE_REPEAT;
+    samplerInfo.addressModeV = VK_SAMPLER_ADDRESS_MODE_REPEAT;
+    samplerInfo.addressModeW = VK_SAMPLER_ADDRESS_MODE_REPEAT;
+    samplerInfo.anisotropyEnable = VK_FALSE;
+    samplerInfo.maxAnisotropy = 1.0f;
+    samplerInfo.borderColor = VK_BORDER_COLOR_INT_OPAQUE_BLACK;
+    samplerInfo.unnormalizedCoordinates = VK_FALSE;
+    samplerInfo.compareEnable = VK_FALSE;
+    samplerInfo.compareOp = VK_COMPARE_OP_ALWAYS;
+    samplerInfo.mipmapMode = VK_SAMPLER_MIPMAP_MODE_LINEAR;
+    samplerInfo.mipLodBias = 0.0f;
+    samplerInfo.minLod = 0.0f;
+    samplerInfo.maxLod = 0.0f;
 
-    // if (doDepth)
-    //     rendertarget_create_depth(target);
+    if (vkCreateSampler(
+            target->Device->VulkanDevice, &samplerInfo, nullptr, &target->Sampler)
+        != VK_SUCCESS) {
+        yolo::error("failed to create texture sampler!");
+    }
+
+    target->TargetImage = new ImageAttachment();
+
+    create_image(target->Device, extent.width, extent.height, format,
+        VK_IMAGE_TILING_OPTIMAL,
+        VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT | VK_IMAGE_USAGE_INPUT_ATTACHMENT_BIT
+            | VK_IMAGE_USAGE_SAMPLED_BIT,
+        VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, target->TargetImage->Image,
+        target->TargetImage->Memory);
+
+    target->TargetImage->ImageView = create_image_view(
+        target->Device, target->TargetImage->Image, format, VK_IMAGE_ASPECT_COLOR_BIT);
+
+    target->DescriptorSet = ImGui_ImplVulkan_AddTexture(target->Sampler,
+        target->TargetImage->ImageView, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
+
+    // wait for the image to be ready
+    graphics::renderer_submit_now(
+        target->Device->RenderContext, [&](VulkanRenderer* re, VkCommandBuffer* cmd) {
+            transition_image_layout(re->Device, target->TargetImage->Image, format,
+                VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
+        });
+
+    if (doDepth) {
+        rendertarget_create_depth(target);
+    }
 }
 
 DynamicCPUTarget* dynamic_rendertarget_create(
@@ -149,7 +213,8 @@ DynamicCPUTarget* dynamic_rendertarget_create(
 
     // Create VkImage with Undefined
     create_image(device, extent.width, extent.height, format, VK_IMAGE_TILING_OPTIMAL,
-        VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT | VK_IMAGE_USAGE_INPUT_ATTACHMENT_BIT,
+        VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT | VK_IMAGE_USAGE_INPUT_ATTACHMENT_BIT
+            | VK_IMAGE_USAGE_SAMPLED_BIT,
         VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, target->Image, target->Memory);
 
     target->ImageView
@@ -190,6 +255,26 @@ void dynamic_rendertarget_update(DynamicCPUTarget* target, void* data, VkExtent2
         target->StagingBuffer->Size, 0, &mappedData);
     memcpy(mappedData, data, target->StagingBuffer->Size);
     vkUnmapMemory(target->Device->VulkanDevice, target->StagingBuffer->DeviceData);
+
+    // No we have the data in the buffer, let's move it to the image
+    graphics::renderer_submit_now(
+        target->Device->RenderContext, [&](VulkanRenderer* re, VkCommandBuffer* cmd) {
+            VkBufferImageCopy region {};
+            region.bufferOffset = 0;
+            region.bufferRowLength = 0;
+            region.bufferImageHeight = 0;
+
+            region.imageSubresource.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+            region.imageSubresource.mipLevel = 0;
+            region.imageSubresource.baseArrayLayer = 0;
+            region.imageSubresource.layerCount = 1;
+
+            region.imageOffset = { 0, 0, 0 };
+            region.imageExtent = { size.width, size.height, 1 };
+
+            vkCmdCopyBufferToImage(*cmd, target->StagingBuffer->Handle, target->Image,
+                VK_IMAGE_LAYOUT_GENERAL, 1, &region);
+        });
 
     // Sync with Fence
 

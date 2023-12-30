@@ -117,3 +117,6 @@ inline uint8_t registerModule(std::string name, std::string ANSI)
 
 }
 
+// alias yolo to yo for less typing
+namespace yo = yolo;
+
