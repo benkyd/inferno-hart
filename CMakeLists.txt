@@ -1,6 +1,8 @@
 cmake_minimum_required(VERSION 3.13)
 project(inferno)
 
+set(CMAKE_COMPILE_WARNING_AS_ERROR OFF)
+
 # file(GLOB SRC "src/*.cpp" "src/graphics/*.cpp" "src/preview_renderer/*.cpp" "src/scene/*.cpp" "src/thirdparty/imgui/*.cpp" "src/preview_renderer/*.cpp")
 file(GLOB_RECURSE SRC "src/*.cpp")
 
@@ -35,6 +37,13 @@ else()
         target_compile_options(inferno PRIVATE -Wall)
         target_compile_options(inferno PRIVATE -g)
         target_compile_options(inferno PRIVATE -D_GLIBCXX_DEBUG)
+    endif()
+    if (CMAKE_BUILD_TYPE MATCHES "Release")
+        target_compile_options(inferno PRIVATE -O3)
+        target_compile_options(inferno PRIVATE -march=native)
+        target_compile_options(inferno PRIVATE -DNDEBUG)
+        # allow warnings
+        target_compile_options(inferno PRIVATE -Wall)
     endif()
 endif()
 

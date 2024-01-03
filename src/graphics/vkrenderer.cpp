@@ -204,9 +204,6 @@ void renderer_begin_pass(
     if (target == nullptr || target->TargetImage == nullptr) {
         yolo::error("Target image is null");
     }
-    // print target details
-    yo::info("Target: {} {} {}", target->TargetImage->Image, target->TargetImage->Memory,
-        target->TargetImage->ImageView);
 
     VkImageMemoryBarrier imageMemoryBarrier {};
     imageMemoryBarrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;

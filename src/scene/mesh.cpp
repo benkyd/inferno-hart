@@ -62,6 +62,8 @@ void mesh_process(Mesh* out, aiMesh* mesh)
             = glm::vec3(mesh->mNormals[i].x, mesh->mNormals[i].y, mesh->mNormals[i].z),
         };
 
+        out->Positions.push_back(vertex.Position);
+        out->Normals.push_back(vertex.Normal);
         out->Verticies.push_back(vertex);
     }
 
@@ -91,9 +93,10 @@ void mesh_ready(Mesh* mesh)
     yolo::debug("Mesh for preview ready...");
 }
 
-// TODO: Extract vertex and normal data from internal mesh
 uint32_t mesh_get_verticies(Mesh* mesh, const float** v, const float** n)
 {
+    *v = (float*)mesh->Positions.data();
+    *n = (float*)mesh->Normals.data();
     return mesh->Verticies.size();
 }
 

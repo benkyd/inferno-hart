@@ -90,6 +90,7 @@ InfernoApp* inferno_create()
     app->Input = new InfernoInput;
     app->Scene = scene::scene_create();
     app->MainTimer = inferno_timer_create();
+    app->FrameCount = 0;
 
     graphics::camera_set_position(app->Scene->Camera, { 0.0f, 1.0f, 3.1f });
 
@@ -128,11 +129,11 @@ InfernoApp* inferno_create()
     // scene::scene_object_load(object, "res/sponza.obj");
     scene::scene_object_load(object, "res/cornell-box.obj");
     scene::scene_add_object(app->Scene, object);
-
-    scene::SceneObject* lucy = scene::scene_object_create(app->Device);
-    scene::scene_object_load(lucy, "res/lucy.obj");
-    scene::scene_object_optimize(lucy);
-    scene::scene_add_object(app->Scene, lucy);
+    //
+    // scene::SceneObject* lucy = scene::scene_object_create(app->Device);
+    // scene::scene_object_load(lucy, "res/lucy.obj");
+    // scene::scene_object_optimize(lucy);
+    // scene::scene_add_object(app->Scene, lucy);
 
     app->RayRenderer = graphics::rayr_create(app->Renderer, app->Scene);
 
@@ -352,6 +353,16 @@ int inferno_run(InfernoApp* app)
         }
 
         if (ImGui::Begin("Render")) {
+            // static ImVec2 lastViewport = { 0, 0 };
+            // ImVec2 currentViewport = ImGui::GetWindowSize();
+            // if (lastViewport.x != currentViewport.x
+            //     || lastViewport.y != currentViewport.y) {
+            //     graphics::camera_ray_set_viewport(scene::scene_get_camera(app->Scene),
+            //         { ImGui::GetWindowSize().x, ImGui::GetWindowSize().y });
+            //     graphics::rayr_set_viewport(app->RayRenderer, app->Scene->Camera);
+            // }
+            // lastViewport = currentViewport;
+
             graphics::rayr_draw(app->RayRenderer);
 
             ImTextureID texture

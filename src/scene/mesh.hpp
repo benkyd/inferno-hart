@@ -39,6 +39,10 @@ typedef struct Mesh {
     glm::mat4 ModelMatrix;
 
     std::vector<Vert> Verticies;
+
+    std::vector<glm::vec3> Positions;
+    std::vector<glm::vec3> Normals;
+
     std::vector<uint32_t> Indicies;
 
     graphics::Buffer* VertexBuffer;

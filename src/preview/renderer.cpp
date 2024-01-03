@@ -77,7 +77,6 @@ void preview_draw(PreviewRenderer* renderer, scene::Scene* scene)
             renderer->Viewport.extent, VK_FORMAT_R8G8B8A8_UNORM);
     }
 
-    yolo::info("Drawing preview");
     graphics::renderer_begin_pass(
         renderer->Renderer, renderer->PreviewRenderTarget, renderer->Viewport);
 

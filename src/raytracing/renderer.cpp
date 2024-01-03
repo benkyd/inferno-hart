@@ -32,18 +32,21 @@ RayRenderer* rayr_create(VulkanRenderer* renderer, scene::Scene* scene)
     ray->Renderer = renderer;
 
     auto camera = scene::scene_get_camera(scene);
-    rayr_set_viewport(ray, camera);
+    ray->Viewport.offset.x = 0;
+    ray->Viewport.offset.y = 0;
+    ray->Viewport.extent.width = camera_ray_get_viewport(camera).x;
+    ray->Viewport.extent.height = camera_ray_get_viewport(camera).y;
+    ray->HasViewportChanged = true;
+
 
     ray->RenderData
         = new glm::fvec4[ray->Viewport.extent.width * ray->Viewport.extent.height];
     memset(ray->RenderData, 0,
         ray->Viewport.extent.width * ray->Viewport.extent.height * sizeof(glm::fvec4));
 
-    // TODO: We need to upload RenderData to the GPU / maybe do a quad pass ? I think
-    // ImGui handels that
-
     ray->RayRenderTarget = graphics::dynamic_rendertarget_create(
         renderer->Device, ray->Viewport.extent, VK_FORMAT_R32G32B32A32_SFLOAT);
+    rayr_set_viewport(ray, camera);
 
     return ray;
 }
@@ -60,6 +63,16 @@ void rayr_set_viewport(RayRenderer* renderer, Camera* camera)
     renderer->Viewport.extent.width = viewport.x;
     renderer->Viewport.extent.height = viewport.y;
     renderer->HasViewportChanged = true;
+
+    delete[] renderer->RenderData;
+    renderer->RenderData
+        = new glm::fvec4[renderer->Viewport.extent.width * renderer->Viewport.extent.height];
+    memset(renderer->RenderData, 0,
+        renderer->Viewport.extent.width * renderer->Viewport.extent.height * sizeof(glm::fvec4));
+
+    // Now resize the rendertarget
+    graphics::dynamic_rendertarget_recreate(
+        renderer->RayRenderTarget, renderer->Viewport.extent);
 }
 
 DynamicCPUTarget* rayr_get_target(RayRenderer* renderer)
@@ -72,7 +85,7 @@ glm::fvec4* rayr_get_render_data(RayRenderer* renderer) { return renderer->Rende
 void rayr_prepare(RayRenderer* renderer)
 {
     // TODO: This is TEMP
-    memset(renderer->RenderData, 0,
+    memset(renderer->RenderData, 1,
         renderer->Viewport.extent.width * renderer->Viewport.extent.height
             * sizeof(glm::fvec4));
 
@@ -97,7 +110,8 @@ void rayr_draw(RayRenderer* renderer)
     for (int x = 0; x < renderer->Viewport.extent.width; x++) {
         for (int y = 0; y < renderer->Viewport.extent.height; y++) {
             rays::Ray* ray = startRays.Field[x * renderer->Viewport.extent.height + y];
-            renderer->RenderData[y * renderer->Viewport.extent.width + x] = glm::vec4(ray->Direction, 1.0);
+            renderer->RenderData[y * renderer->Viewport.extent.width + x]
+                = { ray->Direction.x, ray->Direction.y, ray->Direction.z, 1.0 };
             // rays::HitInfo* closest_hit = nullptr;
             //
             // for (auto& obj : scene::scene_get_renderables(renderer->Scene)) {

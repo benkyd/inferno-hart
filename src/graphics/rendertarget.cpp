@@ -129,30 +129,6 @@ void rendertarget_recreate(RenderTarget* target, VkExtent2D extent, VkFormat for
     target->Extent = extent;
     target->Format = format;
 
-    VkSamplerCreateInfo samplerInfo {};
-    samplerInfo.sType = VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO;
-    samplerInfo.magFilter = VK_FILTER_LINEAR;
-    samplerInfo.minFilter = VK_FILTER_LINEAR;
-    samplerInfo.addressModeU = VK_SAMPLER_ADDRESS_MODE_REPEAT;
-    samplerInfo.addressModeV = VK_SAMPLER_ADDRESS_MODE_REPEAT;
-    samplerInfo.addressModeW = VK_SAMPLER_ADDRESS_MODE_REPEAT;
-    samplerInfo.anisotropyEnable = VK_FALSE;
-    samplerInfo.maxAnisotropy = 1.0f;
-    samplerInfo.borderColor = VK_BORDER_COLOR_INT_OPAQUE_BLACK;
-    samplerInfo.unnormalizedCoordinates = VK_FALSE;
-    samplerInfo.compareEnable = VK_FALSE;
-    samplerInfo.compareOp = VK_COMPARE_OP_ALWAYS;
-    samplerInfo.mipmapMode = VK_SAMPLER_MIPMAP_MODE_LINEAR;
-    samplerInfo.mipLodBias = 0.0f;
-    samplerInfo.minLod = 0.0f;
-    samplerInfo.maxLod = 0.0f;
-
-    if (vkCreateSampler(
-            target->Device->VulkanDevice, &samplerInfo, nullptr, &target->Sampler)
-        != VK_SUCCESS) {
-        yolo::error("failed to create texture sampler!");
-    }
-
     target->TargetImage = new ImageAttachment();
 
     create_image(target->Device, extent.width, extent.height, format,
@@ -233,7 +209,14 @@ DynamicCPUTarget* dynamic_rendertarget_create(
     return target;
 }
 
-void dynamic_rendertarget_cleanup(DynamicCPUTarget* target) { }
+void dynamic_rendertarget_cleanup(DynamicCPUTarget* target)
+{
+    vkDestroyImageView(target->Device->VulkanDevice, target->ImageView, nullptr);
+    vkDestroyImage(target->Device->VulkanDevice, target->Image, nullptr);
+    vkFreeMemory(target->Device->VulkanDevice, target->Memory, nullptr);
+    vkDestroySampler(target->Device->VulkanDevice, target->Sampler, nullptr);
+    delete target;
+}
 
 // TODO: We should do this with a double buffer but whatever
 void dynamic_rendertarget_update(DynamicCPUTarget* target, void* data, VkExtent2D size)
@@ -281,6 +264,34 @@ void dynamic_rendertarget_update(DynamicCPUTarget* target, void* data, VkExtent2
     // Transition to whatever we need
     transition_image_layout(target->Device, target->Image, target->Format,
         VK_IMAGE_LAYOUT_GENERAL, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
+}
+
+void dynamic_rendertarget_recreate(DynamicCPUTarget* target, VkExtent2D extent)
+{
+    vkDestroyImageView(target->Device->VulkanDevice, target->ImageView, nullptr);
+    vkDestroyImage(target->Device->VulkanDevice, target->Image, nullptr);
+    vkFreeMemory(target->Device->VulkanDevice, target->Memory, nullptr);
+
+    target->Extent = extent;
+
+    // Create VkImage with Undefined
+    create_image(target->Device, extent.width, extent.height, target->Format, VK_IMAGE_TILING_OPTIMAL,
+        VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT | VK_IMAGE_USAGE_INPUT_ATTACHMENT_BIT
+            | VK_IMAGE_USAGE_SAMPLED_BIT,
+        VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, target->Image, target->Memory);
+
+    target->ImageView
+        = create_image_view(target->Device, target->Image, target->Format, VK_IMAGE_ASPECT_COLOR_BIT);
+
+    target->DescriptorSet = ImGui_ImplVulkan_AddTexture(
+        target->Sampler, target->ImageView, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
+
+    // NOTE: This assumes that the image is in the UNDEFINED LAYOUT
+    // And also assumes that the cpu layout is floating point (4 bytes) and the image is
+    // RGBA
+    target->StagingBuffer = generic_buffer_create(target->Device, 0,
+        extent.width * extent.height * 4, VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
+        VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
 }
 
 }

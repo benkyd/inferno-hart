@@ -67,4 +67,6 @@ void dynamic_rendertarget_cleanup(DynamicCPUTarget* target);
 
 void dynamic_rendertarget_update(DynamicCPUTarget* target, void* data, VkExtent2D size);
 
+void dynamic_rendertarget_recreate(DynamicCPUTarget* target, VkExtent2D extent);
+
 }
