@@ -6,17 +6,18 @@
 
 namespace inferno::graphics {
 
-// #define VALIDATION_LAYERS_ENABLED 1
+#define VALIDATION_LAYERS_ENABLED 1
 #ifdef VALIDATION_LAYERS_ENABLED
 const std::vector<const char*> VALIDATION_LAYERS = {
-    "VK_LAYER_KHRONOS_validation",
+    // "VK_LAYER_KHRONOS_validation",
+    // "VK_LAYER_RENDERDOC_Capture",
 };
 #endif
 
 const std::vector<const char*> DEVICE_EXTENSIONS = {
     VK_KHR_SWAPCHAIN_EXTENSION_NAME,
     VK_KHR_DYNAMIC_RENDERING_EXTENSION_NAME,
-    VK_EXT_DYNAMIC_RENDERING_UNUSED_ATTACHMENTS_EXTENSION_NAME,
+    // VK_EXT_DYNAMIC_RENDERING_UNUSED_ATTACHMENTS_EXTENSION_NAME,
 };
 
 struct VulkanRenderer;

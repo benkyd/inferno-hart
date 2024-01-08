@@ -182,6 +182,7 @@ bool device_evaluate(GraphicsDevice* g, VkPhysicalDevice device)
 
     // does the device support the extensions we need?
     if (!device_evaluate_extensions(device, DEVICE_EXTENSIONS)) {
+        yolo::error("Device {} does not support required extensions", deviceProperties.deviceName);
         return 0;
     }
 
@@ -319,7 +320,13 @@ void device_create_vulkan_physical_device(GraphicsDevice* device)
         // established the device with the best score, or the only one in the system.
         device->VulkanPhysicalDevice = candidates.rbegin()->second;
     } else {
-        yolo::error("failed to find a suitable GPU!");
+        // log all devices and their scores
+        for (const auto& device_candidate : candidates) {
+            VkPhysicalDeviceProperties deviceProperties;
+            vkGetPhysicalDeviceProperties(device_candidate.second, &deviceProperties);
+            yolo::error("Device {} scored {}", deviceProperties.deviceName, device_candidate.first);
+        }
+        yolo::error("Failed to find a suitable GPU!");
         exit(1);
     }
 }

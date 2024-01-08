@@ -231,6 +231,35 @@ void dynamic_rendertarget_update(DynamicCPUTarget* target, void* data, VkExtent2
         VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_GENERAL);
 
     // Sync with Fence
+    // we need a fence here because we need to wait for the image to be ready
+    // before we can copy to it
+    VkFenceCreateInfo fenceInfo {};
+    fenceInfo.sType = VK_STRUCTURE_TYPE_FENCE_CREATE_INFO;
+    fenceInfo.flags = 0;
+
+    VkFence fence;
+    if (vkCreateFence(target->Device->VulkanDevice, &fenceInfo, nullptr, &fence)
+        != VK_SUCCESS) {
+        yolo::error("failed to create fence!");
+    }
+
+    VkSubmitInfo submitInfo {};
+    submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
+    submitInfo.pNext = nullptr;
+    submitInfo.waitSemaphoreCount = 0;
+    submitInfo.pWaitSemaphores = nullptr;
+    submitInfo.pWaitDstStageMask = nullptr;
+    submitInfo.commandBufferCount = 0;
+    submitInfo.pCommandBuffers = nullptr;
+    submitInfo.signalSemaphoreCount = 0;
+    submitInfo.pSignalSemaphores = nullptr;
+
+    if (vkQueueSubmit(target->Device->VulkanGraphicsQueue, 1, &submitInfo, fence)
+        != VK_SUCCESS) {
+        yolo::error("failed to submit queue!");
+    }
+
+    vkWaitForFences(target->Device->VulkanDevice, 1, &fence, VK_TRUE, UINT64_MAX);
 
     // Map Memory
     void* mappedData;
@@ -239,13 +268,16 @@ void dynamic_rendertarget_update(DynamicCPUTarget* target, void* data, VkExtent2
     memcpy(mappedData, data, target->StagingBuffer->Size);
     vkUnmapMemory(target->Device->VulkanDevice, target->StagingBuffer->DeviceData);
 
+    transition_image_layout(target->Device, target->Image, target->Format,
+        VK_IMAGE_LAYOUT_GENERAL, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
+
     // No we have the data in the buffer, let's move it to the image
     graphics::renderer_submit_now(
         target->Device->RenderContext, [&](VulkanRenderer* re, VkCommandBuffer* cmd) {
             VkBufferImageCopy region {};
             region.bufferOffset = 0;
-            region.bufferRowLength = 0;
-            region.bufferImageHeight = 0;
+            region.bufferRowLength = size.width;
+            region.bufferImageHeight = size.height;
 
             region.imageSubresource.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
             region.imageSubresource.mipLevel = 0;
@@ -260,6 +292,8 @@ void dynamic_rendertarget_update(DynamicCPUTarget* target, void* data, VkExtent2
         });
 
     // Sync with Fence
+    vkResetFences(target->Device->VulkanDevice, 1, &fence);
+    vkDestroyFence(target->Device->VulkanDevice, fence, nullptr);
 
     // Transition to whatever we need
     transition_image_layout(target->Device, target->Image, target->Format,

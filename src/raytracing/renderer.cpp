@@ -67,7 +67,7 @@ void rayr_set_viewport(RayRenderer* renderer, Camera* camera)
     delete[] renderer->RenderData;
     renderer->RenderData
         = new glm::fvec4[renderer->Viewport.extent.width * renderer->Viewport.extent.height];
-    memset(renderer->RenderData, 0,
+    memset(renderer->RenderData, 1,
         renderer->Viewport.extent.width * renderer->Viewport.extent.height * sizeof(glm::fvec4));
 
     // Now resize the rendertarget
@@ -103,15 +103,15 @@ void rayr_draw(RayRenderer* renderer)
     scene::scene_frame_tick(renderer->Scene);
     // TODO: Rays should definately be bump allocated if possible, this is KBs of
     // ray data and nothing else being reallocated every frame for no reason
-    rays::ReferencedRayField startRays
-        = rays::generate_initial_rays(scene::scene_get_camera(renderer->Scene), true);
+    // rays::ReferencedRayField startRays
+    //     = rays::generate_initial_rays(scene::scene_get_camera(renderer->Scene), true);
 
-#pragma omp parallel for
     for (int x = 0; x < renderer->Viewport.extent.width; x++) {
         for (int y = 0; y < renderer->Viewport.extent.height; y++) {
-            rays::Ray* ray = startRays.Field[x * renderer->Viewport.extent.height + y];
+            // rays::Ray* ray = startRays.Field[x * renderer->Viewport.extent.height + y];
             renderer->RenderData[y * renderer->Viewport.extent.width + x]
-                = { ray->Direction.x, ray->Direction.y, ray->Direction.z, 1.0 };
+                // = { ray->Direction.x, ray->Direction.y, ray->Direction.z, 1.0 };
+                = { 1.0, 1.0, 1.0, 1.0 };
             // rays::HitInfo* closest_hit = nullptr;
             //
             // for (auto& obj : scene::scene_get_renderables(renderer->Scene)) {

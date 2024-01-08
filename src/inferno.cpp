@@ -249,24 +249,24 @@ void inferno_end(InfernoApp* app)
 
 int inferno_run(InfernoApp* app)
 {
-    graphics::renderer_submit_repeat(
-        app->Renderer,
-        [&](graphics::VulkanRenderer* renderer, VkCommandBuffer* commandBuffer) {
-            const auto lucy = app->Scene->Objects[0];
-            for (auto& mesh : scene::scene_object_get_meshs(lucy)) {
-                for (int i = 0; i < mesh->Indicies.size() - 1; i += 3) {
-                    graphics::debug_draw_line(mesh->Verticies[mesh->Indicies[i]].Position,
-                        mesh->Verticies[mesh->Indicies[i + 1]].Position, { 0, 0, 1 });
-                    graphics::debug_draw_line(
-                        mesh->Verticies[mesh->Indicies[i + 1]].Position,
-                        mesh->Verticies[mesh->Indicies[i + 2]].Position, { 0, 0, 1 });
-                    graphics::debug_draw_line(
-                        mesh->Verticies[mesh->Indicies[i + 2]].Position,
-                        mesh->Verticies[mesh->Indicies[i]].Position, { 0, 0, 1 });
-                }
-            }
-        },
-        false);
+    // graphics::renderer_submit_repeat(
+    //     app->Renderer,
+    //     [&](graphics::VulkanRenderer* renderer, VkCommandBuffer* commandBuffer) {
+    //         const auto lucy = app->Scene->Objects[0];
+    //         for (auto& mesh : scene::scene_object_get_meshs(lucy)) {
+    //             for (int i = 0; i < mesh->Indicies.size() - 1; i += 3) {
+    //                 graphics::debug_draw_line(mesh->Verticies[mesh->Indicies[i]].Position,
+    //                     mesh->Verticies[mesh->Indicies[i + 1]].Position, { 0, 0, 1 });
+    //                 graphics::debug_draw_line(
+    //                     mesh->Verticies[mesh->Indicies[i + 1]].Position,
+    //                     mesh->Verticies[mesh->Indicies[i + 2]].Position, { 0, 0, 1 });
+    //                 graphics::debug_draw_line(
+    //                     mesh->Verticies[mesh->Indicies[i + 2]].Position,
+    //                     mesh->Verticies[mesh->Indicies[i]].Position, { 0, 0, 1 });
+    //             }
+    //         }
+    //     },
+    //     false);
 
     while (graphics::window_new_frame()) {
         if (!inferno_pre(app))
@@ -353,15 +353,15 @@ int inferno_run(InfernoApp* app)
         }
 
         if (ImGui::Begin("Render")) {
-            // static ImVec2 lastViewport = { 0, 0 };
-            // ImVec2 currentViewport = ImGui::GetWindowSize();
-            // if (lastViewport.x != currentViewport.x
-            //     || lastViewport.y != currentViewport.y) {
-            //     graphics::camera_ray_set_viewport(scene::scene_get_camera(app->Scene),
-            //         { ImGui::GetWindowSize().x, ImGui::GetWindowSize().y });
-            //     graphics::rayr_set_viewport(app->RayRenderer, app->Scene->Camera);
-            // }
-            // lastViewport = currentViewport;
+            static ImVec2 lastViewport = { 0, 0 };
+            ImVec2 currentViewport = ImGui::GetWindowSize();
+            if (lastViewport.x != currentViewport.x
+                || lastViewport.y != currentViewport.y) {
+                graphics::camera_ray_set_viewport(scene::scene_get_camera(app->Scene),
+                    { ImGui::GetWindowSize().x, ImGui::GetWindowSize().y });
+                graphics::rayr_set_viewport(app->RayRenderer, app->Scene->Camera);
+            }
+            lastViewport = currentViewport;
 
             graphics::rayr_draw(app->RayRenderer);
 
