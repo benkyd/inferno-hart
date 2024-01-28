@@ -353,15 +353,15 @@ int inferno_run(InfernoApp* app)
         }
 
         if (ImGui::Begin("Render")) {
-            static ImVec2 lastViewport = { 0, 0 };
-            ImVec2 currentViewport = ImGui::GetWindowSize();
-            if (lastViewport.x != currentViewport.x
-                || lastViewport.y != currentViewport.y) {
-                graphics::camera_ray_set_viewport(scene::scene_get_camera(app->Scene),
-                    { ImGui::GetWindowSize().x, ImGui::GetWindowSize().y });
-                graphics::rayr_set_viewport(app->RayRenderer, app->Scene->Camera);
-            }
-            lastViewport = currentViewport;
+            // static ImVec2 lastViewport = { 0, 0 };
+            // ImVec2 currentViewport = ImGui::GetWindowSize();
+            // if (lastViewport.x != currentViewport.x
+            //     || lastViewport.y != currentViewport.y) {
+            //     graphics::camera_ray_set_viewport(scene::scene_get_camera(app->Scene),
+            //         { ImGui::GetWindowSize().x, ImGui::GetWindowSize().y });
+            //     graphics::rayr_set_viewport(app->RayRenderer, app->Scene->Camera);
+            // }
+            // lastViewport = currentViewport;
 
             graphics::rayr_draw(app->RayRenderer);
 
