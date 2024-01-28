@@ -1,12 +1,13 @@
 #pragma once
 
-#include <string>
-
 #include "graphics.hpp"
 
-#define WINDOW_FLAGS ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoBringToFrontOnFocus | ImGuiWindowFlags_NoNavFocus | ImGuiWindowFlags_MenuBar | ImGuiWindowFlags_NoBackground | ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoCollapse
+#include <optional>
+#include <string>
 
 namespace inferno::graphics {
+
+struct GraphicsDevice;
 
 typedef void (*KeyCallback)(int key, int scan, int action, int mod);
 typedef void (*MouseCallback)(double x, double y);
@@ -18,6 +19,8 @@ enum WINDOW_MODE {
 
 void window_create(std::string title, int width, int height);
 void window_cleanup();
+
+void window_init_device(GraphicsDevice* device, GLFWframebuffersizefun resizeCallback);
 
 void window_set_title(std::string title);
 

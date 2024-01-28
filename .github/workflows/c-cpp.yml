@@ -1,0 +1,30 @@
+name: C/C++ CI
+
+on:
+  push:
+    branches: [ "master", "dev" ]
+  pull_request:
+    branches: [ "master" ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v2
+      with:
+          submodules: recursive
+    - name: Prepare Vulkan SDK
+      uses: humbletim/setup-vulkan-sdk@v1.2.0
+      with:
+       vulkan-query-version: 1.3.204.0
+       vulkan-components: Vulkan-Headers, Vulkan-Loader
+       vulkan-use-cache: true
+    - name: packages
+      run: sudo apt install libglfw3-dev
+    - name: configure
+      run: mkdir build && cd build && cmake ..
+    - name: make
+      run: cd build && make
+

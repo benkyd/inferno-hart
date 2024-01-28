@@ -1,120 +1,115 @@
 #include "mesh.hpp"
 
+#include "graphics/buffer.hpp"
+#include "graphics/device.hpp"
+
 #include <yolo/yolo.hpp>
 
-#include <scene/objloader.hpp>
+#include <assimp/Importer.hpp>
+#include <assimp/postprocess.h>
+#include <assimp/scene.h>
 
 #include <iostream>
 
 namespace inferno::scene {
 
-Mesh::Mesh()
+VkVertexInputBindingDescription get_vert_binding_description()
 {
+    VkVertexInputBindingDescription bindingDescription = {};
+    bindingDescription.binding = 0;
+    bindingDescription.stride = sizeof(Vert);
+    bindingDescription.inputRate = VK_VERTEX_INPUT_RATE_VERTEX;
 
+    return bindingDescription;
 }
 
-Mesh::~Mesh()
+std::array<VkVertexInputAttributeDescription, 2> get_vert_attribute_descriptions()
 {
-    delete mObjLoader;
+    std::array<VkVertexInputAttributeDescription, 2> attributeDescriptions = {};
+
+    // Position
+    attributeDescriptions[0].binding = 0;
+    attributeDescriptions[0].location = 0;
+    attributeDescriptions[0].format = VK_FORMAT_R32G32B32_SFLOAT;
+    attributeDescriptions[0].offset = offsetof(Vert, Position);
+
+    // Normal
+    attributeDescriptions[1].binding = 0;
+    attributeDescriptions[1].location = 1;
+    attributeDescriptions[1].format = VK_FORMAT_R32G32B32_SFLOAT;
+    attributeDescriptions[1].offset = offsetof(Vert, Normal);
+
+    return attributeDescriptions;
 }
 
-void Mesh::loadOBJ(std::filesystem::path file)
+Mesh* mesh_create(graphics::GraphicsDevice* device)
 {
-    mObjLoader = new ObjLoader();
-    mObjLoader->load(file);
+    Mesh* mesh = new Mesh();
+    mesh->Device = device;
 
-    int vertCount = mObjLoader->getVertCount();
-    for (int i = 0; i < vertCount * 3; i += 3)
-    {
-        Vert vert;
-        vert.Position = {
-            mObjLoader->getPositions()[i],
-            mObjLoader->getPositions()[i+1],
-            mObjLoader->getPositions()[i+2],
-        };
-        vert.Normal = {
-            mObjLoader->getNormals()[i],
-            mObjLoader->getNormals()[i+1],
-            mObjLoader->getNormals()[i+2],
+    return mesh;
+}
+
+void mesh_cleanup(Mesh* mesh) { delete mesh; }
+
+void mesh_process(Mesh* out, aiMesh* mesh)
+{
+    for (unsigned int i = 0; i < mesh->mNumVertices; i++) {
+        Vert vertex = {
+            .Position
+            = glm::vec3(mesh->mVertices[i].x, mesh->mVertices[i].y, mesh->mVertices[i].z),
+            .Normal
+            = glm::vec3(mesh->mNormals[i].x, mesh->mNormals[i].y, mesh->mNormals[i].z),
         };
 
-        mVerticies.push_back(vert);
+        out->Positions.push_back(vertex.Position);
+        out->Normals.push_back(vertex.Normal);
+        out->Verticies.push_back(vertex);
+    }
+
+    // indicies
+    for (unsigned int i = 0; i < mesh->mNumFaces; i++) {
+        aiFace face = mesh->mFaces[i];
+        for (unsigned int j = 0; j < face.mNumIndices; j++) {
+            out->Indicies.push_back(face.mIndices[j]);
+        }
     }
 }
 
-void Mesh::ready()
+void mesh_optimize(Mesh* mesh) { }
+
+void mesh_ready(Mesh* mesh)
 {
-    // TODO: ready check
-    glGenVertexArrays(1, &mVAO);
-    glGenBuffers(1, &mVBO);
-    glGenBuffers(1, &mEBO);
+    void* data = mesh->Verticies.data();
+    void* indexData = mesh->Indicies.data();
 
-    glBindVertexArray(mVAO);
-    // load data into vertex buffers
+    uint32_t size = mesh->Verticies.size();
+    yolo::debug("Mesh size: {}", size);
 
-    glBindBuffer(GL_ARRAY_BUFFER, mVBO);
-    glBufferData(GL_ARRAY_BUFFER, mVerticies.size() * sizeof(Vert), &mVerticies[0], GL_STATIC_DRAW);
-
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, mEBO);
-    glBufferData(GL_ELEMENT_ARRAY_BUFFER, mObjLoader->getIndexCount() * sizeof(uint32_t), &mObjLoader->getFaces()[0], GL_STATIC_DRAW);
-
-    // set the vertex attribute pointers
-    // vertex Positions
-    glEnableVertexAttribArray(0);
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(Vert), (void*)0);
-    // vertex normals
-    glEnableVertexAttribArray(1);
-    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(Vert), (void*)offsetof(Vert, Normal));
-    // vertex UV
-    glEnableVertexAttribArray(2);
-    glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, sizeof(Vert), (void*)offsetof(Vert, UV));
-
-    glBindVertexArray(0);
+    mesh->VertexBuffer = graphics::vertex_buffer_create(mesh->Device, data, size);
+    mesh->IndexBuffer
+        = graphics::index_buffer_create(mesh->Device, indexData, mesh->Indicies.size());
 
     yolo::debug("Mesh for preview ready...");
 }
 
-int Mesh::getVerticies(const float** v, const float** n)
+uint32_t mesh_get_verticies(Mesh* mesh, const float** v, const float** n)
 {
-    *v = &mObjLoader->getPositions()[0];
-    *n = &mObjLoader->getNormals()[0];
-    return mObjLoader->getVertCount();
+    *v = (float*)mesh->Positions.data();
+    *n = (float*)mesh->Normals.data();
+    return mesh->Verticies.size();
 }
 
-int Mesh::getIndicies(const uint32_t** i)
+uint32_t mesh_get_indicies(Mesh* mesh, const uint32_t** i)
 {
-    *i = &mObjLoader->getFaces()[0];
-    return mObjLoader->getIndexCount();
+    *i = mesh->Indicies.data();
+    return mesh_get_index_count(mesh);
 }
 
-int Mesh::getIndexCount()
-{
-    return mObjLoader->getIndexCount();
-}
+uint32_t mesh_get_index_count(Mesh* mesh) { return mesh->Indicies.size(); }
 
-void Mesh::setMaterial(Material* mat)
-{
-    mMaterial = mat;
-}
+void mesh_set_model_matrix(Mesh* mesh, glm::mat4 model) { mesh->ModelMatrix = model; }
 
-Material* Mesh::getMaterial()
-{
-    return mMaterial;
-}
-
-GLuint Mesh::getVAO()
-{
-    return mVAO;
-}
-
-GLuint Mesh::getVBO()
-{
-    return mVBO;
-}
-
-GLuint Mesh::getEBO()
-{
-    return mEBO;
-}
+glm::mat4 mesh_get_model_matrix(Mesh* mesh) { return mesh->ModelMatrix; }
 
 }
